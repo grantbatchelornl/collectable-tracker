@@ -27,8 +27,10 @@ import {
   Hash,
   Award,
   Tag,
+  RefreshCw,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
+import { estimatePrice } from '@/lib/collectibleAI';
 
 export default function CollectibleDetail() {
   const { id } = useParams();
@@ -40,6 +42,7 @@ export default function CollectibleDetail() {
   const [activePhoto, setActivePhoto] = useState('front');
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -90,6 +93,56 @@ export default function CollectibleDetail() {
         await navigator.clipboard.writeText(url);
       } catch (err) {}
     }
+  };
+
+  const handleRefreshPricing = async () => {
+    setRefreshing(true);
+    try {
+      const result = await estimatePrice(collectible);
+      const newValue = result.estimated_value || 0;
+      const newLow = result.low_value || 0;
+      const newHigh = result.high_value || 0;
+      const source = 'AI Estimate';
+
+      await base44.entities.PricingHistory.create({
+        collectible_id: id,
+        collectible_name: collectible.item_name,
+        estimated_value: newValue,
+        low_value: newLow,
+        high_value: newHigh,
+        pricing_source: source,
+        confidence: result.confidence || 'medium',
+      });
+
+      if (!collectible.value_locked) {
+        const updated = await base44.entities.Collectible.update(id, {
+          estimated_value: newValue,
+          low_value: newLow,
+          high_value: newHigh,
+          value_source: source,
+        });
+        setCollectible(updated);
+      }
+
+      const historyData = await base44.entities.PricingHistory.filter(
+        { collectible_id: id },
+        '-created_date',
+        100
+      );
+      setHistory(historyData);
+    } catch (err) {
+      console.error('Pricing refresh failed', err);
+      alert('Could not refresh pricing. Please try again later.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const toggleValueLock = async () => {
+    const updated = await base44.entities.Collectible.update(id, {
+      value_locked: !collectible.value_locked,
+    });
+    setCollectible(updated);
   };
 
   const cyclePrivacy = async () => {
@@ -191,9 +244,16 @@ export default function CollectibleDetail() {
               </p>
             </div>
             <div className="text-right">
-              <span className="inline-flex items-center gap-1 text-xs bg-accent text-accent-foreground rounded-full px-2.5 py-1 font-medium">
-                <DollarSign className="w-3 h-3" /> {collectible.value_source || 'Manual'}
-              </span>
+              <div className="flex gap-1.5 justify-end">
+                <span className="inline-flex items-center gap-1 text-xs bg-accent text-accent-foreground rounded-full px-2.5 py-1 font-medium">
+                  <DollarSign className="w-3 h-3" /> {collectible.value_source || 'Manual'}
+                </span>
+                {collectible.value_locked && (
+                  <span className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary rounded-full px-2.5 py-1 font-medium">
+                    <Lock className="w-3 h-3" /> Locked
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex gap-4 text-sm">
@@ -253,6 +313,39 @@ export default function CollectibleDetail() {
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{collectible.notes}</p>
           </div>
         )}
+
+        <div className="space-y-3">
+          <Button
+            onClick={handleRefreshPricing}
+            disabled={refreshing}
+            className="w-full h-12 font-medium"
+          >
+            {refreshing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Checking market prices...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" /> Refresh Pricing
+              </>
+            )}
+          </Button>
+          <div className="flex items-center justify-between rounded-xl bg-card border border-border p-3">
+            <div className="flex items-center gap-2">
+              <Lock className={`w-4 h-4 ${collectible.value_locked ? 'text-primary' : 'text-muted-foreground'}`} />
+              <div>
+                <p className="text-sm font-medium">Lock Value</p>
+                <p className="text-[10px] text-muted-foreground">Prevent AI from updating this value</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleValueLock}
+              className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${collectible.value_locked ? 'bg-primary' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.value_locked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+        </div>
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-3">

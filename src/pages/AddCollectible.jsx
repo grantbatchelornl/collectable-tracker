@@ -4,7 +4,8 @@ import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import SaveAnimation from '@/components/SaveAnimation';
-import { ArrowLeft, ArrowRight, Check, Loader2, Tag } from 'lucide-react';
+import { identifyAndPrice } from '@/lib/collectibleAI';
+import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles } from 'lucide-react';
 
 const EMPTY = {
   category_id: '',
@@ -43,6 +44,8 @@ export default function AddCollectible() {
   const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
+  const [identifying, setIdentifying] = useState(false);
+  const [aiIdentified, setAiIdentified] = useState(false);
   const [data, setData] = useState(EMPTY);
 
   useEffect(() => {
@@ -57,6 +60,42 @@ export default function AddCollectible() {
     update('category_id', cat.id);
     update('category_name', cat.name);
     setStep(2);
+  };
+
+  const handleAutoIdentify = async () => {
+    const photo = data.frontPhoto || data.backPhoto;
+    if (!photo) return;
+    setIdentifying(true);
+    try {
+      const result = await identifyAndPrice(photo);
+      setData((d) => ({
+        ...d,
+        item_name: result.item_name || d.item_name,
+        character_athlete_name: result.character_athlete_name || d.character_athlete_name,
+        brand: result.brand || d.brand,
+        product_line: result.product_line || d.product_line,
+        set_name: result.set_name || d.set_name,
+        card_number: result.card_number || d.card_number,
+        year: result.year != null ? result.year.toString() : d.year,
+        team: result.team || d.team,
+        variant: result.variant || d.variant,
+        edition: result.edition || d.edition,
+        parallel: result.parallel || d.parallel,
+        has_autograph: result.has_autograph ?? d.has_autograph,
+        grading_company: result.grading_company || d.grading_company,
+        grade: result.grade || d.grade,
+        estimated_value: result.estimated_value != null ? result.estimated_value.toString() : d.estimated_value,
+        low_value: result.low_value != null ? result.low_value.toString() : d.low_value,
+        high_value: result.high_value != null ? result.high_value.toString() : d.high_value,
+      }));
+      setAiIdentified(true);
+      setStep(3);
+    } catch (err) {
+      console.error('Auto-identify failed', err);
+      alert('Could not identify collectible. Please fill in details manually.');
+    } finally {
+      setIdentifying(false);
+    }
   };
 
   const canProceed = () => {
@@ -94,7 +133,7 @@ export default function AddCollectible() {
         estimated_value: parseFloat(data.estimated_value) || 0,
         low_value: parseFloat(data.low_value) || 0,
         high_value: parseFloat(data.high_value) || 0,
-        value_source: 'Manual',
+        value_source: aiIdentified ? 'AI Estimate' : 'Manual',
         value_locked: false,
         privacy_status: data.privacy_status,
         primary_photo_url: data.frontPhoto || data.backPhoto || '',
@@ -127,7 +166,7 @@ export default function AddCollectible() {
           estimated_value: parseFloat(data.estimated_value) || 0,
           low_value: parseFloat(data.low_value) || 0,
           high_value: parseFloat(data.high_value) || 0,
-          pricing_source: 'Manual',
+          pricing_source: aiIdentified ? 'AI Estimate' : 'Manual',
           confidence: 'medium',
         })
       );
@@ -209,6 +248,23 @@ export default function AddCollectible() {
               setData((d) => ({ ...d, frontPhoto: p.front, backPhoto: p.back }))
             }
           />
+          {(data.frontPhoto || data.backPhoto) && (
+            <button
+              onClick={handleAutoIdentify}
+              disabled={identifying}
+              className="w-full h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {identifying ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Identifying & pricing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5" /> Auto-Identify & Price
+                </>
+              )}
+            </button>
+          )}
           <button
             onClick={() => setStep(3)}
             disabled={!canProceed()}
