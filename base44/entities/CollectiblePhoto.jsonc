@@ -1,0 +1,51 @@
+{
+  "name": "CollectiblePhoto",
+  "type": "object",
+  "properties": {
+    "collectible_id": {
+      "type": "string"
+    },
+    "photo_type": {
+      "type": "string",
+      "enum": [
+        "front",
+        "back"
+      ],
+      "default": "front"
+    },
+    "photo_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "collectible_id",
+    "photo_type",
+    "photo_url"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.id}}"
+    },
+    "delete": {
+      "created_by": "{{user.id}}"
+    }
+  }
+}

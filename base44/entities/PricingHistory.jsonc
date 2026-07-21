@@ -1,0 +1,67 @@
+{
+  "name": "PricingHistory",
+  "type": "object",
+  "properties": {
+    "collectible_id": {
+      "type": "string"
+    },
+    "collectible_name": {
+      "type": "string"
+    },
+    "estimated_value": {
+      "type": "number",
+      "default": 0
+    },
+    "low_value": {
+      "type": "number",
+      "default": 0
+    },
+    "high_value": {
+      "type": "number",
+      "default": 0
+    },
+    "pricing_source": {
+      "type": "string",
+      "default": "Manual"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    }
+  },
+  "required": [
+    "collectible_id",
+    "estimated_value"
+  ],
+  "rls": {
+    "create": true,
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.id}}"
+    },
+    "delete": {
+      "created_by": "{{user.id}}"
+    }
+  }
+}
