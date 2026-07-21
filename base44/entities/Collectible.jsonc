@@ -107,11 +107,11 @@
     "estimated_value"
   ],
   "rls": {
-    "create": true,
+    "create": null,
     "read": {
       "$or": [
         {
-          "created_by": "{{user.id}}"
+          "created_by_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -126,10 +126,10 @@
       ]
     },
     "update": {
-      "created_by": "{{user.id}}"
+      "created_by_id": "{{user.id}}"
     },
     "delete": {
-      "created_by": "{{user.id}}"
+      "created_by_id": "{{user.id}}"
     }
   }
 }
