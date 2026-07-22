@@ -19,6 +19,8 @@ import AddCollectible from '@/pages/AddCollectible';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
 import Messages from '@/pages/Messages';
+import Chat from '@/pages/Chat';
+import PublicProfile from '@/pages/PublicProfile';
 import Profile from '@/pages/Profile';
 import AdminDashboard from '@/pages/AdminDashboard';
 
@@ -61,6 +63,8 @@ const AuthenticatedApp = () => {
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/chat/:userId" element={<Chat />} />
+          <Route path="/collector/:userId" element={<PublicProfile />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>

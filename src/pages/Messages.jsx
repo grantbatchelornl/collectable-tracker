@@ -1,22 +1,181 @@
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
+import ConversationItem from '@/components/social/ConversationItem';
+import TradeCard from '@/components/social/TradeCard';
+import { MessageCircle, ArrowLeftRight, Loader2 } from 'lucide-react';
 
 export default function Messages() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [tab, setTab] = useState('chats');
+  const [conversations, setConversations] = useState([]);
+  const [incomingTrades, setIncomingTrades] = useState([]);
+  const [outgoingTrades, setOutgoingTrades] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    if (!user?.id) return;
+    setLoading(true);
+    try {
+      const [messages, trades] = await Promise.all([
+        base44.entities.Message.list('-created_date', 500),
+        base44.entities.Trade.list('-created_date', 200),
+      ]);
+
+      const convMap = new Map();
+      messages.forEach((msg) => {
+        const otherId = msg.sender_id === user.id ? msg.recipient_id : msg.sender_id;
+        const otherName = msg.sender_id === user.id ? msg.recipient_name : msg.sender_name;
+        const otherPhoto = msg.sender_id === user.id ? msg.recipient_photo : msg.sender_photo;
+        const existing = convMap.get(otherId);
+        if (!existing || new Date(msg.created_date) > new Date(existing.lastMessageDate)) {
+          convMap.set(otherId, {
+            otherUserId: otherId,
+            otherUserName: otherName,
+            otherUserPhoto: otherPhoto || '',
+            lastMessage:
+              msg.body ||
+              (msg.attached_collectible_name ? `Shared: ${msg.attached_collectible_name}` : ''),
+            lastMessageDate: msg.created_date,
+            unreadCount: 0,
+          });
+        }
+      });
+
+      messages.forEach((msg) => {
+        if (msg.recipient_id === user.id && !msg.read) {
+          const conv = convMap.get(msg.sender_id);
+          if (conv) conv.unreadCount++;
+        }
+      });
+
+      setConversations(
+        Array.from(convMap.values()).sort(
+          (a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate)
+        )
+      );
+      setIncomingTrades(trades.filter((t) => t.recipient_id === user.id));
+      setOutgoingTrades(trades.filter((t) => t.proposer_id === user.id));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const pendingIncoming = incomingTrades.filter((t) => t.status === 'pending').length;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-4">
-      <h2 className="font-display text-xl font-bold mb-1">Messages</h2>
-      <p className="text-sm text-muted-foreground mb-8">Chat with your collector friends in real time.</p>
-      <div className="text-center py-20">
-        <div className="w-20 h-20 rounded-3xl bg-accent flex items-center justify-center mx-auto mb-4">
-          <MessageCircle className="w-10 h-10 text-muted-foreground" />
-        </div>
-        <h3 className="font-display text-lg font-bold mb-2">Coming in Phase 3</h3>
-        <p className="text-muted-foreground text-sm max-w-xs mx-auto">
-          Friends, real-time messaging, and collectible sharing in conversations are on the way.
-        </p>
-        <div className="inline-flex items-center gap-1.5 mt-6 text-xs text-primary bg-primary/10 rounded-full px-3 py-1.5 font-medium">
-          <Sparkles className="w-3.5 h-3.5" /> Phase 3 Feature
-        </div>
+      <h2 className="font-display text-xl font-bold mb-4">Messages</h2>
+
+      <div className="flex gap-1 bg-muted rounded-xl p-1 mb-4">
+        <button
+          onClick={() => setTab('chats')}
+          className={`flex-1 h-9 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
+            tab === 'chats' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+          }`}
+        >
+          <MessageCircle className="w-4 h-4" /> Chats
+        </button>
+        <button
+          onClick={() => setTab('trades')}
+          className={`flex-1 h-9 rounded-lg text-sm font-medium flex items-center justify-center gap-1.5 transition-colors relative ${
+            tab === 'trades' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground'
+          }`}
+        >
+          <ArrowLeftRight className="w-4 h-4" /> Trades
+          {pendingIncoming > 0 && (
+            <span className="absolute top-0 right-2 w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+              {pendingIncoming}
+            </span>
+          )}
+        </button>
       </div>
+
+      {tab === 'chats' ? (
+        conversations.length === 0 ? (
+          <EmptyState
+            icon={MessageCircle}
+            title="No conversations yet"
+            text="Follow collectors and start chatting from their profile."
+          />
+        ) : (
+          <div className="rounded-2xl bg-card border border-border overflow-hidden">
+            {conversations.map((conv) => (
+              <div key={conv.otherUserId} className="border-b border-border last:border-b-0">
+                <ConversationItem
+                  otherUserName={conv.otherUserName}
+                  otherUserPhoto={conv.otherUserPhoto}
+                  lastMessage={conv.lastMessage}
+                  lastMessageDate={conv.lastMessageDate}
+                  unreadCount={conv.unreadCount}
+                  onClick={() => navigate(`/chat/${conv.otherUserId}`)}
+                />
+              </div>
+            ))}
+          </div>
+        )
+      ) : incomingTrades.length === 0 && outgoingTrades.length === 0 ? (
+        <EmptyState
+          icon={ArrowLeftRight}
+          title="No trade offers"
+          text="Propose trades from a collector's profile to see them here."
+        />
+      ) : (
+        <div className="space-y-4">
+          {incomingTrades.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                Incoming
+              </h3>
+              <div className="space-y-3">
+                {incomingTrades.map((trade) => (
+                  <TradeCard key={trade.id} trade={trade} isIncoming onAction={loadData} />
+                ))}
+              </div>
+            </div>
+          )}
+          {outgoingTrades.length > 0 && (
+            <div>
+              <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">
+                Outgoing
+              </h3>
+              <div className="space-y-3">
+                {outgoingTrades.map((trade) => (
+                  <TradeCard key={trade.id} trade={trade} isIncoming={false} onAction={loadData} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EmptyState({ icon: Icon, title, text }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mb-4">
+        <Icon className="w-8 h-8 text-muted-foreground" />
+      </div>
+      <h3 className="font-display text-base font-bold mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground max-w-xs">{text}</p>
     </div>
   );
 }

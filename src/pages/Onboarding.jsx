@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Camera, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Image } from '@/components/ui/image';
+import { syncCollectorProfile } from '@/lib/social';
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -51,6 +52,13 @@ export default function Onboarding() {
         bio: bio.trim(),
         profile_photo: profilePhoto,
         has_completed_onboarding: true,
+      });
+      await syncCollectorProfile({
+        ...user,
+        display_name: displayName.trim(),
+        username: username.trim(),
+        bio: bio.trim(),
+        profile_photo: profilePhoto,
       });
       window.location.href = '/';
     } catch (err) {

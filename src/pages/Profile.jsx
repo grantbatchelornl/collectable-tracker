@@ -18,8 +18,12 @@ import {
   DollarSign,
   Bell,
   Eye,
+  UserPlus,
+  Check,
+  ArrowLeftRight,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import { syncCollectorProfile } from '@/lib/social';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -30,21 +34,45 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editData, setEditData] = useState({});
+  const [friendRequests, setFriendRequests] = useState([]);
   const fileRef = useRef(null);
 
   useEffect(() => {
     loadData();
+    if (user?.id) syncCollectorProfile(user);
   }, []);
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const items = await base44.entities.Collectible.list('-created_date', 200);
+      const [items, requests] = await Promise.all([
+        base44.entities.Collectible.list('-created_date', 200),
+        base44.entities.Follow.filter({ following_id: user?.id, status: 'pending' }, '-created_date', 50),
+      ]);
       setCollectibles(items);
+      setFriendRequests(requests);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const acceptRequest = async (request) => {
+    try {
+      await base44.entities.Follow.update(request.id, { status: 'active' });
+      setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const declineRequest = async (request) => {
+    try {
+      await base44.entities.Follow.delete(request.id);
+      setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -83,6 +111,14 @@ export default function Profile() {
         profile_photo: editData.profile_photo,
         privacy_show_public_value: editData.privacy_show_public_value,
         notification_in_app_enabled: editData.notification_in_app_enabled,
+      });
+      await syncCollectorProfile({
+        ...user,
+        display_name: editData.display_name,
+        username: editData.username,
+        bio: editData.bio,
+        profile_photo: editData.profile_photo,
+        privacy_show_public_value: editData.privacy_show_public_value,
       });
       setEditing(false);
       window.location.reload();
@@ -158,6 +194,59 @@ export default function Profile() {
           <p className="text-xs text-muted-foreground">Total Value</p>
         </div>
       </div>
+
+      {/* Friend Requests */}
+      {friendRequests.length > 0 && (
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <div className="p-4">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <UserPlus className="w-3.5 h-3.5" /> Friend Requests ({friendRequests.length})
+            </h3>
+            <div className="space-y-3">
+              {friendRequests.map((req) => (
+                <div key={req.id} className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-border bg-muted flex-shrink-0">
+                    {req.follower_photo ? (
+                      <Image src={req.follower_photo} fittingType="fill" className="w-full h-full" alt={req.follower_name} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
+                        {(req.follower_name || 'C').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-sm font-medium truncate flex-1">{req.follower_name || 'Collector'}</p>
+                  <button
+                    onClick={() => declineRequest(req)}
+                    className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-accent flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => acceptRequest(req)}
+                    className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 flex-shrink-0"
+                  >
+                    <Check className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Trades & Messages link */}
+      <button
+        onClick={() => navigate('/messages')}
+        className="w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left hover:bg-accent transition-colors"
+      >
+        <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+          <ArrowLeftRight className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <p className="font-semibold text-sm">Trades & Messages</p>
+          <p className="text-xs text-muted-foreground">View trade offers and conversations</p>
+        </div>
+      </button>
 
       {/* Settings */}
       <div className="rounded-2xl bg-card border border-border overflow-hidden">

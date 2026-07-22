@@ -17,6 +17,9 @@
     "sender_photo": {
       "type": "string"
     },
+    "recipient_photo": {
+      "type": "string"
+    },
     "body": {
       "type": "string"
     },
