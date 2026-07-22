@@ -1,0 +1,40 @@
+{
+  "name": "CollectorProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "profile_photo": {
+      "type": "string"
+    },
+    "show_public_value": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

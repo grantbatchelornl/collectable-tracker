@@ -1,0 +1,101 @@
+{
+  "name": "Trade",
+  "type": "object",
+  "properties": {
+    "proposer_id": {
+      "type": "string"
+    },
+    "recipient_id": {
+      "type": "string"
+    },
+    "proposer_name": {
+      "type": "string"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "proposer_photo": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "rejected",
+        "cancelled",
+        "completed"
+      ],
+      "default": "pending"
+    },
+    "message": {
+      "type": "string"
+    },
+    "response_message": {
+      "type": "string"
+    },
+    "offered_items_json": {
+      "type": "string"
+    },
+    "requested_items_json": {
+      "type": "string"
+    },
+    "offered_value": {
+      "type": "number",
+      "default": 0
+    },
+    "requested_value": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "proposer_id",
+    "recipient_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.proposer_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.proposer_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.proposer_id": "{{user.id}}"
+        },
+        {
+          "data.recipient_id": "{{user.id}}"
+        }
+      ]
+    }
+  }
+}

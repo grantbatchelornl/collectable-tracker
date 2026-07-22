@@ -1,0 +1,81 @@
+{
+  "name": "Follow",
+  "type": "object",
+  "properties": {
+    "follower_id": {
+      "type": "string"
+    },
+    "following_id": {
+      "type": "string"
+    },
+    "follower_name": {
+      "type": "string"
+    },
+    "following_name": {
+      "type": "string"
+    },
+    "follower_photo": {
+      "type": "string"
+    },
+    "following_photo": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "follower_id",
+    "following_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.follower_id": "{{user.id}}"
+        },
+        {
+          "data.following_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.follower_id": "{{user.id}}"
+        },
+        {
+          "data.following_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.follower_id": "{{user.id}}"
+        },
+        {
+          "data.following_id": "{{user.id}}"
+        }
+      ]
+    }
+  }
+}
