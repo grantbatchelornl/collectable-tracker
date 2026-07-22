@@ -116,6 +116,9 @@
           "created_by_id": "{{user.id}}"
         },
         {
+          "data.privacy_status": "public"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
