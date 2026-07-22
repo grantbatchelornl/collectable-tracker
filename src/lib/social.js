@@ -43,6 +43,16 @@ export function serializeTradeItems(items) {
   );
 }
 
+export function getTradeFairness(offeredValue, requestedValue) {
+  const diff = Math.abs(offeredValue - requestedValue);
+  const max = Math.max(offeredValue, requestedValue);
+  if (max === 0) return { label: 'No Value', color: 'muted', percent: 0 };
+  const percent = (diff / max) * 100;
+  if (percent <= 10) return { label: 'Fair Trade', color: 'gain', percent };
+  if (percent <= 25) return { label: 'Slightly Unbalanced', color: 'gold', percent };
+  return { label: 'Unbalanced', color: 'loss', percent };
+}
+
 export function getInitials(name) {
   if (!name) return 'C';
   return name.charAt(0).toUpperCase();

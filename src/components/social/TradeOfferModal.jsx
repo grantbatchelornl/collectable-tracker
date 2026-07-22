@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Image } from '@/components/ui/image';
 import { serializeTradeItems } from '@/lib/social';
+import FairnessIndicator from './FairnessIndicator';
 import { formatCurrency } from '@/lib/format';
 import { X, Loader2, ArrowRight, Check, Package } from 'lucide-react';
 
@@ -114,11 +115,26 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
               className="w-full h-20 rounded-lg border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Tip: Select multiple items to balance the value of a higher-priced collectible.
+          </p>
           {(offeredValue > 0 || requestedValue > 0) && (
-            <div className="flex items-center justify-center gap-3 py-2 text-sm">
-              <span className="font-semibold">{formatCurrency(offeredValue)}</span>
-              <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              <span className="font-semibold">{formatCurrency(requestedValue)}</span>
+            <div className="space-y-2 py-2">
+              <div className="flex items-center justify-center gap-3 text-sm">
+                <span className="font-semibold">{formatCurrency(offeredValue)}</span>
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                <span className="font-semibold">{formatCurrency(requestedValue)}</span>
+              </div>
+              {offeredValue > 0 && requestedValue > 0 && (
+                <div className="flex justify-center">
+                  <FairnessIndicator offered={offeredValue} requested={requestedValue} />
+                </div>
+              )}
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <span>{offeredItems.length} offered</span>
+                <span>•</span>
+                <span>{requestedItems.length} requested</span>
+              </div>
             </div>
           )}
         </div>

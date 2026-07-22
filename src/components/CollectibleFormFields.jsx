@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -7,6 +8,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronDown } from 'lucide-react';
 
 function Field({ label, children, required }) {
   return (
@@ -43,11 +46,34 @@ function Toggle({ checked, onChange, label }) {
   );
 }
 
+function Section({ title, subtitle, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Collapsible open={open} onOpenChange={setOpen}>
+      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-xl border border-border bg-card text-left hover:bg-accent transition-colors">
+        <div>
+          <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            {title}
+          </h3>
+          {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
+        </div>
+        <ChevronDown
+          className={`w-4 h-4 text-muted-foreground transition-transform flex-shrink-0 ml-2 ${open ? 'rotate-180' : ''}`}
+        />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3 pt-3">{children}</CollapsibleContent>
+    </Collapsible>
+  );
+}
+
 export default function CollectibleFormFields({ data, update }) {
   return (
     <div className="space-y-5">
+      {/* Essential fields - always visible */}
       <div className="space-y-3">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Basic Info</h3>
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+          Basic Info <span className="text-primary normal-case">required</span>
+        </h3>
         <Field label="Item Name" required>
           <Input
             value={data.item_name}
@@ -68,15 +94,18 @@ export default function CollectibleFormFields({ data, update }) {
           <Field label="Brand">
             <Input value={data.brand} onChange={(e) => update('brand', e.target.value)} placeholder="Topps, Funko" className="h-11" />
           </Field>
-          <Field label="Product Line">
-            <Input value={data.product_line} onChange={(e) => update('product_line', e.target.value)} placeholder="Base Set, Pop!" className="h-11" />
+          <Field label="Year">
+            <Input type="number" value={data.year} onChange={(e) => update('year', e.target.value)} placeholder="1999" className="h-11" />
           </Field>
         </div>
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Set Details</h3>
+      {/* Set & Card Details - collapsible */}
+      <Section title="Set & Card Details" subtitle="Product line, set name, card number, variant">
         <div className="grid grid-cols-2 gap-3">
+          <Field label="Product Line">
+            <Input value={data.product_line} onChange={(e) => update('product_line', e.target.value)} placeholder="Base Set, Pop!" className="h-11" />
+          </Field>
           <Field label="Set Name">
             <Input value={data.set_name} onChange={(e) => update('set_name', e.target.value)} className="h-11" />
           </Field>
@@ -86,15 +115,6 @@ export default function CollectibleFormFields({ data, update }) {
           <Field label="Card Number">
             <Input value={data.card_number} onChange={(e) => update('card_number', e.target.value)} className="h-11" />
           </Field>
-          <Field label="Year">
-            <Input type="number" value={data.year} onChange={(e) => update('year', e.target.value)} placeholder="1999" className="h-11" />
-          </Field>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Item Details</h3>
-        <div className="grid grid-cols-2 gap-3">
           <Field label="Team">
             <Input value={data.team} onChange={(e) => update('team', e.target.value)} className="h-11" />
           </Field>
@@ -114,10 +134,10 @@ export default function CollectibleFormFields({ data, update }) {
             <Input value={data.authentication_company} onChange={(e) => update('authentication_company', e.target.value)} placeholder="JSA, PSA/DNA" className="h-11" />
           </Field>
         </div>
-      </div>
+      </Section>
 
-      <div className="space-y-3">
-        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Grading & Condition</h3>
+      {/* Grading & Condition - collapsible */}
+      <Section title="Grading & Condition" subtitle="Autograph, grading, and item condition">
         <Toggle
           checked={data.has_autograph}
           onChange={(v) => update('has_autograph', v)}
@@ -137,11 +157,12 @@ export default function CollectibleFormFields({ data, update }) {
             <Input value={data.item_condition} onChange={(e) => update('item_condition', e.target.value)} placeholder="Near Mint" className="h-11" />
           </Field>
         </div>
-      </div>
+      </Section>
 
+      {/* Value - always visible */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          Estimated Value <span className="text-muted-foreground normal-case">(Manual)</span>
+          Estimated Value <span className="text-primary normal-case">required</span>
         </h3>
         <Field label="Estimated Value" required>
           <Input
@@ -153,6 +174,13 @@ export default function CollectibleFormFields({ data, update }) {
             className="h-11"
           />
         </Field>
+        <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2.5">
+          Values are estimates and not guaranteed sale prices. Manual values are clearly labeled.
+        </p>
+      </div>
+
+      {/* Value range & notes - collapsible */}
+      <Section title="Value Range & Notes" subtitle="Low/high estimates and additional notes">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Low Estimate">
             <Input type="number" step="0.01" value={data.low_value} onChange={(e) => update('low_value', e.target.value)} placeholder="0.00" className="h-11" />
@@ -161,11 +189,17 @@ export default function CollectibleFormFields({ data, update }) {
             <Input type="number" step="0.01" value={data.high_value} onChange={(e) => update('high_value', e.target.value)} placeholder="0.00" className="h-11" />
           </Field>
         </div>
-        <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2.5">
-          Values are estimates and not guaranteed sale prices. Manual values are clearly labeled.
-        </p>
-      </div>
+        <Field label="Notes">
+          <textarea
+            value={data.notes}
+            onChange={(e) => update('notes', e.target.value)}
+            placeholder="Any additional notes..."
+            className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+        </Field>
+      </Section>
 
+      {/* Privacy - always visible */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Privacy</h3>
         <Field label="Who can see this collectible?">
@@ -181,15 +215,6 @@ export default function CollectibleFormFields({ data, update }) {
           </Select>
         </Field>
       </div>
-
-      <Field label="Notes">
-        <textarea
-          value={data.notes}
-          onChange={(e) => update('notes', e.target.value)}
-          placeholder="Any additional notes..."
-          className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </Field>
     </div>
   );
 }

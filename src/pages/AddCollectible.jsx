@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
+import { checkAndAwardBadges } from '@/lib/achievements';
 import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles } from 'lucide-react';
 
 const EMPTY = {
@@ -40,6 +42,7 @@ const EMPTY = {
 
 export default function AddCollectible() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -172,6 +175,7 @@ export default function AddCollectible() {
       );
 
       await Promise.all(promises);
+      await checkAndAwardBadges(user);
       setShowAnimation(true);
       setTimeout(() => navigate('/'), 1400);
     } catch (err) {

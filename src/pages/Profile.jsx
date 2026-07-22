@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { syncCollectorProfile } from '@/lib/social';
+import { checkAndAwardBadges } from '@/lib/achievements';
+import AchievementBadges from '@/components/AchievementBadges';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ export default function Profile() {
       ]);
       setCollectibles(items);
       setFriendRequests(requests);
+      checkAndAwardBadges(user).catch(() => {});
     } catch (err) {
       console.error(err);
     } finally {
@@ -247,6 +250,9 @@ export default function Profile() {
           <p className="text-xs text-muted-foreground">View trade offers and conversations</p>
         </div>
       </button>
+
+      {/* Badges */}
+      <AchievementBadges userId={user?.id} />
 
       {/* Settings */}
       <div className="rounded-2xl bg-card border border-border overflow-hidden">

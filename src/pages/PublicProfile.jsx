@@ -8,6 +8,7 @@ import FollowButton from '@/components/social/FollowButton';
 import TradeOfferModal from '@/components/social/TradeOfferModal';
 import { formatCurrency } from '@/lib/format';
 import { getInitials } from '@/lib/social';
+import AchievementBadges from '@/components/AchievementBadges';
 import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -118,6 +119,8 @@ export default function PublicProfile() {
           <p className="text-xs text-muted-foreground">Collection Value</p>
         </div>
       </div>
+
+      <AchievementBadges userId={userId} earnedOnly />
 
       {userId !== user?.id && (
         <div className="space-y-3">

@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { parseTradeItems } from '@/lib/social';
+import FairnessIndicator from './FairnessIndicator';
 import { ArrowLeftRight, Check, X, Loader2 } from 'lucide-react';
 
 const STATUS_STYLES = {
@@ -68,11 +69,21 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>
-          {formatCurrency(trade.offered_value || 0)} ↔ {formatCurrency(trade.requested_value || 0)}
-        </span>
-        <span>{formatRelativeDate(trade.created_date)}</span>
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>
+            {offeredItems.length} offered ↔ {requestedItems.length} requested
+          </span>
+          <span>{formatRelativeDate(trade.created_date)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold">
+            {formatCurrency(trade.offered_value || 0)} ↔ {formatCurrency(trade.requested_value || 0)}
+          </span>
+          {trade.offered_value > 0 && trade.requested_value > 0 && (
+            <FairnessIndicator offered={trade.offered_value} requested={trade.requested_value} />
+          )}
+        </div>
       </div>
 
       {isIncoming && status === 'pending' && (
