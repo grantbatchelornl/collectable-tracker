@@ -22,6 +22,7 @@ import Messages from '@/pages/Messages';
 import Chat from '@/pages/Chat';
 import PublicProfile from '@/pages/PublicProfile';
 import Profile from '@/pages/Profile';
+import Watchlist from '@/pages/Watchlist';
 import AdminDashboard from '@/pages/AdminDashboard';
 
 const AuthenticatedApp = () => {
@@ -65,6 +66,7 @@ const AuthenticatedApp = () => {
           <Route path="/messages" element={<Messages />} />
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/collector/:userId" element={<PublicProfile />} />
+          <Route path="/watchlist" element={<Watchlist />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>

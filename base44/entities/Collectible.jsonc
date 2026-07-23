@@ -86,6 +86,14 @@
       "type": "boolean",
       "default": false
     },
+    "for_sale": {
+      "type": "boolean",
+      "default": false
+    },
+    "asking_price": {
+      "type": "number",
+      "default": 0
+    },
     "privacy_status": {
       "type": "string",
       "enum": [

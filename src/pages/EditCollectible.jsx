@@ -47,6 +47,8 @@ export default function EditCollectible() {
         low_value: c.low_value?.toString() || '',
         high_value: c.high_value?.toString() || '',
         privacy_status: c.privacy_status || 'private',
+        for_sale: c.for_sale || false,
+        asking_price: c.asking_price?.toString() || '',
         notes: c.notes || '',
         originalValue: c.estimated_value,
       });
@@ -91,6 +93,8 @@ export default function EditCollectible() {
         low_value: parseFloat(data.low_value) || 0,
         high_value: parseFloat(data.high_value) || 0,
         privacy_status: data.privacy_status,
+        for_sale: data.for_sale,
+        asking_price: parseFloat(data.asking_price) || 0,
         notes: data.notes || undefined,
       });
 

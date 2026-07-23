@@ -23,8 +23,13 @@ export default function CollectibleCard({ collectible, previousValue }) {
             alt={collectible.item_name}
           />
         </div>
-        <div className="absolute top-2 left-2">
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
           <PrivacyBadge status={collectible.privacy_status} compact />
+          {collectible.for_sale && (
+            <div className="inline-flex items-center gap-0.5 bg-gold/90 text-white rounded-full px-1.5 py-0.5 text-[10px] font-bold">
+              For Sale
+            </div>
+          )}
         </div>
         <div className="p-3 space-y-0.5">
           <p className="font-semibold text-sm truncate">{collectible.item_name}</p>

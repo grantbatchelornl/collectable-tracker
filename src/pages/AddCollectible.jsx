@@ -37,6 +37,8 @@ const EMPTY = {
   low_value: '',
   high_value: '',
   privacy_status: 'private',
+  for_sale: false,
+  asking_price: '',
   notes: '',
 };
 
@@ -138,6 +140,8 @@ export default function AddCollectible() {
         high_value: parseFloat(data.high_value) || 0,
         value_source: aiIdentified ? 'AI Estimate' : 'Manual',
         value_locked: false,
+        for_sale: data.for_sale,
+        asking_price: parseFloat(data.asking_price) || 0,
         privacy_status: data.privacy_status,
         primary_photo_url: data.frontPhoto || data.backPhoto || '',
         notes: data.notes || undefined,

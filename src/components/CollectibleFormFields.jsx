@@ -199,6 +199,27 @@ export default function CollectibleFormFields({ data, update }) {
         </Field>
       </Section>
 
+      {/* Selling - collapsible */}
+      <Section title="Selling" subtitle="List this item for sale with an asking price">
+        <Toggle
+          checked={data.for_sale}
+          onChange={(v) => update('for_sale', v)}
+          label="List for Sale"
+        />
+        {data.for_sale && (
+          <Field label="Asking Price">
+            <Input
+              type="number"
+              step="0.01"
+              value={data.asking_price}
+              onChange={(e) => update('asking_price', e.target.value)}
+              placeholder="0.00"
+              className="h-11"
+            />
+          </Field>
+        )}
+      </Section>
+
       {/* Privacy - always visible */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Privacy</h3>

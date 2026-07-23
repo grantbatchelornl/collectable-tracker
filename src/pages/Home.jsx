@@ -2,7 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
-import { Search, Plus, TrendingUp, TrendingDown, Package, Loader2 } from 'lucide-react';
+import PortfolioChart from '@/components/PortfolioChart';
+import CategoryBreakdown from '@/components/CategoryBreakdown';
+import TopMovers from '@/components/TopMovers';
+import { buildPortfolioTimeSeries, getCategoryBreakdown, getTopMovers } from '@/lib/portfolio';
+import { Search, Plus, TrendingUp, TrendingDown, Package, Loader2, Eye, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 
 export default function Home() {
@@ -14,6 +18,7 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
+  const [showForSale, setShowForSale] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -117,6 +122,9 @@ export default function Home() {
     if (activeCategory !== 'all') {
       result = result.filter((c) => c.category_id === activeCategory);
     }
+    if (showForSale) {
+      result = result.filter((c) => c.for_sale);
+    }
     switch (sortBy) {
       case 'value_desc':
         result.sort((a, b) => (b.estimated_value || 0) - (a.estimated_value || 0));
@@ -202,6 +210,31 @@ export default function Home() {
         </div>
       </div>
 
+      {collectibles.length > 0 && pricingHistory.length > 1 && (
+        <div className="rounded-2xl bg-card border border-border p-4">
+          <h3 className="font-semibold text-sm mb-3">Portfolio Value Over Time</h3>
+          <PortfolioChart data={buildPortfolioTimeSeries(collectibles, pricingHistory)} />
+        </div>
+      )}
+
+      {collectibles.length > 0 && (
+        <button
+          onClick={() => navigate('/watchlist')}
+          className="w-full flex items-center justify-between rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Eye className="w-5 h-5 text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="font-semibold text-sm">Watchlist</p>
+              <p className="text-xs text-muted-foreground">Track items you want to buy</p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </button>
+      )}
+
       {collectibles.length === 0 ? (
         <div className="text-center py-16">
           <div className="w-20 h-20 rounded-3xl bg-accent flex items-center justify-center mx-auto mb-4">
@@ -236,6 +269,18 @@ export default function Home() {
             </section>
           )}
 
+          {(() => {
+            const movers = getTopMovers(collectibles, pricingHistory);
+            return movers.gainers.length > 0 || movers.losers.length > 0 ? (
+              <TopMovers gainers={movers.gainers} losers={movers.losers} />
+            ) : null;
+          })()}
+
+          {(() => {
+            const breakdown = getCategoryBreakdown(collectibles, categories);
+            return breakdown.length > 1 ? <CategoryBreakdown data={breakdown} /> : null;
+          })()}
+
           <section className="space-y-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -248,6 +293,16 @@ export default function Home() {
               />
             </div>
             <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
+              <button
+                onClick={() => setShowForSale(!showForSale)}
+                className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
+                  showForSale
+                    ? 'bg-gold text-white'
+                    : 'bg-card border border-border text-muted-foreground'
+                }`}
+              >
+                For Sale
+              </button>
               <button
                 onClick={() => setActiveCategory('all')}
                 className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${

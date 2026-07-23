@@ -154,6 +154,13 @@ export default function CollectibleDetail() {
     setCollectible(updated);
   };
 
+  const toggleForSale = async () => {
+    const updated = await base44.entities.Collectible.update(id, {
+      for_sale: !collectible.for_sale,
+    });
+    setCollectible(updated);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -282,6 +289,36 @@ export default function CollectibleDetail() {
             <ValueChart data={history} />
           </div>
         )}
+
+        {/* For Sale */}
+        <div className="rounded-2xl bg-card border border-border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <DollarSign className={`w-4 h-4 ${collectible.for_sale ? 'text-gold' : 'text-muted-foreground'}`} />
+              <div>
+                <p className="text-sm font-medium">List for Sale</p>
+                <p className="text-[10px] text-muted-foreground">Mark this item as available for purchase</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleForSale}
+              className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${collectible.for_sale ? 'bg-gold' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.for_sale ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+          {collectible.for_sale && (
+            <div className="pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-1">Asking Price</p>
+              <p className="font-display text-2xl font-bold text-gold">
+                {formatCurrency(collectible.asking_price || collectible.estimated_value)}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Set the asking price when editing. Visible to others if set to Public or Friends.
+              </p>
+            </div>
+          )}
+        </div>
 
         {/* Details */}
         {detailRows.length > 0 && (
