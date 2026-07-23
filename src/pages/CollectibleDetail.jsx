@@ -102,7 +102,7 @@ export default function CollectibleDetail() {
       const newValue = result.estimated_value || 0;
       const newLow = result.low_value || 0;
       const newHigh = result.high_value || 0;
-      const source = 'AI Estimate';
+      const source = result.pricing_source || 'AI Estimate';
 
       await base44.entities.PricingHistory.create({
         collectible_id: id,
@@ -111,7 +111,9 @@ export default function CollectibleDetail() {
         low_value: newLow,
         high_value: newHigh,
         pricing_source: source,
-        confidence: result.confidence || 'medium',
+        confidence: result.confidence || 'low',
+        comparables_count: result.comparables_count || 0,
+        valuation_notes: result.valuation_notes || undefined,
       });
 
       if (!collectible.value_locked) {
@@ -120,6 +122,9 @@ export default function CollectibleDetail() {
           low_value: newLow,
           high_value: newHigh,
           value_source: source,
+          value_confidence: result.confidence || 'low',
+          comparables_count: result.comparables_count || 0,
+          valuation_notes: result.valuation_notes || undefined,
         });
         setCollectible(updated);
       }
@@ -280,6 +285,39 @@ export default function CollectibleDetail() {
           <p className="text-[10px] text-muted-foreground mt-3 pt-3 border-t border-border">
             Values are estimates and not guaranteed sale prices.
           </p>
+        </div>
+
+        {/* Valuation provenance */}
+        <div className="rounded-2xl bg-card border border-border p-4 space-y-2.5">
+          <h3 className="font-semibold text-sm">Valuation Details</h3>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Source</span>
+            <span className="font-medium text-right text-xs">{collectible.value_source || 'Manual'}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Confidence</span>
+            <span className={`font-semibold capitalize ${
+              collectible.value_confidence === 'high' ? 'text-gain' :
+              collectible.value_confidence === 'medium' ? 'text-gold' : 'text-loss'
+            }`}>{collectible.value_confidence || 'Unknown'}</span>
+          </div>
+          {collectible.comparables_count > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Sold Comparables</span>
+              <span className="font-semibold">{collectible.comparables_count}</span>
+            </div>
+          )}
+          {history.length > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Last Refreshed</span>
+              <span className="font-semibold text-xs">{formatDate(history[0].created_date)}</span>
+            </div>
+          )}
+          {collectible.valuation_notes && (
+            <p className="text-xs text-muted-foreground pt-2 border-t border-border">
+              {collectible.valuation_notes}
+            </p>
+          )}
         </div>
 
         {/* Value chart */}

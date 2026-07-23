@@ -31,7 +31,14 @@
         "medium",
         "low"
       ],
-      "default": "medium"
+      "default": "low"
+    },
+    "comparables_count": {
+      "type": "number",
+      "default": 0
+    },
+    "valuation_notes": {
+      "type": "string"
     }
   },
   "required": [

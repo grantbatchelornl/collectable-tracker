@@ -86,6 +86,22 @@
       "type": "boolean",
       "default": false
     },
+    "value_confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "low"
+    },
+    "comparables_count": {
+      "type": "number",
+      "default": 0
+    },
+    "valuation_notes": {
+      "type": "string"
+    },
     "for_sale": {
       "type": "boolean",
       "default": false

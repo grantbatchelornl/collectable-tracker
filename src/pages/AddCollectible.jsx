@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
+import AIConfidenceBanner from '@/components/AIConfidenceBanner';
 import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
 import { checkAndAwardBadges } from '@/lib/achievements';
@@ -39,6 +40,9 @@ const EMPTY = {
   privacy_status: 'private',
   for_sale: false,
   asking_price: '',
+  value_confidence: '',
+  comparables_count: 0,
+  valuation_notes: '',
   notes: '',
 };
 
@@ -51,6 +55,7 @@ export default function AddCollectible() {
   const [showAnimation, setShowAnimation] = useState(false);
   const [identifying, setIdentifying] = useState(false);
   const [aiIdentified, setAiIdentified] = useState(false);
+  const [aiResult, setAiResult] = useState(null);
   const [data, setData] = useState(EMPTY);
 
   useEffect(() => {
@@ -92,7 +97,11 @@ export default function AddCollectible() {
         estimated_value: result.estimated_value != null ? result.estimated_value.toString() : d.estimated_value,
         low_value: result.low_value != null ? result.low_value.toString() : d.low_value,
         high_value: result.high_value != null ? result.high_value.toString() : d.high_value,
+        value_confidence: result.confidence || '',
+        comparables_count: result.comparables_count || 0,
+        valuation_notes: result.valuation_notes || '',
       }));
+      setAiResult(result);
       setAiIdentified(true);
       setStep(3);
     } catch (err) {
@@ -138,7 +147,10 @@ export default function AddCollectible() {
         estimated_value: parseFloat(data.estimated_value) || 0,
         low_value: parseFloat(data.low_value) || 0,
         high_value: parseFloat(data.high_value) || 0,
-        value_source: aiIdentified ? 'AI Estimate' : 'Manual',
+        value_source: (aiResult && aiResult.pricing_source) || (aiIdentified ? 'AI Estimate' : 'Manual'),
+        value_confidence: data.value_confidence || undefined,
+        comparables_count: data.comparables_count || 0,
+        valuation_notes: data.valuation_notes || undefined,
         value_locked: false,
         for_sale: data.for_sale,
         asking_price: parseFloat(data.asking_price) || 0,
@@ -173,8 +185,10 @@ export default function AddCollectible() {
           estimated_value: parseFloat(data.estimated_value) || 0,
           low_value: parseFloat(data.low_value) || 0,
           high_value: parseFloat(data.high_value) || 0,
-          pricing_source: aiIdentified ? 'AI Estimate' : 'Manual',
-          confidence: 'medium',
+          pricing_source: (aiResult && aiResult.pricing_source) || (aiIdentified ? 'AI Estimate' : 'Manual'),
+          confidence: data.value_confidence || 'low',
+          comparables_count: data.comparables_count || 0,
+          valuation_notes: data.valuation_notes || undefined,
         })
       );
 
@@ -295,6 +309,7 @@ export default function AddCollectible() {
           <div className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-full px-3 py-1 text-xs font-medium">
             <Tag className="w-3 h-3" /> {data.category_name}
           </div>
+          {aiResult && <AIConfidenceBanner result={aiResult} />}
           <CollectibleFormFields data={data} update={update} />
           <button
             onClick={handleConfirm}
