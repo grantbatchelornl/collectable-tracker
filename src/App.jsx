@@ -23,6 +23,7 @@ import Chat from '@/pages/Chat';
 import PublicProfile from '@/pages/PublicProfile';
 import Profile from '@/pages/Profile';
 import Watchlist from '@/pages/Watchlist';
+import DataQuality from '@/pages/DataQuality';
 import AdminDashboard from '@/pages/AdminDashboard';
 
 const AuthenticatedApp = () => {
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
           <Route path="/chat/:userId" element={<Chat />} />
           <Route path="/collector/:userId" element={<PublicProfile />} />
           <Route path="/watchlist" element={<Watchlist />} />
+          <Route path="/data-quality" element={<DataQuality />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/admin" element={<AdminDashboard />} />
         </Route>

@@ -6,7 +6,7 @@ import PortfolioChart from '@/components/PortfolioChart';
 import CategoryBreakdown from '@/components/CategoryBreakdown';
 import TopMovers from '@/components/TopMovers';
 import { buildPortfolioTimeSeries, getCategoryBreakdown, getTopMovers } from '@/lib/portfolio';
-import { Search, Plus, TrendingUp, TrendingDown, Package, Loader2, Eye, ChevronRight } from 'lucide-react';
+import { Search, Plus, TrendingUp, TrendingDown, Package, Loader2, Eye, ChevronRight, ShieldCheck } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 
 export default function Home() {
@@ -218,21 +218,32 @@ export default function Home() {
       )}
 
       {collectibles.length > 0 && (
-        <button
-          onClick={() => navigate('/watchlist')}
-          className="w-full flex items-center justify-between rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate('/watchlist')}
+            className="flex items-center gap-3 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors text-left"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
               <Eye className="w-5 h-5 text-primary" />
             </div>
-            <div className="text-left">
+            <div className="min-w-0">
               <p className="font-semibold text-sm">Watchlist</p>
-              <p className="text-xs text-muted-foreground">Track items you want to buy</p>
+              <p className="text-xs text-muted-foreground truncate">Track items to buy</p>
             </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
+          </button>
+          <button
+            onClick={() => navigate('/data-quality')}
+            className="flex items-center gap-3 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors text-left"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm">Data Quality</p>
+              <p className="text-xs text-muted-foreground truncate">Collection health</p>
+            </div>
+          </button>
+        </div>
       )}
 
       {collectibles.length === 0 ? (
