@@ -1,12 +1,28 @@
-import { useState, useRef } from 'react';
-import { Camera, Upload, X, Loader2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Camera, Upload, X, Loader2, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
+import { checkPhotoQuality } from '@/lib/photoQuality';
 
 function PhotoSlot({ label, photo, required, onPhotoChange }) {
   const [uploading, setUploading] = useState(false);
+  const [qualityIssues, setQualityIssues] = useState([]);
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
+
+  useEffect(() => {
+    if (!photo) {
+      setQualityIssues([]);
+      return;
+    }
+    let cancelled = false;
+    checkPhotoQuality(photo).then((result) => {
+      if (!cancelled) setQualityIssues(result.issues || []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [photo]);
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -48,6 +64,14 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
                 <X className="w-3.5 h-3.5" />
               </button>
             </div>
+            {qualityIssues.length > 0 && (
+              <div className="absolute bottom-0 left-0 right-0 bg-gold/90 backdrop-blur px-2 py-1 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-white flex-shrink-0" />
+                <p className="text-[10px] text-white font-medium truncate">
+                  {qualityIssues.map((i) => i.message).join(', ')}
+                </p>
+              </div>
+            )}
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3">

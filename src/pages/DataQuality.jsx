@@ -25,6 +25,7 @@ const ISSUE_CONFIGS = [
   { key: 'missingDetails', icon: '📝', label: 'Missing important details' },
   { key: 'needGrading', icon: '🏷️', label: 'Need grading information' },
   { key: 'missingRequiredPhotos', icon: '📦', label: 'Missing required photos' },
+  { key: 'missingFunkoPhotos', icon: '🎲', label: 'Missing Funko photos (6 angles)' },
   { key: 'notRepriced30Days', icon: '🔄', label: 'Not repriced in 30+ days' },
   { key: 'possibleDuplicates', icon: '📋', label: 'Possible duplicates' },
 ];
@@ -168,7 +169,7 @@ export default function DataQuality() {
       {/* Quick Actions */}
       {totalIssues > 0 && (
         <div>
-          <h2 className="font-display font-bold text-sm mb-3">Quick Actions</h2>
+          <h2 className="font-display font-bold text-sm mb-3">Quick Fixes</h2>
           <div className="grid grid-cols-5 gap-2">
             {QUICK_ACTIONS.map((action) => (
               <button
@@ -190,7 +191,7 @@ export default function DataQuality() {
 
       {/* Needs Attention */}
       <div className="space-y-2">
-        <h2 className="font-display font-bold text-sm">Needs Attention</h2>
+        <h2 className="font-display font-bold text-sm">Priority Tasks</h2>
         {ISSUE_CONFIGS.map((config) => {
           const items = issues[config.key] || [];
           if (items.length === 0) return null;

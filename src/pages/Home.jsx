@@ -9,6 +9,8 @@ import RecentPriceChanges from '@/components/RecentPriceChanges';
 import PortfolioChart from '@/components/PortfolioChart';
 import CategoryBreakdown from '@/components/CategoryBreakdown';
 import TopMovers from '@/components/TopMovers';
+import WishlistActivity from '@/components/WishlistActivity';
+import AchievementProgress from '@/components/AchievementProgress';
 import {
   buildPortfolioTimeSeries,
   getCategoryBreakdown,
@@ -26,6 +28,8 @@ export default function Home() {
   const [collectibles, setCollectibles] = useState([]);
   const [pricingHistory, setPricingHistory] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [watchlistItems, setWatchlistItems] = useState([]);
+  const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,14 +40,18 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [items, history, cats] = await Promise.all([
+      const [items, history, cats, watchlist, badges] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectibleCategory.list('sort_order', 50),
+        base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 5),
+        base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 10),
       ]);
       setCollectibles(items.filter((c) => !c.is_deleted));
       setPricingHistory(history);
       setCategories(cats.filter((c) => c.active));
+      setWatchlistItems(watchlist);
+      setAchievements(badges);
     } catch (err) {
       console.error('Failed to load data', err);
     } finally {
@@ -229,6 +237,10 @@ export default function Home() {
           />
 
           <RecentPriceChanges changes={recentChanges} />
+
+          <WishlistActivity items={watchlistItems} />
+
+          <AchievementProgress achievements={achievements} />
 
           {recentAdditions.length > 0 && (
             <section>

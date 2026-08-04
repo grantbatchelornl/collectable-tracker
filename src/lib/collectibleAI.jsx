@@ -17,6 +17,23 @@ const IDENTIFY_SCHEMA = {
     has_autograph: { type: 'boolean' },
     grading_company: { type: 'string' },
     grade: { type: 'string' },
+    language: { type: 'string' },
+    franchise: { type: 'string' },
+    box_number: { type: 'string' },
+    series: { type: 'string' },
+    is_exclusive: { type: 'boolean' },
+    has_sticker: { type: 'boolean' },
+    is_chase: { type: 'boolean' },
+    is_boxed: { type: 'boolean' },
+    country: { type: 'string' },
+    denomination: { type: 'string' },
+    mint_mark: { type: 'string' },
+    composition: { type: 'string' },
+    sport: { type: 'string' },
+    is_rookie: { type: 'boolean' },
+    has_patch: { type: 'boolean' },
+    item_type: { type: 'string' },
+    is_game_used: { type: 'boolean' },
     estimated_value: { type: 'number' },
     low_value: { type: 'number' },
     high_value: { type: 'number' },
@@ -75,14 +92,53 @@ CONFIDENCE: "high" = 5+ recent sold comparables with exact matches. "medium" = 2
 
 INSUFFICIENT DATA: If fewer than 2 reliable sold comparables exist, set value_type to "insufficient", estimated_value to 0, confidence to "low", comparables_count to the actual number found, and explain in valuation_notes. Do NOT substitute active listings or asking prices.
 
-REPORT ALL FIELDS: comparables_count, comparable_date_range (e.g. "Jan 2026 - Jul 2026"), most_recent_sale_date, low_value (lowest sold), high_value (highest sold), average_price (mean of sold prices), matching_criteria (what was matched), includes_shipping (whether prices include shipping/buyer premium), pricing_source (where data came from), valuation_notes (caveats).
+REPORT ALL FIELDS: comparables_count, comparable_date_range, most_recent_sale_date, low_value, high_value, average_price, matching_criteria, includes_shipping, pricing_source, valuation_notes.
 
-TCGplayer may be used for identification and product matching, but only use its value as pricing if it provides completed-sale evidence. Do not treat listing-based market numbers as completed-sale estimates.`;
+TCGplayer may be used for identification and product matching, but only use its value as pricing if it provides completed-sale evidence.`;
 
-export async function identifyAndPrice(photoUrl) {
+const CATEGORY_ID_PROMPTS = {
+  pokemon: `POKÉMON CARD IDENTIFICATION: Identify the Pokémon character, card name, set name, set symbol, card number, edition (1st Edition/Unlimited), variant (Holo/Reverse Holo/Non-Holo), language, and grading if present. Look for set symbols, energy types, and HP values.`,
+  magic: `MAGIC: THE GATHERING IDENTIFICATION: Identify the card name, set name, set symbol, card number, rarity, edition, language, and finish (Foil/Non-foil). Look for mana cost, card type, and set symbols.`,
+  lorcana: `DISNEY LORCANA IDENTIFICATION: Identify the character, card name, set name, card number, rarity, language, and ink color. Look for set symbols and ink type indicators.`,
+  sports_cards: `SPORTS CARD IDENTIFICATION: Identify the athlete, sport, year, manufacturer, product line, set, card number, parallel, rookie status, and any autograph or memorabilia patches. Look for team logos, player names, and card numbering.`,
+  funko: `FUNKO POP! IDENTIFICATION: Use ALL provided photos (front, back, left, right, top, bottom) to identify the character, franchise, box number, series, exclusive status, sticker, chase variant, boxed/unboxed status, and box/figure condition. Check all angles carefully for exclusive stickers, chase indicators, and box number.`,
+  coins: `COIN IDENTIFICATION: Identify the country, denomination, year, mint mark, variety, composition, and grading if present. Look for mint marks, denomination text, and date.`,
+  sports_memorabilia: `SPORTS MEMORABILIA IDENTIFICATION: Identify the athlete or team, sport, item type (jersey, ball, helmet, etc.), manufacturer, year/era, autograph status, authentication company, and game-used status. Look for holograms, certificates, and authentication stickers.`,
+};
+
+function normalizeCategory(name) {
+  if (!name) return 'default';
+  const lower = name.toLowerCase();
+  if (lower.includes('pokémon') || lower.includes('pokemon')) return 'pokemon';
+  if (lower.includes('magic')) return 'magic';
+  if (lower.includes('lorcana')) return 'lorcana';
+  if (lower.includes('sports card')) return 'sports_cards';
+  if (lower.includes('funko')) return 'funko';
+  if (lower.includes('coin')) return 'coins';
+  if (lower.includes('memorabilia')) return 'sports_memorabilia';
+  return 'default';
+}
+
+export async function identifyAndPrice(photoUrls, categoryName) {
+  const photos = Array.isArray(photoUrls) ? photoUrls.filter(Boolean) : [photoUrls].filter(Boolean);
+  if (photos.length === 0) throw new Error('No photos provided');
+
+  const catKey = normalizeCategory(categoryName);
+  const categoryPrompt = CATEGORY_ID_PROMPTS[catKey] || '';
+  const photoDesc = photos.length > 1
+    ? `${photos.length} photos from different angles`
+    : 'this photo';
+
   const prompt = `${PRICING_RULES}
 
-Analyze this photo of a collectible. Identify it and find its current market value based on sold sales only.
+${categoryPrompt}
+
+Analyze ${photoDesc} of a collectible${categoryName ? ` (category: ${categoryName})` : ''}. Identify it and find its current market value based on sold sales only.
+
+Set identification_confidence based on how certain you are of the identification:
+- "high": You are very confident in the exact identification
+- "medium": Likely match but some uncertainty
+- "low": Uncertain or unable to identify
 
 If you cannot identify the item, return null for all identification fields, set identification_confidence to "low", and explain in identification_notes.
 
@@ -90,7 +146,7 @@ If you cannot determine a field from the image, use null. Do not guess.`;
 
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
-    file_urls: [photoUrl],
+    file_urls: photos,
     add_context_from_internet: true,
     response_json_schema: IDENTIFY_SCHEMA,
     model: 'gemini_3_1_pro',

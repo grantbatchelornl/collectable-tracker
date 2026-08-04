@@ -9,7 +9,7 @@ import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
 import { getPhotoTypes } from '@/lib/categoryFields';
 import { checkAndAwardBadges } from '@/lib/achievements';
-import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles, AlertTriangle } from 'lucide-react';
 
 const EMPTY = {
   category_id: '',
@@ -81,6 +81,7 @@ export default function AddCollectible() {
   const [aiIdentified, setAiIdentified] = useState(false);
   const [aiResult, setAiResult] = useState(null);
   const [data, setData] = useState(EMPTY);
+  const [verified, setVerified] = useState(false);
 
   useEffect(() => {
     base44.entities.CollectibleCategory.list('sort_order', 50)
@@ -97,11 +98,12 @@ export default function AddCollectible() {
   };
 
   const handleAutoIdentify = async () => {
-    const photo = Object.values(data.photos || {}).find(Boolean);
-    if (!photo) return;
+    const photoUrls = Object.values(data.photos || {}).filter(Boolean);
+    if (photoUrls.length === 0) return;
     setIdentifying(true);
+    setVerified(false);
     try {
-      const result = await identifyAndPrice(photo);
+      const result = await identifyAndPrice(photoUrls, data.category_name);
       setData((d) => ({
         ...d,
         item_name: result.item_name || d.item_name,
@@ -362,10 +364,33 @@ export default function AddCollectible() {
             <Tag className="w-3 h-3" /> {data.category_name}
           </div>
           {aiResult && <AIConfidenceBanner result={aiResult} />}
+          {aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && (
+            <div className="rounded-2xl bg-gold/5 border border-gold/20 p-4 space-y-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-medium text-gold">Verification Required</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    AI identification confidence is {aiResult.identification_confidence}. Please review the details below carefully before saving.
+                    {aiResult.identification_notes && ` ${aiResult.identification_notes}`}
+                  </p>
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={verified}
+                  onChange={(e) => setVerified(e.target.checked)}
+                  className="w-4 h-4 rounded border-border"
+                />
+                <span className="text-xs font-medium">I've verified these details are correct</span>
+              </label>
+            </div>
+          )}
           <CollectibleFormFields data={data} update={update} />
           <button
             onClick={handleConfirm}
-            disabled={saving || !canProceed()}
+            disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified)}
             className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-40 sticky bottom-24 shadow-lg shadow-primary/20"
           >
             {saving ? (

@@ -16,6 +16,7 @@ import Onboarding from '@/pages/Onboarding';
 import Home from '@/pages/Home';
 import Discover from '@/pages/Discover';
 import AddCollectible from '@/pages/AddCollectible';
+import BinderScanner from '@/pages/BinderScanner';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
 import Messages from '@/pages/Messages';
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/add" element={<AddCollectible />} />
+          <Route path="/binder-scan" element={<BinderScanner />} />
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />
           <Route path="/messages" element={<Messages />} />

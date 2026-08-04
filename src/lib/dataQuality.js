@@ -5,9 +5,10 @@ export const CATEGORIES_NEEDING_BOTH_PHOTOS = [
   'Magic: The Gathering',
   'Disney Lorcana',
   'Sports Cards',
-  'Funko Pop!',
   'Coins',
 ];
+
+const FUNKO_REQUIRED_PHOTOS = ['front', 'back', 'left', 'right', 'top', 'bottom'];
 
 export function computeQualityScore(collectibles, pricingHistory, photos) {
   if (!collectibles || collectibles.length === 0) {
@@ -39,6 +40,7 @@ export function computeQualityScore(collectibles, pricingHistory, photos) {
     missingDetails: [],
     needGrading: [],
     missingRequiredPhotos: [],
+    missingFunkoPhotos: [],
     notRepriced30Days: [],
     possibleDuplicates: [],
   };
@@ -74,6 +76,16 @@ export function computeQualityScore(collectibles, pricingHistory, photos) {
       }
     }
 
+    if (c.category_name && c.category_name.toLowerCase().includes('funko')) {
+      const cPhotos = photosByCollectible[c.id] || [];
+      const missing = FUNKO_REQUIRED_PHOTOS.filter(
+        (type) => !cPhotos.some((p) => p.photo_type === type)
+      );
+      if (missing.length > 0) {
+        issues.missingFunkoPhotos.push({ ...c, _missingPhotos: missing });
+      }
+    }
+
     const lastDate = latest
       ? new Date(latest.created_date).getTime()
       : new Date(c.created_date).getTime();
@@ -103,9 +115,10 @@ export function computeQualityScore(collectibles, pricingHistory, photos) {
     { key: 'freshness', label: 'Pricing Freshness', score: factorScore(issues.notRepriced30Days), weight: 0.15 },
     { key: 'confidence', label: 'AI Confidence', score: factorScore(issues.lowConfidence), weight: 0.15 },
     { key: 'details', label: 'Complete Details', score: factorScore(issues.missingDetails), weight: 0.15 },
-    { key: 'requiredPhotos', label: 'Required Photos', score: factorScore(issues.missingRequiredPhotos), weight: 0.15 },
+    { key: 'requiredPhotos', label: 'Required Photos', score: factorScore(issues.missingRequiredPhotos), weight: 0.1 },
+    { key: 'funkoPhotos', label: 'Funko Photos (6 angles)', score: factorScore(issues.missingFunkoPhotos), weight: 0.1 },
     { key: 'grading', label: 'Grading Info', score: factorScore(issues.needGrading), weight: 0.1 },
-    { key: 'duplicates', label: 'No Duplicates', score: factorScore(issues.possibleDuplicates), weight: 0.1 },
+    { key: 'duplicates', label: 'No Duplicates', score: factorScore(issues.possibleDuplicates), weight: 0.05 },
   ];
 
   const score = Math.round(factors.reduce((sum, f) => sum + f.score * f.weight, 0));
