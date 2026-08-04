@@ -23,6 +23,8 @@ import {
   ArrowLeftRight,
   Trophy,
   Sparkles,
+  BadgeCheck,
+  Star,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { syncCollectorProfile } from '@/lib/social';
@@ -110,6 +112,9 @@ export default function Profile() {
       budget: collectorProfile?.budget || '',
       goals: collectorProfile?.goals || '',
       risk_tolerance: collectorProfile?.risk_tolerance || 'moderate',
+      is_influencer: collectorProfile?.is_influencer || false,
+      influencer_platform: collectorProfile?.influencer_platform || '',
+      influencer_handle: collectorProfile?.influencer_handle || '',
     });
     setEditing(true);
   };
@@ -130,10 +135,23 @@ export default function Profile() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Auto-generate bio from influencer info when toggled on
+      let bioToSave = editData.bio;
+      if (
+        editData.is_influencer &&
+        editData.influencer_handle &&
+        editData.influencer_platform
+      ) {
+        const handle = editData.influencer_handle.startsWith('@')
+          ? editData.influencer_handle
+          : `@${editData.influencer_handle}`;
+        bioToSave = `${editData.display_name} — ${handle} on ${editData.influencer_platform}`;
+      }
+
       await base44.auth.updateMe({
         display_name: editData.display_name,
         username: editData.username,
-        bio: editData.bio,
+        bio: bioToSave,
         profile_photo: editData.profile_photo,
         privacy_show_public_value: editData.privacy_show_public_value,
         notification_in_app_enabled: editData.notification_in_app_enabled,
@@ -149,13 +167,16 @@ export default function Profile() {
           budget: parseFloat(editData.budget) || 0,
           goals: editData.goals,
           risk_tolerance: editData.risk_tolerance,
+          is_influencer: editData.is_influencer,
+          influencer_platform: editData.is_influencer ? editData.influencer_platform : '',
+          influencer_handle: editData.is_influencer ? editData.influencer_handle : '',
         });
       }
       await syncCollectorProfile({
         ...user,
         display_name: editData.display_name,
         username: editData.username,
-        bio: editData.bio,
+        bio: bioToSave,
         profile_photo: editData.profile_photo,
         privacy_show_public_value: editData.privacy_show_public_value,
       });
@@ -200,6 +221,12 @@ export default function Profile() {
             <h2 className="font-display text-xl font-bold truncate flex items-center gap-1.5 flex-wrap">
               {displayName}
               {foundingBadge && <FoundingBadge badgeType={foundingBadge.badge_type} />}
+              {collectorProfile?.is_influencer && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-gradient-to-r from-purple-500/10 to-pink-500/10 text-purple-500 rounded-full px-2 py-0.5 font-bold border border-purple-500/20">
+                  <BadgeCheck className="w-3 h-3" />
+                  Influencer
+                </span>
+              )}
             </h2>
             <p className="text-sm text-muted-foreground truncate">
               @{user?.username || 'username'}
@@ -442,6 +469,57 @@ export default function Profile() {
               checked={editData.notification_in_app_enabled}
               onChange={(v) => setEditData((d) => ({ ...d, notification_in_app_enabled: v }))}
             />
+
+            {/* Influencer section */}
+            <div className="pt-2 border-t border-border space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Star className="w-3.5 h-3.5" /> Influencer
+              </p>
+              <ToggleRow
+                icon={BadgeCheck}
+                label="I'm an influencer"
+                description="Show a badge and auto-set your bio with your handle"
+                checked={editData.is_influencer}
+                onChange={(v) => setEditData((d) => ({ ...d, is_influencer: v }))}
+              />
+              {editData.is_influencer && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-2">
+                    <Label>Platform</Label>
+                    <select
+                      value={editData.influencer_platform}
+                      onChange={(e) => setEditData((d) => ({ ...d, influencer_platform: e.target.value }))}
+                      className="w-full h-10 rounded-md border border-input bg-transparent px-2 text-sm"
+                    >
+                      <option value="">Select...</option>
+                      <option value="YouTube">YouTube</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="Instagram">Instagram</option>
+                      <option value="Twitch">Twitch</option>
+                      <option value="X (Twitter)">X (Twitter)</option>
+                      <option value="Facebook">Facebook</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Handle</Label>
+                    <Input
+                      value={editData.influencer_handle}
+                      onChange={(e) => setEditData((d) => ({ ...d, influencer_handle: e.target.value }))}
+                      placeholder="@yourhandle"
+                      className="h-10"
+                    />
+                  </div>
+                </div>
+              )}
+              {editData.is_influencer && editData.influencer_handle && editData.influencer_platform && (
+                <p className="text-xs text-muted-foreground bg-accent/50 rounded-lg p-2">
+                  Your bio will auto-set to: <span className="font-medium text-foreground">
+                    {editData.display_name} — {editData.influencer_handle.startsWith('@') ? editData.influencer_handle : `@${editData.influencer_handle}`} on {editData.influencer_platform}
+                  </span>
+                </p>
+              )}
+            </div>
 
             <div className="pt-2 border-t border-border space-y-3">
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Collector Preferences</p>

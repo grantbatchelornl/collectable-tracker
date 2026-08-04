@@ -110,6 +110,25 @@
       "type": "boolean",
       "default": false
     },
+    "is_influencer": {
+      "type": "boolean",
+      "default": false
+    },
+    "influencer_platform": {
+      "type": "string",
+      "enum": [
+        "YouTube",
+        "TikTok",
+        "Instagram",
+        "Twitch",
+        "X (Twitter)",
+        "Facebook",
+        "Other"
+      ]
+    },
+    "influencer_handle": {
+      "type": "string"
+    },
     "convention_mode_active": {
       "type": "boolean",
       "default": false
