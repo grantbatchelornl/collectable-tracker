@@ -33,9 +33,11 @@ export default function SetLibraryCard({ entry, isFavorite, ownership, onToggleF
               <TrendingUp className="w-2.5 h-2.5" /> TRENDING
             </div>
           )}
-          {entry.year && (
+          {(entry.releaseDate || entry.year) && (
             <div className="absolute bottom-2 right-2 bg-black/25 backdrop-blur-md text-white/90 rounded-full px-2 py-0.5 text-[9px] font-bold">
-              {entry.year}
+              {entry.releaseDate
+                ? new Date(entry.releaseDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : entry.year}
             </div>
           )}
         </div>

@@ -67,7 +67,12 @@ export default function SetDetailModal({ entry, isFavorite, ownership, isCreatin
         <div className="p-4 space-y-4">
           <div>
             <h2 className="font-display text-xl font-bold">{entry.name}</h2>
-            <p className="text-sm text-muted-foreground">{entry.franchise}{entry.year ? ` · ${entry.year}` : ''}</p>
+            <p className="text-sm text-muted-foreground">
+              {entry.franchise}
+              {entry.releaseDate
+                ? ` · ${new Date(entry.releaseDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`
+                : entry.year ? ` · ${entry.year}` : ''}
+            </p>
           </div>
 
           {/* Coming Soon Countdown */}
