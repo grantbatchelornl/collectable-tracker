@@ -10,6 +10,7 @@ import { formatCurrency } from '@/lib/format';
 import { getInitials } from '@/lib/social';
 import AchievementBadges from '@/components/AchievementBadges';
 import ReputationBadge from '@/components/trade/ReputationBadge';
+import ShowcaseCollection from '@/components/ShowcaseCollection';
 import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X, BadgeCheck } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -133,6 +134,8 @@ export default function PublicProfile() {
           <p className="text-xs text-muted-foreground">Collection Value</p>
         </div>
       </div>
+
+      <ShowcaseCollection userId={userId} isOwnProfile={false} editable={false} />
 
       <ReputationBadge profile={profile} />
 

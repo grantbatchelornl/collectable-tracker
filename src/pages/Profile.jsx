@@ -28,6 +28,7 @@ import { formatCurrency } from '@/lib/format';
 import { syncCollectorProfile } from '@/lib/social';
 import { checkAndAwardBadges } from '@/lib/achievements';
 import AchievementBadges from '@/components/AchievementBadges';
+import ShowcaseCollection from '@/components/ShowcaseCollection';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -224,6 +225,9 @@ export default function Profile() {
           <p className="text-xs text-muted-foreground">Total Value</p>
         </div>
       </div>
+
+      {/* Showcase */}
+      <ShowcaseCollection userId={user?.id} isOwnProfile={true} editable={true} />
 
       {/* Friend Requests */}
       {friendRequests.length > 0 && (

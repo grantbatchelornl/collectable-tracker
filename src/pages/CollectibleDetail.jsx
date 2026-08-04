@@ -30,6 +30,7 @@ import {
   RefreshCw,
   AlertTriangle,
   Repeat,
+  Star,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
@@ -88,6 +89,27 @@ export default function CollectibleDetail() {
     } catch (err) {
       console.error(err);
       setDeleting(false);
+    }
+  };
+
+  const toggleShowcase = async () => {
+    try {
+      if (collectible.showcase_order > 0) {
+        const updated = await base44.entities.Collectible.update(id, { showcase_order: 0 });
+        setCollectible(updated);
+      } else {
+        const showcaseItems = allCollectibles.filter((c) => c.showcase_order > 0);
+        if (showcaseItems.length >= 12) {
+          alert('Showcase is full! Remove an item from your profile first.');
+          return;
+        }
+        const maxOrder = showcaseItems.length > 0 ? Math.max(...showcaseItems.map((c) => c.showcase_order)) : 0;
+        const updated = await base44.entities.Collectible.update(id, { showcase_order: maxOrder + 1 });
+        setCollectible(updated);
+        setAllCollectibles((prev) => prev.map((c) => (c.id === id ? updated : c)));
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -515,6 +537,23 @@ export default function CollectibleDetail() {
               <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.value_locked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
+        </div>
+
+        {/* Showcase toggle */}
+        <div className="flex items-center justify-between rounded-xl bg-card border border-border p-3">
+          <div className="flex items-center gap-2">
+            <Star className={`w-4 h-4 ${collectible.showcase_order > 0 ? 'text-gold' : 'text-muted-foreground'}`} />
+            <div>
+              <p className="text-sm font-medium">Showcase</p>
+              <p className="text-[10px] text-muted-foreground">Feature on your profile (max 12)</p>
+            </div>
+          </div>
+          <button
+            onClick={toggleShowcase}
+            className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${collectible.showcase_order > 0 ? 'bg-gold' : 'bg-muted'}`}
+          >
+            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.showcase_order > 0 ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+          </button>
         </div>
 
         {/* Trade Status */}
