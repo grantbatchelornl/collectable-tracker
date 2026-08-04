@@ -59,6 +59,30 @@
       "type": "boolean",
       "default": false
     },
+    "leaderboard_scope": {
+      "type": "string",
+      "enum": [
+        "global_friends",
+        "friends_only",
+        "hidden"
+      ],
+      "default": "hidden"
+    },
+    "hide_collection_value": {
+      "type": "boolean",
+      "default": false
+    },
+    "hide_individual_collectibles": {
+      "type": "boolean",
+      "default": false
+    },
+    "hide_purchase_prices": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_week_rank": {
+      "type": "number"
+    },
     "price_increase_threshold": {
       "type": "number",
       "default": 10
