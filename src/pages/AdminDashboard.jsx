@@ -133,7 +133,7 @@ export default function AdminDashboard() {
   };
 
   const setRole = async (u, role) => {
-    if (!isSuperAdmin || !['admin', 'user'].includes(role) || u.id === user.id) return;
+    if (!isAdmin || !['admin', 'user'].includes(role) || u.id === user.id) return;
     try {
       const response = await base44.functions.invoke('updateUserRole', {
         targetUserId: u.id,
@@ -325,7 +325,7 @@ export default function AdminDashboard() {
                   {u.is_suspended ? <CheckCircle2 className="w-3 h-3" /> : <Ban className="w-3 h-3" />}
                   {u.is_suspended ? 'Reactivate' : 'Suspend'}
                 </button>
-                {isSuperAdmin && u.id !== user.id && (
+                {isAdmin && u.id !== user.id && u.role !== 'super_admin' && (
                   <>
                     {u.role === 'user' && (
                       <button

@@ -7,9 +7,9 @@ export default async function(req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // Only Super Admin may change roles
-    if (user.role !== 'super_admin') {
-      return Response.json({ error: 'Forbidden: Only Super Admins can change user roles' }, { status: 403 });
+    // Both Admins and Super Admins may change roles
+    if (user.role !== 'admin' && user.role !== 'super_admin') {
+      return Response.json({ error: 'Forbidden: Only admins can change user roles' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -33,6 +33,16 @@ export default async function(req) {
     }
 
     const previousRole = targetUser.role || 'user';
+
+    // Admins (not Super Admins) cannot promote to super_admin
+    if (user.role === 'admin' && newRole === 'super_admin') {
+      return Response.json({ error: 'Only Super Admins can promote to Super Admin' }, { status: 403 });
+    }
+
+    // Admins cannot modify Super Admin users at all
+    if (user.role === 'admin' && previousRole === 'super_admin') {
+      return Response.json({ error: 'Admins cannot modify Super Admin users' }, { status: 403 });
+    }
 
     // Prevent removing the last Super Admin
     if (previousRole === 'super_admin' && newRole !== 'super_admin') {
