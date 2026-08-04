@@ -14,12 +14,46 @@
     "category_name": {
       "type": "string"
     },
+    "collectible_id": {
+      "type": "string"
+    },
     "target_price": {
       "type": "number",
       "default": 0
     },
     "notes": {
       "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "friends",
+        "public"
+      ],
+      "default": "private"
+    },
+    "alerts_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "raw_or_graded": {
+      "type": "string",
+      "enum": [
+        "any",
+        "raw",
+        "graded"
+      ],
+      "default": "any"
     },
     "status": {
       "type": "string",
@@ -43,6 +77,9 @@
       "$or": [
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.visibility": "public"
         },
         {
           "user_condition": {
