@@ -5,19 +5,16 @@ import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import { scanBinderPage } from '@/lib/binderScanner';
 import { checkAndAwardBadges } from '@/lib/achievements';
+import ScanResultRow from '@/components/binder/ScanResultRow';
 import {
   ArrowLeft,
-  ArrowRight,
   Check,
   Loader2,
   Tag,
   Sparkles,
   AlertTriangle,
-  Copy,
-  Camera,
   Package,
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
 
 const SUPPORTED_KEYWORDS = ['pokémon', 'pokemon', 'magic', 'lorcana', 'sports card'];
 
@@ -33,6 +30,7 @@ export default function BinderScanner() {
   const [importing, setImporting] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
   const [error, setError] = useState('');
+  const [existingItems, setExistingItems] = useState([]);
 
   useEffect(() => {
     base44.entities.CollectibleCategory.list('sort_order', 50).then((cats) => {
@@ -63,8 +61,15 @@ export default function BinderScanner() {
         id: `detected-${idx}`,
         position: card.position || idx + 1,
         confirmed: card.identification_confidence === 'high',
+        quantity: 1,
       }));
       setDetectedCards(cards);
+      const existing = await base44.entities.Collectible.filter(
+        { created_by_id: user.id, category_id: selectedCategory.id, is_deleted: false },
+        '-created_date',
+        500
+      );
+      setExistingItems(existing);
       setStep(3);
       try {
         const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
@@ -84,7 +89,7 @@ export default function BinderScanner() {
     }
   };
 
-  const duplicates = useMemo(() => {
+  const batchDuplicates = useMemo(() => {
     const seen = {};
     const dupIds = new Set();
     detectedCards.forEach((card) => {
@@ -98,11 +103,30 @@ export default function BinderScanner() {
     return dupIds;
   }, [detectedCards]);
 
+  const existingDuplicates = useMemo(() => {
+    const dupIds = new Set();
+    const existingKeys = new Set(
+      existingItems.map((e) =>
+        `${e.item_name}_${e.set_name}_${e.card_number}`.toLowerCase()
+      )
+    );
+    detectedCards.forEach((card) => {
+      const key = `${card.item_name}_${card.set_name}_${card.card_number}`.toLowerCase();
+      if (key !== 'unknown card__' && existingKeys.has(key)) {
+        dupIds.add(card.id);
+      }
+    });
+    return dupIds;
+  }, [detectedCards, existingItems]);
+
   const toggleConfirm = (cardId) => {
     setDetectedCards((prev) =>
       prev.map((c) => (c.id === cardId ? { ...c, confirmed: !c.confirmed } : c))
     );
   };
+
+  const selectAll = () => setDetectedCards((prev) => prev.map((c) => ({ ...c, confirmed: true })));
+  const deselectAll = () => setDetectedCards((prev) => prev.map((c) => ({ ...c, confirmed: false })));
 
   const updateCard = (cardId, field, value) => {
     setDetectedCards((prev) =>
@@ -124,9 +148,10 @@ export default function BinderScanner() {
           character_athlete_name: card.character_athlete_name || undefined,
           set_name: card.set_name || undefined,
           card_number: card.card_number || undefined,
-          year: card.year || undefined,
+          year: card.year ? (typeof card.year === 'string' ? parseInt(card.year) : card.year) : undefined,
           variant: card.variant || undefined,
           edition: card.edition || undefined,
+          quantity: card.quantity || 1,
           estimated_value: card.estimated_value || 0,
           low_value: card.low_value || 0,
           high_value: card.high_value || 0,
@@ -265,84 +290,41 @@ export default function BinderScanner() {
               Review each card and confirm before importing. {confirmedCount} confirmed.
             </p>
           </div>
-          {duplicates.size > 0 && (
+          {(batchDuplicates.size > 0 || existingDuplicates.size > 0) && (
             <div className="rounded-2xl bg-gold/5 border border-gold/20 p-3 flex items-start gap-2">
-              <Copy className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
               <p className="text-xs text-muted-foreground">
-                Possible duplicates detected. Review cards marked with the duplicate badge.
+                {batchDuplicates.size > 0 && 'Possible duplicates within this scan. '}
+                {existingDuplicates.size > 0 && `${existingDuplicates.size} card(s) already exist in your collection — uncheck to skip importing them.`}
               </p>
             </div>
           )}
+          <div className="flex gap-2">
+            <button
+              onClick={selectAll}
+              className="flex-1 h-8 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-accent"
+            >
+              Select All
+            </button>
+            <button
+              onClick={deselectAll}
+              className="flex-1 h-8 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-accent"
+            >
+              Deselect All
+            </button>
+          </div>
           <div className="space-y-3">
             {detectedCards
               .sort((a, b) => a.position - b.position)
               .map((card) => (
-                <div
+                <ScanResultRow
                   key={card.id}
-                  className={`rounded-2xl border p-3 transition-colors ${
-                    card.confirmed
-                      ? 'bg-card border-primary'
-                      : 'bg-card border-border'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => toggleConfirm(card.id)}
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                        card.confirmed
-                          ? 'bg-primary border-primary'
-                          : 'border-border'
-                      }`}
-                    >
-                      {card.confirmed && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
-                    </button>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] text-muted-foreground">#{card.position}</span>
-                        <input
-                          value={card.item_name || ''}
-                          onChange={(e) => updateCard(card.id, 'item_name', e.target.value)}
-                          className="text-sm font-semibold bg-transparent border-none outline-none flex-1 min-w-0"
-                        />
-                        {duplicates.has(card.id) && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] bg-gold/10 text-gold rounded-full px-1.5 py-0.5 font-medium flex-shrink-0">
-                            <Copy className="w-2.5 h-2.5" /> Dup
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                            card.identification_confidence === 'high'
-                              ? 'bg-gain/10 text-gain'
-                              : card.identification_confidence === 'medium'
-                              ? 'bg-gold/10 text-gold'
-                              : 'bg-loss/10 text-loss'
-                          }`}
-                        >
-                          ID: {card.identification_confidence || 'low'}
-                        </span>
-                        {card.estimated_value > 0 && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-primary/10 text-primary">
-                            {formatCurrency(card.estimated_value)}
-                          </span>
-                        )}
-                      </div>
-                      {card.set_name && (
-                        <p className="text-[10px] text-muted-foreground mt-1">
-                          {card.set_name}
-                          {card.card_number ? ` · #${card.card_number}` : ''}
-                          {card.year ? ` · ${card.year}` : ''}
-                        </p>
-                      )}
-                      {card.identification_notes && (
-                        <p className="text-[10px] text-muted-foreground mt-0.5 italic">
-                          {card.identification_notes}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                  card={card}
+                  isBatchDup={batchDuplicates.has(card.id)}
+                  isExistingDup={existingDuplicates.has(card.id)}
+                  onToggle={toggleConfirm}
+                  onUpdate={updateCard}
+                />
               ))}
           </div>
           <button

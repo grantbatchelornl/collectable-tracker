@@ -124,6 +124,10 @@
       "type": "boolean",
       "default": false
     },
+    "quantity": {
+      "type": "number",
+      "default": 1
+    },
     "estimated_value": {
       "type": "number",
       "default": 0
