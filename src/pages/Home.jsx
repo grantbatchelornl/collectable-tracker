@@ -24,7 +24,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star } from 'lucide-react';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -145,6 +145,22 @@ export default function Home() {
 
   return (
     <div className="px-4 py-4 space-y-6">
+      {collectibles.length > 0 && (
+        <button
+          onClick={() => navigate('/collector-ai')}
+          className="w-full rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 flex items-center gap-3 hover:opacity-90 transition-opacity"
+        >
+          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <p className="font-semibold text-sm">Collector AI</p>
+            <p className="text-xs opacity-80">Ask questions, find trades, analyze your collection</p>
+          </div>
+          <ChevronRight className="w-5 h-5 opacity-60 flex-shrink-0" />
+        </button>
+      )}
+
       {collectibles.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           <button

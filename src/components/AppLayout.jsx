@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import TopBar from './TopBar';
 import BottomNav from './BottomNav';
 import SuspendedScreen from './SuspendedScreen';
+import FloatingAIButton from './FloatingAIButton';
 
 export default function AppLayout() {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <FloatingAIButton />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import ReputationBadge from '@/components/trade/ReputationBadge';
 import TradeWindow from '@/components/trade/TradeWindow';
 import { formatCurrency } from '@/lib/format';
-import { ArrowLeft, Loader2, Package, Heart, ArrowLeftRight } from 'lucide-react';
+import { ArrowLeft, Loader2, Package, Heart, ArrowLeftRight, Sparkles } from 'lucide-react';
 
 export default function TradeBinder() {
   const { userId } = useParams();
@@ -62,9 +62,18 @@ export default function TradeBinder() {
   return (
     <div className="pb-4">
       <div className="relative">
-        <button onClick={() => navigate(-1)} className="absolute top-4 left-4 z-10 w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
+        <div className="absolute top-4 left-4 z-10 flex gap-2">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => navigate(`/collector-ai?context=Viewing trade binder for: ${displayName}`)}
+            className="w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
+            title="Ask Collector AI about trades"
+          >
+            <Sparkles className="w-5 h-5 text-primary" />
+          </button>
+        </div>
       </div>
 
       <div className="px-4 py-4 space-y-4">

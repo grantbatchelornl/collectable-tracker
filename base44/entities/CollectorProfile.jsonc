@@ -146,6 +146,68 @@
     "xp_to_next_level": {
       "type": "number",
       "default": 100
+    },
+    "ai_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_response_detail": {
+      "type": "string",
+      "enum": [
+        "brief",
+        "standard",
+        "detailed"
+      ],
+      "default": "standard"
+    },
+    "ai_collector_level": {
+      "type": "string",
+      "enum": [
+        "beginner",
+        "advanced"
+      ],
+      "default": "beginner"
+    },
+    "ai_recommendation_style": {
+      "type": "string",
+      "enum": [
+        "conservative",
+        "balanced",
+        "aggressive"
+      ],
+      "default": "balanced"
+    },
+    "ai_enable_recommendations": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_enable_binder_suggestions": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_enable_trade_suggestions": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_enable_grading_suggestions": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_enable_health_suggestions": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_include_purchase_price": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_include_manual_values": {
+      "type": "boolean",
+      "default": true
+    },
+    "ai_save_history": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": [

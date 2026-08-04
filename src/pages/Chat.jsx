@@ -50,10 +50,13 @@ export default function Chat() {
       await processMessages([...sentMsgs, ...receivedMsgs]);
 
       try {
-        const myBlock = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
-        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: false });
+        const [myBlock, theirBlock] = await Promise.all([
+          base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId }),
+          base44.entities.UserBlock.filter({ blocker_id: userId, blocked_id: user.id }),
+        ]);
+        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: theirBlock.length > 0 });
       } catch (e) {
-        // non-critical — backend function enforces blocks on send
+        // non-critical
       }
     } catch (err) {
       console.error(err);
@@ -109,12 +112,12 @@ export default function Chat() {
         attachedCollectiblePhoto: attachedItem?.primary_photo_url || '',
         attachedCollectibleValue: attachedItem?.estimated_value || 0,
       });
-      if (response.data?.error === 'blocked') {
-        setBlockStatus((prev) => ({ ...prev, theyBlockedMe: true }));
+      if (response.data.error === 'blocked') {
+        setBlockStatus(prev => ({ ...prev, theyBlockedMe: true }));
         return;
       }
-      if (response.data?.error) {
-        console.error('sendMessage error:', response.data.error);
+      if (response.data.error) {
+        console.error(response.data.error);
         return;
       }
       setInput('');

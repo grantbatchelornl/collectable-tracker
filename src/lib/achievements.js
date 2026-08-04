@@ -28,7 +28,7 @@ export async function checkAndAwardBadges(user) {
   if (!user?.id) return [];
   try {
     const response = await base44.functions.invoke('awardAchievements', {});
-    return response.data?.achievements || [];
+    return response.data.achievements || [];
   } catch (err) {
     console.error('Failed to check badges:', err);
     return [];

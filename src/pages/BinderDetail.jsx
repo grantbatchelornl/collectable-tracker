@@ -218,12 +218,21 @@ export default function BinderDetail() {
         <div className="relative h-32 overflow-hidden">
           <UIImage src={binder.cover_photo_url} fittingType="fill" className="w-full h-full" alt={binder.name} />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+          <div className="absolute top-4 left-4 flex gap-2">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => navigate(`/collector-ai?context=Viewing binder: ${binder.name} (${binder.completion_percent || 0}% complete)`)}
+              className="w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
+              title="Ask Collector AI about this binder"
+            >
+              <Sparkles className="w-5 h-5 text-primary" />
+            </button>
+          </div>
         </div>
       )}
       <div className="px-4 py-4 space-y-4">
@@ -231,6 +240,13 @@ export default function BinderDetail() {
           <div className="flex items-center gap-3">
             <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent">
               <ArrowLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={() => navigate(`/collector-ai?context=Viewing binder: ${binder.name} (${binder.completion_percent || 0}% complete)`)}
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent"
+              title="Ask Collector AI about this binder"
+            >
+              <Sparkles className="w-5 h-5 text-primary" />
             </button>
           </div>
         )}

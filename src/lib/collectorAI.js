@@ -1,81 +1,170 @@
 import { base44 } from '@/api/base44Client';
 
-export async function askCollectorAI(question, collectibles, pricingHistory) {
-  const validItems = (collectibles || []).filter((c) => !c.is_deleted);
-
-  const collectionSummary = validItems.slice(0, 50).map((c) => ({
-    name: c.item_name,
-    category: c.category_name,
-    value: c.estimated_value,
-    value_type: c.value_type,
-    purchase_cost: c.purchase_cost,
-    confidence: c.value_confidence,
-    year: c.year,
-    set_name: c.set_name,
-    character: c.character_athlete_name,
-    team: c.team,
-    is_stale: c.is_stale,
-  }));
-
-  const totalValue = validItems.reduce((s, c) => s + (c.estimated_value || 0), 0);
-  const verifiedValue = validItems
-    .filter((c) => c.value_type === 'verified_sold')
-    .reduce((s, c) => s + (c.estimated_value || 0), 0);
-  const manualValue = totalValue - verifiedValue;
-  const totalCost = validItems.reduce((s, c) => s + (c.purchase_cost || 0), 0);
-
-  const categoryBreakdown = {};
-  validItems.forEach((c) => {
-    const cat = c.category_name || 'Uncategorized';
-    if (!categoryBreakdown[cat]) categoryBreakdown[cat] = { count: 0, value: 0 };
-    categoryBreakdown[cat].count++;
-    categoryBreakdown[cat].value += c.estimated_value || 0;
+export async function askCollectorAI(question, history = [], contextHint = '') {
+  const response = await base44.functions.invoke('collectorAIChat', {
+    question,
+    history,
+    contextHint,
   });
+  return response.data;
+}
 
-  const mostValuable = [...validItems]
-    .sort((a, b) => (b.estimated_value || 0) - (a.estimated_value || 0))
-    .slice(0, 5)
-    .map((c) => ({ name: c.item_name, value: c.estimated_value }));
+export async function executeAction(action, user, navigate) {
+  let details = {};
+  try {
+    details = typeof action.details === 'string' ? JSON.parse(action.details) : (action.details || {});
+  } catch { details = {}; }
 
-  const recentHistory = (pricingHistory || [])
-    .slice(0, 20)
-    .map((h) => ({
-      name: h.collectible_name,
-      value: h.estimated_value,
-      date: h.created_date,
-      type: h.value_type,
-    }));
+  switch (action.action_type) {
+    case 'create_binder': {
+      const binder = await base44.entities.CollectionBinder.create({
+        user_id: user.id,
+        name: details.name || action.title,
+        description: details.description || '',
+        target_count: details.target_count || 0,
+        binder_type: 'custom',
+        privacy_status: 'private',
+      });
+      return { success: true, message: `Created binder "${binder.name}"`, route: `/binder/${binder.id}` };
+    }
 
-  const prompt = `You are a collector's AI assistant. Answer the user's question using ONLY their collection data provided below. Do not make up information or invent data.
+    case 'add_to_wishlist': {
+      const items = details.items || [];
+      if (!items.length) return { success: false, message: 'No items specified' };
+      await base44.entities.Watchlist.bulkCreate(
+        items.map(item => ({
+          user_id: user.id,
+          item_name: item.name || item,
+          category_name: item.category || '',
+          target_price: item.target_price || 0,
+          priority: item.priority || 'medium',
+          status: 'active',
+          alert_type: 'buy_target',
+        }))
+      );
+      return { success: true, message: `Added ${items.length} item${items.length > 1 ? 's' : ''} to your wishlist`, route: '/watchlist' };
+    }
 
-COLLECTION SUMMARY:
-- Total items: ${validItems.length}
-- Total value: ${totalValue.toFixed(2)}
-- Verified sold value: ${verifiedValue.toFixed(2)}
-- Manual value: ${manualValue.toFixed(2)}
-- Total purchase cost: ${totalCost.toFixed(2)}
-- Profit/Loss: ${(totalValue - totalCost).toFixed(2)}
+    case 'mark_for_trade': {
+      const ids = details.collectible_ids || [];
+      if (!ids.length) return { success: false, message: 'No items specified' };
+      for (const id of ids) {
+        await base44.entities.Collectible.update(id, { trade_status: 'trade' });
+      }
+      return { success: true, message: `Marked ${ids.length} item${ids.length > 1 ? 's' : ''} as available for trade` };
+    }
 
-CATEGORY BREAKDOWN:
-${JSON.stringify(categoryBreakdown, null, 2)}
+    case 'refresh_pricing': {
+      const id = details.collectible_id;
+      if (id) {
+        navigate(`/collectible/${id}`);
+        return { success: true, message: 'Opening collectible for pricing refresh' };
+      }
+      return { success: false, message: 'No collectible specified' };
+    }
 
-TOP 5 MOST VALUABLE:
-${JSON.stringify(mostValuable, null, 2)}
+    case 'start_grading': {
+      const id = details.collectible_id;
+      if (id) {
+        navigate(`/collectible/${id}`);
+        return { success: true, message: 'Opening collectible for grading evaluation' };
+      }
+      return { success: false, message: 'No collectible specified' };
+    }
 
-ALL ITEMS (first 50):
-${JSON.stringify(collectionSummary, null, 2)}
+    case 'create_goal': {
+      const goal = await base44.entities.CollectionGoal.create({
+        user_id: user.id,
+        title: details.title || action.title,
+        goal_type: details.goal_type || 'custom',
+        target_count: details.target_count || 0,
+        status: 'active',
+      });
+      return { success: true, message: `Created goal "${goal.title}"`, route: '/goals' };
+    }
 
-RECENT PRICING HISTORY (last 20):
-${JSON.stringify(recentHistory, null, 2)}
+    case 'update_preference': {
+      const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
+      if (!profiles[0]) return { success: false, message: 'Profile not found' };
+      const field = details.field;
+      const value = details.value;
+      if (!field) return { success: false, message: 'No preference field specified' };
+      await base44.entities.CollectorProfile.update(profiles[0].id, { [field]: value });
+      return { success: true, message: `Updated ${field.replace(/_/g, ' ')} to ${value}` };
+    }
 
-USER QUESTION: ${question}
+    case 'navigate': {
+      if (details.route) {
+        navigate(details.route);
+        return { success: true, message: 'Navigating' };
+      }
+      return { success: false, message: 'No route specified' };
+    }
 
-Answer based ONLY on the data above. If the question cannot be answered from this data, say so clearly. Be specific and use exact numbers. For "missing set pieces" questions, identify items that share a set_name and suggest what might be missing. For "best trade" questions, suggest items that are duplicates or have low confidence values.`;
+    default:
+      return { success: false, message: `Unknown action: ${action.action_type}` };
+  }
+}
 
-  const result = await base44.integrations.Core.InvokeLLM({
-    prompt,
-    model: 'gemini_3_1_pro',
+export const SUGGESTED_PROMPTS = [
+  { label: 'Review my collection', question: 'Give me a comprehensive review of my collection, including total value, strengths, and areas for improvement.' },
+  { label: 'What changed this week?', question: 'What changed in my collection this week? Show me gains, losses, and new additions.' },
+  { label: 'What should I grade?', question: 'Which of my collectibles are the best candidates for professional grading? Explain why.' },
+  { label: 'What should I trade?', question: 'Which duplicates or items should I consider trading? What are my best trade candidates?' },
+  { label: 'Help me finish a binder', question: 'Which binder am I closest to completing? What items am I missing and which are the least expensive?' },
+  { label: 'Find my duplicates', question: 'Do I have any duplicate items? Which ones could I trade?' },
+  { label: 'Show stale prices', question: 'Which items have stale pricing and need a refresh?' },
+  { label: 'Show my biggest gains', question: 'Which items in my collection gained the most value recently?' },
+  { label: 'Find a fair trade', question: 'Do I have any fair trade matches with friends or collectors?' },
+  { label: 'Explain my Collection Health', question: 'What are my Collection Health issues and how do I fix them?' },
+];
+
+export function getAdaptivePrompts(collectibles, binders, healthIssues) {
+  const prompts = [];
+
+  if (!collectibles || collectibles.length === 0) {
+    prompts.push({ label: 'Getting started', question: 'I am new to collecting. What should I know about building and tracking my collection?' });
+    return prompts;
+  }
+
+  const staleCount = collectibles.filter(c => c.is_stale).length;
+  if (staleCount > 0) {
+    prompts.push({ label: 'Show stale prices', question: `I have ${staleCount} items with stale pricing. Which ones need refreshing?` });
+  }
+
+  const duplicates = findDuplicates(collectibles);
+  if (duplicates.length > 0) {
+    prompts.push({ label: 'Find my duplicates', question: 'Do I have any duplicate items that I could trade?' });
+  }
+
+  const ungradedValuable = collectibles.filter(c => !c.grading_company && (c.estimated_value || 0) > 100);
+  if (ungradedValuable.length > 0) {
+    prompts.push({ label: 'What should I grade?', question: `I have ${ungradedValuable.length} ungraded items worth over $100. Which are the best grading candidates?` });
+  }
+
+  if (binders && binders.length > 0) {
+    const closest = [...binders].sort((a, b) => (b.completion_percent || 0) - (a.completion_percent || 0))[0];
+    if (closest && (closest.completion_percent || 0) > 0) {
+      prompts.push({ label: 'Help me finish a binder', question: `I'm ${closest.completion_percent}% done with my "${closest.name}" binder. What am I missing and which missing items are cheapest?` });
+    }
+  }
+
+  if (healthIssues && healthIssues.filter(h => !h.status || h.status === 'open').length > 0) {
+    prompts.push({ label: 'Explain my Collection Health', question: 'What are my Collection Health issues and how do I fix them?' });
+  }
+
+  prompts.push({ label: 'Review my collection', question: 'Give me a comprehensive review of my collection.' });
+  prompts.push({ label: 'What changed this week?', question: 'What changed in my collection this week? Show me gains, losses, and new additions.' });
+
+  return prompts.slice(0, 6);
+}
+
+function findDuplicates(collectibles) {
+  const seen = {};
+  collectibles.forEach(c => {
+    const key = `${c.item_name}_${c.set_name || ''}_${c.year || ''}`;
+    if (!seen[key]) seen[key] = [];
+    seen[key].push(c);
   });
-
-  return result;
+  return Object.values(seen).filter(arr => arr.length > 1);
 }

@@ -32,6 +32,7 @@ import {
   AlertTriangle,
   Repeat,
   Star,
+  Sparkles,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
@@ -279,8 +280,15 @@ export default function CollectibleDetail() {
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 flex flex-col gap-2 items-end">
           <PrivacyBadge status={collectible.privacy_status} />
+          <button
+            onClick={() => navigate(`/collector-ai?context=Viewing collectible: ${collectible.item_name} (${collectible.category_name})`)}
+            className="w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
+            title="Ask Collector AI about this item"
+          >
+            <Sparkles className="w-5 h-5 text-primary" />
+          </button>
         </div>
         {frontPhoto && backPhoto && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1 bg-background/70 backdrop-blur rounded-full p-1">

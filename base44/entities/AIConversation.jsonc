@@ -1,0 +1,40 @@
+{
+  "name": "AIConversation",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "messages_json": {
+      "type": "string"
+    },
+    "last_message_preview": {
+      "type": "string"
+    },
+    "message_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

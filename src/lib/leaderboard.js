@@ -159,9 +159,7 @@ export async function getLeaderboard(sectionKey, metricKey, scope, eligibleIds, 
     '-estimated_value',
     2000
   );
-  const verifiedOnly = collectibles.filter(
-    (c) => c.value_type === 'verified_sold' && (c.comparables_count || 0) >= 2
-  );
+  const verifiedOnly = collectibles.filter((c) => c.value_type === 'verified_sold' && (c.comparables_count || 0) >= 2);
   const cutoff = getTimeframeCutoff(timeframe);
 
   const userMap = {};
