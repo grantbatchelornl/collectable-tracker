@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Activity,
   Loader2,
+  BellRing,
 } from 'lucide-react';
 import { formatRelativeDate } from '@/lib/format';
 
@@ -36,6 +37,9 @@ const ICON_MAP = {
   admin_announcement: Megaphone,
   security_alert: ShieldAlert,
   collection_health: Activity,
+  price_alert: BellRing,
+  binder_milestone: Trophy,
+  binder_complete: Trophy,
 };
 
 export default function NotificationBell() {

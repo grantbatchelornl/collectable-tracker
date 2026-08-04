@@ -18,9 +18,15 @@ export default function Messages() {
 
   useEffect(() => {
     loadData(true);
-    const unsubMessages = base44.entities.Message.subscribe(() => loadData());
-    const unsubTrades = base44.entities.Trade.subscribe(() => loadData());
+    let debounceTimer = null;
+    const debouncedLoad = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => loadData(), 300);
+    };
+    const unsubMessages = base44.entities.Message.subscribe(debouncedLoad);
+    const unsubTrades = base44.entities.Trade.subscribe(debouncedLoad);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       unsubMessages();
       unsubTrades();
     };
@@ -30,11 +36,13 @@ export default function Messages() {
     if (!user?.id) return;
     if (showSpinner) setLoading(true);
     try {
-      const [messages, trades, blocks] = await Promise.all([
-        base44.entities.Message.list('-created_date', 500),
+      const [sentMsgs, receivedMsgs, trades, blocks] = await Promise.all([
+        base44.entities.Message.filter({ sender_id: user.id }, '-created_date', 250),
+        base44.entities.Message.filter({ recipient_id: user.id }, '-created_date', 250),
         base44.entities.Trade.list('-created_date', 200),
         base44.entities.UserBlock.filter({ blocker_id: user.id }),
       ]);
+      const messages = [...sentMsgs, ...receivedMsgs];
 
       const blockedSet = new Set(blocks.map((b) => b.blocked_id));
       setBlockedIds(blockedSet);

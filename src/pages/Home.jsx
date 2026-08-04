@@ -119,6 +119,7 @@ export default function Home() {
   const recentChanges = useMemo(() => getRecentPriceChanges(pricingHistory, collectibles), [pricingHistory, collectibles]);
   const purchaseStats = useMemo(() => getPurchaseStats(collectibles), [collectibles]);
   const staleCount = useMemo(() => collectibles.filter((c) => c.is_stale).length, [collectibles]);
+  const portfolioTimeSeries = useMemo(() => buildPortfolioTimeSeries(collectibles, pricingHistory), [collectibles, pricingHistory]);
   const collectorScore = useMemo(() => computeCollectorScore(collectibles, pricingHistory, achievements, trades), [collectibles, pricingHistory, achievements, trades]);
 
   const highestValue = useMemo(
@@ -300,7 +301,7 @@ export default function Home() {
           {pricingHistory.length > 1 && (
             <div className="rounded-2xl bg-card border border-border p-4">
               <h3 className="font-semibold text-sm mb-3">Portfolio Value Over Time</h3>
-              <PortfolioChart data={buildPortfolioTimeSeries(collectibles, pricingHistory)} />
+              <PortfolioChart data={portfolioTimeSeries} />
             </div>
           )}
 

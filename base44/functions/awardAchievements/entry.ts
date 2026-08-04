@@ -21,7 +21,7 @@ export default async function(req) {
     const cardCount = validCollectibles.length;
     const friendCount = follows.length;
     const completedTrades = trades.filter(
-      (t) => (t.proposer_id === user.id || t.recipient_id === user.id) && t.status === 'accepted'
+      (t) => (t.proposer_id === user.id || t.recipient_id === user.id) && t.status === 'completed'
     ).length;
     const totalValue = validCollectibles.reduce((s, c) => s + (c.estimated_value || 0), 0);
     const hasPublic = validCollectibles.some((c) => c.privacy_status === 'public');

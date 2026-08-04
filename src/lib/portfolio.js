@@ -1,39 +1,32 @@
 export function buildPortfolioTimeSeries(collectibles, pricingHistory) {
   if (!collectibles.length || !pricingHistory.length) return [];
 
-  const historyByCollectible = {};
-  pricingHistory.forEach((h) => {
-    if (!historyByCollectible[h.collectible_id]) {
-      historyByCollectible[h.collectible_id] = [];
+  const collectibleIds = new Set(collectibles.map((c) => c.id));
+
+  // Build flat event list from pricing history, filtered to owned collectibles
+  const events = [];
+  for (const h of pricingHistory) {
+    if (collectibleIds.has(h.collectible_id)) {
+      events.push({
+        timestamp: new Date(h.created_date).getTime(),
+        collectibleId: h.collectible_id,
+        value: h.estimated_value || 0,
+      });
     }
-    historyByCollectible[h.collectible_id].push(h);
-  });
+  }
 
-  Object.values(historyByCollectible).forEach((h) => {
-    h.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-  });
+  // Sort by timestamp — O(n log n)
+  events.sort((a, b) => a.timestamp - b.timestamp);
 
-  const allDates = new Set();
-  Object.values(historyByCollectible).forEach((history) => {
-    history.forEach((h) => allDates.add(new Date(h.created_date).getTime()));
-  });
-
-  const sortedDates = Array.from(allDates).sort((a, b) => a - b);
-
+  // Single pass: track running total incrementally — O(n)
+  const currentValues = {};
+  let runningTotal = 0;
   const series = [];
-  for (const date of sortedDates) {
-    let total = 0;
-    for (const collectible of collectibles) {
-      const history = historyByCollectible[collectible.id] || [];
-      let value = 0;
-      for (const h of history) {
-        if (new Date(h.created_date).getTime() <= date) {
-          value = h.estimated_value;
-        } else break;
-      }
-      total += value;
-    }
-    series.push({ date, value: total });
+  for (const event of events) {
+    const oldValue = currentValues[event.collectibleId] || 0;
+    currentValues[event.collectibleId] = event.value;
+    runningTotal += event.value - oldValue;
+    series.push({ date: event.timestamp, value: runningTotal });
   }
 
   return series;

@@ -23,7 +23,7 @@ export default async function(req) {
     const recentConvs = await base44.asServiceRole.entities.AIConversation.filter({ user_id: user.id }, '-created_date', 30);
     const now = Date.now();
     const recentCount = recentConvs.filter(c => c.created_date && new Date(c.created_date).getTime() > now - 3600000).length;
-    if (recentCount > 30) {
+    if (recentCount >= 30) {
       return Response.json({ error: 'Rate limit exceeded. Please wait a moment.' }, { status: 429 });
     }
 
