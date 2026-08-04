@@ -1,12 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, LayoutGrid, ScanLine, Heart, Settings, BookOpen } from 'lucide-react';
+import { Home, LayoutGrid, ScanLine, User, Settings, BookOpen } from 'lucide-react';
 import QuickActionsSheet from './QuickActionsSheet';
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/collection', icon: LayoutGrid, label: 'Collection' },
   { to: '/add', icon: ScanLine, label: 'Scan', isCenter: true },
-  { to: '/watchlist', icon: Heart, label: 'Wishlist' },
+  { to: '/profile', icon: User, label: 'Profile' },
   { to: '/binders', icon: BookOpen, label: 'Binders' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
