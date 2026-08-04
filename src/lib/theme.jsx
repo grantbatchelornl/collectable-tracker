@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 const THEME_KEY = 'collectable-theme';
 
 export const THEMES = [
-  { id: 'light', label: 'Light', colors: ['#F9FAFB', '#D97706', '#111827'] },
-  { id: 'dark', label: 'Dark', colors: ['#111827', '#F59E0B', '#F9FAFB'] },
+  { id: 'light', label: 'Light', colors: ['#F0FDF4', '#059669', '#064E3B'] },
+  { id: 'dark', label: 'Dark', colors: ['#064E3B', '#10B981', '#F0FDF4'] },
   { id: 'midnight', label: 'Midnight', colors: ['#0a0e1a', '#6366f1', '#e2e8f0'] },
   { id: 'emerald', label: 'Emerald', colors: ['#0a1a14', '#10b981', '#dcfce7'] },
   { id: 'royal-purple', label: 'Royal Purple', colors: ['#140a1e', '#a855f7', '#f3e8ff'] },
