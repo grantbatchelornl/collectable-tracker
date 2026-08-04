@@ -15,6 +15,9 @@ import {
 } from '@/lib/binderChecklist';
 import BinderSlot from '@/components/binder/BinderSlot';
 import BinderGrid from '@/components/binder/BinderGrid';
+import BinderStatistics from '@/components/binder/BinderStatistics';
+import DigitalBinderPage from '@/components/binder/DigitalBinderPage';
+import QRBinderShare from '@/components/binder/QRBinderShare';
 import CompletionCost from '@/components/binder/CompletionCost';
 import MissingList from '@/components/binder/MissingList';
 import DuplicateSuggestions from '@/components/binder/DuplicateSuggestions';
@@ -35,6 +38,7 @@ import {
   Images,
   Square,
   Grid3x3,
+  BookOpen,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { Image as UIImage } from '@/components/ui/image';
@@ -54,6 +58,7 @@ const VIEW_MODES = [
   { key: 'gallery', icon: Images },
   { key: 'large', icon: Square },
   { key: 'small', icon: Grid3x3 },
+  { key: 'binder', icon: BookOpen },
 ];
 
 export default function BinderDetail() {
@@ -334,6 +339,17 @@ export default function BinderDetail() {
           <span className="text-xs font-medium capitalize">{binder.privacy_status || 'private'}</span>
         </button>
 
+        {/* Binder Statistics */}
+        <BinderStatistics
+          checklist={matchedChecklist}
+          binder={binder}
+          completion={completion}
+          costEstimates={costEstimates}
+        />
+
+        {/* QR Share */}
+        <QRBinderShare binder={binder} />
+
         {/* Completion Cost */}
         <CompletionCost
           costEstimates={costEstimates}
@@ -442,16 +458,28 @@ export default function BinderDetail() {
         </div>
 
         {/* Binder grid */}
-        <BinderGrid
-          checklist={filteredChecklist}
-          viewMode={viewMode}
-          sorting={sorting}
-          onSlotClick={(item) => {
-            if (item.collectible) {
-              navigate(`/collectible/${item.collectible.id}`);
-            }
-          }}
-        />
+        {viewMode === 'binder' ? (
+          <DigitalBinderPage
+            checklist={filteredChecklist}
+            binder={binder}
+            onSlotClick={(item) => {
+              if (item.collectible) {
+                navigate(`/collectible/${item.collectible.id}`);
+              }
+            }}
+          />
+        ) : (
+          <BinderGrid
+            checklist={filteredChecklist}
+            viewMode={viewMode}
+            sorting={sorting}
+            onSlotClick={(item) => {
+              if (item.collectible) {
+                navigate(`/collectible/${item.collectible.id}`);
+              }
+            }}
+          />
+        )}
 
         {/* Auto-populate note */}
         <p className="text-[10px] text-muted-foreground text-center pt-2">

@@ -91,7 +91,8 @@
         "list",
         "gallery",
         "large",
-        "small"
+        "small",
+        "binder"
       ],
       "default": "grid"
     },

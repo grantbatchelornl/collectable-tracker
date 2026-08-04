@@ -13,6 +13,7 @@ import WishlistActivity from '@/components/WishlistActivity';
 import AchievementProgress from '@/components/AchievementProgress';
 import CollectionBriefing from '@/components/CollectionBriefing';
 import CollectorScoreCard from '@/components/CollectorScoreCard';
+import AISmartSuggestions from '@/components/binder/AISmartSuggestions';
 import { computeCollectorScore } from '@/lib/collectorScore';
 import {
   buildPortfolioTimeSeries,
@@ -228,6 +229,10 @@ export default function Home() {
 
       {collectibles.length > 0 && (
         <CollectorScoreCard scoreData={collectorScore} />
+      )}
+
+      {collectibles.length > 0 && (
+        <AISmartSuggestions collectibles={collectibles} />
       )}
 
       {collectibles.length === 0 ? (

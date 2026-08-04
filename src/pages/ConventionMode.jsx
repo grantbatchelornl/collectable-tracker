@@ -26,6 +26,8 @@ import {
   ArrowLeftRight,
   Users,
   ChevronRight,
+  Repeat,
+  Heart,
 } from 'lucide-react';
 
 export default function ConventionMode() {
@@ -39,6 +41,7 @@ export default function ConventionMode() {
   const [toggling, setToggling] = useState(false);
   const [locationError, setLocationError] = useState('');
   const [tradeHistory, setTradeHistory] = useState(null);
+  const [binderMode, setBinderMode] = useState('trade');
 
   useEffect(() => {
     loadProfile();
@@ -171,13 +174,36 @@ export default function ConventionMode() {
           <div className="rounded-2xl bg-card border border-border p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-3">
               <QrCode className="w-5 h-5 text-primary" />
-              <p className="text-sm font-semibold">Your Trade Binder QR</p>
+              <p className="text-sm font-semibold">
+                {binderMode === 'trade' ? 'Trade Binder QR' : 'Wishlist QR'}
+              </p>
+            </div>
+            {/* Binder mode toggle */}
+            <div className="flex gap-2 mb-3 justify-center">
+              <button
+                onClick={() => setBinderMode('trade')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium ${
+                  binderMode === 'trade' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                <Repeat className="w-3 h-3" /> Trade Binder
+              </button>
+              <button
+                onClick={() => setBinderMode('wishlist')}
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium ${
+                  binderMode === 'wishlist' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                }`}
+              >
+                <Heart className="w-3 h-3" /> Wishlist
+              </button>
             </div>
             <div className="inline-block rounded-2xl bg-white p-3 border border-border">
-              <img src={qr.qrImageUrl} alt="Trade Binder QR" className="w-48 h-48" />
+              <img src={qr.qrImageUrl} alt={binderMode === 'trade' ? 'Trade Binder QR' : 'Wishlist QR'} className="w-48 h-48" />
             </div>
             <p className="text-[10px] text-muted-foreground mt-2">
-              Have someone scan this to instantly open your Trade Binder
+              {binderMode === 'trade'
+                ? 'Have someone scan this to instantly open your Trade Binder — perfect for shows.'
+                : 'Have someone scan this to see what you\'re looking for — they might have it!'}
             </p>
           </div>
 
