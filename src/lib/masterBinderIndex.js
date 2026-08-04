@@ -7,11 +7,12 @@ const POPULAR_KEYWORDS = {
   mewtwo: { sets: ['Base Set', '151', 'Shining Fates', 'Crown Zenith', 'BREAKthrough'], categories: ['pokemon'] },
   mew: { sets: ['151', 'Shining Legends', 'Hidden Fates', 'Crown Zenith', 'Celestial Storm'], categories: ['pokemon'] },
   eevee: { sets: ['Crown Zenith', '151', 'Evolving Skies', 'Hidden Fates', 'Fusion Strike'], categories: ['pokemon'] },
+  umbreon: { sets: ['Evolving Skies', 'Hidden Fates', '151', 'Crown Zenith'], categories: ['pokemon'] },
   blastoise: { sets: ['Base Set', 'Crown Zenith', '151'], categories: ['pokemon'] },
   venusaur: { sets: ['Base Set', 'Crown Zenith', '151'], categories: ['pokemon'] },
   batman: { sets: ['DC Comics'], categories: ['funko'] },
   'star wars': { sets: ['Star Wars'], categories: ['funko'] },
-  marvel: { sets: ['Marvel'], categories: ['funko'] },
+  marvel: { sets: ['Marvel'], categories: ['funko', 'memorabilia'] },
   disney: { sets: ['Disney'], categories: ['funko'] },
   'harry potter': { sets: ['Harry Potter'], categories: ['funko'] },
   naruto: { sets: ['Naruto'], categories: ['funko'] },
@@ -82,14 +83,96 @@ const POPULAR_SETS = [
 ];
 
 const CATEGORY_COLORS = {
-  pokemon: { from: 'from-yellow-500/20', to: 'to-amber-500/10', text: 'text-yellow-600', solid: '#eab308' },
-  magic: { from: 'from-purple-500/20', to: 'to-violet-500/10', text: 'text-purple-600', solid: '#9333ea' },
-  lorcana: { from: 'from-cyan-500/20', to: 'to-blue-500/10', text: 'text-cyan-600', solid: '#06b6d4' },
-  sports: { from: 'from-orange-500/20', to: 'to-red-500/10', text: 'text-orange-600', solid: '#f97316' },
-  funko: { from: 'from-pink-500/20', to: 'to-rose-500/10', text: 'text-pink-600', solid: '#ec4899' },
-  coins: { from: 'from-amber-500/20', to: 'to-yellow-500/10', text: 'text-amber-600', solid: '#f59e0b' },
-  memorabilia: { from: 'from-red-500/20', to: 'to-orange-500/10', text: 'text-red-600', solid: '#ef4444' },
+  pokemon: { from: 'from-yellow-500/20', to: 'to-amber-500/10', text: 'text-yellow-600', solid: '#eab308', gradient: 'from-yellow-400 via-amber-500 to-orange-500' },
+  magic: { from: 'from-purple-500/20', to: 'to-violet-500/10', text: 'text-purple-600', solid: '#9333ea', gradient: 'from-purple-400 via-violet-500 to-indigo-500' },
+  lorcana: { from: 'from-cyan-500/20', to: 'to-blue-500/10', text: 'text-cyan-600', solid: '#06b6d4', gradient: 'from-cyan-400 via-blue-500 to-indigo-500' },
+  sports: { from: 'from-orange-500/20', to: 'to-red-500/10', text: 'text-orange-600', solid: '#f97316', gradient: 'from-orange-400 via-red-500 to-rose-500' },
+  funko: { from: 'from-pink-500/20', to: 'to-rose-500/10', text: 'text-pink-600', solid: '#ec4899', gradient: 'from-pink-400 via-rose-500 to-fuchsia-500' },
+  coins: { from: 'from-amber-500/20', to: 'to-yellow-500/10', text: 'text-amber-600', solid: '#f59e0b', gradient: 'from-amber-400 via-yellow-500 to-orange-400' },
+  memorabilia: { from: 'from-red-500/20', to: 'to-orange-500/10', text: 'text-red-600', solid: '#ef4444', gradient: 'from-red-400 via-orange-500 to-amber-500' },
 };
+
+// 5-tier difficulty system
+export const DIFFICULTY_TIERS = {
+  beginner:   { label: 'Beginner',   icon: '🟢', color: 'text-gain',  bg: 'bg-gain/10',    rank: 1 },
+  moderate:   { label: 'Moderate',   icon: '🔵', color: 'text-blue-500', bg: 'bg-blue-500/10', rank: 2 },
+  advanced:   { label: 'Advanced',   icon: '🟣', color: 'text-purple-500', bg: 'bg-purple-500/10', rank: 3 },
+  expert:     { label: 'Expert',     icon: '🟠', color: 'text-orange-500', bg: 'bg-orange-500/10', rank: 4 },
+  legendary:  { label: 'Legendary',  icon: '🔴', color: 'text-loss', bg: 'bg-loss/10', rank: 5 },
+};
+
+// Per-set metadata overrides
+const SET_METADATA = {
+  // Pokémon — featured & trending
+  'Base Set':             { difficulty: 'legendary', value: 15000, popularity: 100, featured: true },
+  '151':                  { difficulty: 'moderate', value: 3500, popularity: 95, featured: true, trending: true },
+  'Prismatic Evolutions':{ difficulty: 'advanced', value: 5000, popularity: 98, featured: true, trending: true },
+  'Crown Zenith':         { difficulty: 'beginner', value: 2000, popularity: 90, featured: true },
+  'Evolving Skies':       { difficulty: 'advanced', value: 4000, popularity: 92, trending: true },
+  'Scarlet & Violet':     { difficulty: 'beginner', value: 1500, popularity: 85, featured: true },
+  'Destined Rivals':      { difficulty: 'moderate', value: 2500, popularity: 88, trending: true },
+  'Black Bolt':           { difficulty: 'moderate', value: 2200, popularity: 86, trending: true },
+  'White Flare':          { difficulty: 'moderate', value: 2200, popularity: 85, trending: true },
+  'Mega Evolution':       { difficulty: 'advanced', value: 3000, popularity: 89, trending: true },
+  'Journey Together':     { difficulty: 'moderate', value: 1800, popularity: 84, trending: true },
+  'Hidden Fates':         { difficulty: 'moderate', value: 1800, popularity: 82 },
+  'Shining Fates':        { difficulty: 'beginner', value: 1200, popularity: 80 },
+  'Obsidian Flames':      { difficulty: 'moderate', value: 1600, popularity: 78 },
+  'Paldean Fates':        { difficulty: 'moderate', value: 1400, popularity: 76 },
+  'Surging Sparks':        { difficulty: 'moderate', value: 1500, popularity: 75 },
+  'Temporal Forces':      { difficulty: 'moderate', value: 1400, popularity: 72 },
+  'Twilight Masquerade':  { difficulty: 'moderate', value: 1300, popularity: 70 },
+  'Shrouded Fable':       { difficulty: 'advanced', value: 2000, popularity: 74 },
+  'Stellar Crown':        { difficulty: 'moderate', value: 1400, popularity: 71 },
+  'Celebrations':         { difficulty: 'beginner', value: 800, popularity: 78 },
+  'Fusion Strike':        { difficulty: 'moderate', value: 1200, popularity: 68 },
+  'Brilliant Stars':      { difficulty: 'moderate', value: 1100, popularity: 65 },
+  'Astral Radiance':      { difficulty: 'moderate', value: 1200, popularity: 64 },
+  'Sword & Shield':       { difficulty: 'beginner', value: 900, popularity: 67 },
+  'Darkness Ablaze':      { difficulty: 'moderate', value: 1100, popularity: 63 },
+  'Evolutions':           { difficulty: 'moderate', value: 1000, popularity: 60 },
+  // Magic
+  'Foundations':          { difficulty: 'beginner', value: 600, popularity: 82, featured: true, trending: true },
+  'Bloomburrow':          { difficulty: 'moderate', value: 800, popularity: 80, trending: true },
+  'Modern Horizons 3':    { difficulty: 'advanced', value: 1200, popularity: 85, trending: true },
+  'Duskmourn':            { difficulty: 'moderate', value: 700, popularity: 78 },
+  'The Lost Caverns of Ixalan': { difficulty: 'moderate', value: 600, popularity: 72 },
+  // Lorcana
+  'The First Chapter':    { difficulty: 'beginner', value: 500, popularity: 80, featured: true },
+  'Azurite Sea':          { difficulty: 'moderate', value: 700, popularity: 78, trending: true },
+  'Shimmering Skies':     { difficulty: 'moderate', value: 600, popularity: 75 },
+  // Sports
+  '1986 Fleer Basketball':{ difficulty: 'legendary', value: 50000, popularity: 95, featured: true },
+  '1952 Topps Baseball':   { difficulty: 'legendary', value: 100000, popularity: 90, featured: true },
+  '1989 Upper Deck Baseball':{ difficulty: 'expert', value: 5000, popularity: 70 },
+  '2003 Topps Chrome Football':{ difficulty: 'advanced', value: 3000, popularity: 75 },
+  // Coins
+  'Morgan Dollars':       { difficulty: 'expert', value: 8000, popularity: 70 },
+  'American Silver Eagles':{ difficulty: 'beginner', value: 2000, popularity: 75, featured: true },
+  'State Quarters':       { difficulty: 'beginner', value: 500, popularity: 80, featured: true },
+  // Funko
+  'Marvel':               { difficulty: 'moderate', value: 2000, popularity: 85, featured: true },
+  'Disney':               { difficulty: 'moderate', value: 1800, popularity: 82 },
+  'Star Wars':            { difficulty: 'moderate', value: 1500, popularity: 78 },
+  // Memorabilia
+  'Super Bowl Programs':  { difficulty: 'expert', value: 10000, popularity: 65 },
+};
+
+// Coming soon sets (not yet released or just announced)
+const COMING_SOON_SETS = [
+  { name: 'Mega Evolution 2', category: 'pokemon', categoryLabel: 'Pokémon', icon: '⚡', releaseDate: '2025-11-14', difficulty: 'advanced', estimatedCollectibles: 120, popularity: 82 },
+  { name: 'Prismatic Evolutions Premium', category: 'pokemon', categoryLabel: 'Pokémon', icon: '🌈', releaseDate: '2025-09-26', difficulty: 'advanced', estimatedCollectibles: 80, popularity: 80 },
+];
+
+// Hidden / secret sets
+const HIDDEN_SETS = [
+  { name: 'Holiday Promo 2025', category: 'pokemon', categoryLabel: 'Pokémon', icon: '🎁', type: 'Holiday Promo', difficulty: 'expert', estimatedCollectibles: 25, popularity: 60 },
+  { name: 'Convention Exclusive 2025', category: 'pokemon', categoryLabel: 'Pokémon', icon: '🎪', type: 'Convention Exclusive', difficulty: 'legendary', estimatedCollectibles: 10, popularity: 55 },
+  { name: "McDonalds Promo 2024", category: 'pokemon', categoryLabel: 'Pokémon', icon: '🍟', type: 'Regional Exclusive', difficulty: 'moderate', estimatedCollectibles: 15, popularity: 65 },
+  { name: 'Error Card Collection', category: 'pokemon', categoryLabel: 'Pokémon', icon: '❌', type: 'Error Sets', difficulty: 'legendary', estimatedCollectibles: 8, popularity: 50 },
+  { name: 'Pokémon Center Exclusive', category: 'pokemon', categoryLabel: 'Pokémon', icon: '🏪', type: 'Secret Collection', difficulty: 'expert', estimatedCollectibles: 20, popularity: 58 },
+  { name: 'Black Friday Promo', category: 'funko', categoryLabel: 'Funko', icon: '🛍️', type: 'Holiday Promo', difficulty: 'moderate', estimatedCollectibles: 12, popularity: 52 },
+];
 
 function extractYear(setName, catKey) {
   if (KNOWN_YEARS[setName]) return KNOWN_YEARS[setName];
@@ -110,21 +193,27 @@ function estimateCollectibles(catKey, setName) {
   return estimates[catKey] || 100;
 }
 
-function estimateDifficulty(catKey, setName) {
-  if (setName.includes('195')) return 'very_hard';
-  if (setName.includes('198') && catKey === 'sports') return 'hard';
-  if (catKey === 'memorabilia') return 'very_hard';
-  if (setName.includes('Morgan') || setName.includes('Barber')) return 'hard';
+function getDifficulty(catKey, setName) {
+  const meta = SET_METADATA[setName];
+  if (meta?.difficulty) return meta.difficulty;
+  if (setName.includes('195')) return 'legendary';
+  if (setName.includes('198') && catKey === 'sports') return 'expert';
+  if (catKey === 'memorabilia') return 'expert';
+  if (setName.includes('Morgan') || setName.includes('Barber')) return 'expert';
+  if (setName.includes('EX') || setName.includes('Neo')) return 'advanced';
   return 'moderate';
 }
 
 let _index = null;
+let _comingSoonIndex = null;
+let _hiddenIndex = null;
 
 export function getBinderIndex() {
   if (_index) return _index;
   _index = [];
   for (const [catKey, cat] of Object.entries(MASTER_BINDERS)) {
     for (const setName of cat.sets) {
+      const meta = SET_METADATA[setName] || {};
       _index.push({
         id: `${catKey}::${setName}`,
         name: setName,
@@ -135,17 +224,83 @@ export function getBinderIndex() {
         franchise: cat.label,
         keywords: setName.toLowerCase().split(/\s+/).concat([cat.label.toLowerCase()]),
         estimatedCollectibles: estimateCollectibles(catKey, setName),
-        difficulty: estimateDifficulty(catKey, setName),
+        difficulty: getDifficulty(catKey, setName),
+        estimatedValue: meta.value || Math.round((estimateCollectibles(catKey, setName) || 100) * 15),
+        popularity: meta.popularity || 50,
+        featured: meta.featured || false,
+        trending: meta.trending || false,
         popular: POPULAR_SETS.includes(setName),
         colors: CATEGORY_COLORS[catKey] || CATEGORY_COLORS.pokemon,
+        comingSoon: false,
+        hidden: false,
       });
     }
   }
   return _index;
 }
 
+export function getComingSoonSets() {
+  if (_comingSoonIndex) return _comingSoonIndex;
+  _comingSoonIndex = COMING_SOON_SETS.map(s => ({
+    ...s,
+    id: `coming_soon::${s.category}::${s.name}`,
+    colors: CATEGORY_COLORS[s.category] || CATEGORY_COLORS.pokemon,
+    comingSoon: true,
+    hidden: false,
+    keywords: s.name.toLowerCase().split(/\s+/),
+    featured: false,
+    trending: false,
+    popular: false,
+    year: new Date(s.releaseDate).getFullYear(),
+  }));
+  return _comingSoonIndex;
+}
+
+export function getHiddenSets() {
+  if (_hiddenIndex) return _hiddenIndex;
+  _hiddenIndex = HIDDEN_SETS.map(s => ({
+    ...s,
+    id: `hidden::${s.category}::${s.name}`,
+    colors: CATEGORY_COLORS[s.category] || CATEGORY_COLORS.pokemon,
+    comingSoon: false,
+    hidden: true,
+    keywords: s.name.toLowerCase().split(/\s+/),
+    featured: false,
+    trending: false,
+    popular: false,
+    estimatedValue: Math.round(s.estimatedCollectibles * 50),
+    year: 2025,
+  }));
+  return _hiddenIndex;
+}
+
 export function getCategoryColor(catKey) {
   return CATEGORY_COLORS[catKey] || CATEGORY_COLORS.pokemon;
+}
+
+// Get sets for a category, sorted by section
+export function getCategorySets(catKey, section = 'all') {
+  const index = getBinderIndex();
+  let sets = index.filter(e => e.category === catKey);
+
+  switch (section) {
+    case 'featured':
+      return sets.filter(s => s.featured).sort((a, b) => b.popularity - a.popularity);
+    case 'trending':
+      return sets.filter(s => s.trending || s.popularity >= 80).sort((a, b) => b.popularity - a.popularity);
+    case 'newest':
+      return [...sets].sort((a, b) => (b.year || 0) - (a.year || 0)).slice(0, 12);
+    case 'most_collected':
+      return [...sets].sort((a, b) => b.popularity - a.popularity);
+    case 'most_valuable':
+      return [...sets].sort((a, b) => b.estimatedValue - a.estimatedValue);
+    case 'fastest_growing':
+      return sets.filter(s => s.trending).concat(sets.filter(s => !s.trending)).slice(0, 10);
+    case 'az':
+      return [...sets].sort((a, b) => a.name.localeCompare(b.name));
+    default:
+      return sets;
+  }
 }
 
 export function searchBinders(query, filters = {}) {
@@ -320,4 +475,17 @@ export function getRecommendations(collectibles, watchlist, existingBinderSets) 
   }
 
   return recs.slice(0, 6);
+}
+
+// Format currency for display
+export function formatSetValue(value) {
+  if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+  return `$${value}`;
+}
+
+// Days until a date
+export function daysUntil(dateStr) {
+  const target = new Date(dateStr);
+  const now = new Date();
+  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
 }

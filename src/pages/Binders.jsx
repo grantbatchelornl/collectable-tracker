@@ -6,16 +6,14 @@ import { getCategoryConfig } from '@/lib/binderCategories';
 import { matchChecklist, calculateCompletion } from '@/lib/binderChecklist';
 import CreateBinderModal from '@/components/binder/CreateBinderModal';
 import CustomBinderModal from '@/components/binder/CustomBinderModal';
-import MasterBinderCatalog from '@/components/binder/MasterBinderCatalog';
+import BinderLibrary from '@/components/binder/BinderLibrary';
 import AIBinderBuilder from '@/components/binder/AIBinderBuilder';
-import { ArrowLeft, Plus, BookOpen, Loader2, Trophy, Wand2, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen, Loader2, Trophy, Wand2, Palette, Library } from 'lucide-react';
 import { Image } from '@/components/ui/image';
 
 const TABS = [
   { key: 'my', label: 'My Binders', icon: BookOpen },
-  { key: 'master', label: 'Master', icon: Trophy },
-  { key: 'ai', label: 'AI Builder', icon: Wand2 },
-  { key: 'custom', label: 'Custom', icon: Palette },
+  { key: 'library', label: 'Binder Library', icon: Library },
 ];
 
 export default function Binders() {
@@ -27,6 +25,7 @@ export default function Binders() {
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showCustom, setShowCustom] = useState(false);
+  const [showAIBuilder, setShowAIBuilder] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -103,13 +102,19 @@ export default function Binders() {
               onClick={() => setShowCustom(true)}
               className="flex-1 h-11 rounded-xl bg-card border border-border text-sm font-medium flex items-center justify-center gap-1.5"
             >
-              <Palette className="w-4 h-4" /> Custom Binder
+              <Palette className="w-4 h-4" /> Custom
+            </button>
+            <button
+              onClick={() => setShowAIBuilder(true)}
+              className="flex-1 h-11 rounded-xl bg-card border border-border text-sm font-medium flex items-center justify-center gap-1.5"
+            >
+              <Wand2 className="w-4 h-4 text-primary" /> AI Builder
             </button>
             <button
               onClick={() => navigate('/binder-leaderboards')}
-              className="h-11 px-4 rounded-xl bg-card border border-border text-sm font-medium flex items-center justify-center gap-1.5"
+              className="h-11 px-3 rounded-xl bg-card border border-border text-sm font-medium flex items-center justify-center gap-1.5"
             >
-              <Trophy className="w-4 h-4 text-gold" /> Rankings
+              <Trophy className="w-4 h-4 text-gold" />
             </button>
           </div>
 
@@ -127,10 +132,10 @@ export default function Binders() {
                 Browse Master Binders for every official set, use the AI Builder for custom collections, or create your own.
               </p>
               <div className="flex gap-2 justify-center">
-                <button onClick={() => setTab('master')} className="text-xs bg-primary text-primary-foreground rounded-full px-3 py-1.5 font-medium">
-                  Browse Master Binders
+                <button onClick={() => setTab('library')} className="text-xs bg-primary text-primary-foreground rounded-full px-3 py-1.5 font-medium">
+                  Browse Binder Library
                 </button>
-                <button onClick={() => setTab('ai')} className="text-xs bg-card border border-border rounded-full px-3 py-1.5 font-medium">
+                <button onClick={() => setShowAIBuilder(true)} className="text-xs bg-card border border-border rounded-full px-3 py-1.5 font-medium">
                   Try AI Builder
                 </button>
               </div>
@@ -191,27 +196,7 @@ export default function Binders() {
         </>
       )}
 
-      {tab === 'master' && <MasterBinderCatalog />}
-      {tab === 'ai' && <AIBinderBuilder />}
-      {tab === 'custom' && (
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-card border border-border p-4">
-            <div className="flex items-center gap-2 mb-1">
-              <Palette className="w-4 h-4 text-primary" />
-              <p className="text-sm font-medium">Custom Binders</p>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Create your own binder with custom cover photo, icon, color, sorting, and visibility. Optionally use AI to auto-populate slots.
-            </p>
-            <button
-              onClick={() => setShowCustom(true)}
-              className="w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" /> Create Custom Binder
-            </button>
-          </div>
-        </div>
-      )}
+      {tab === 'library' && <BinderLibrary />}
 
       {showCreate && (
         <CreateBinderModal
@@ -225,6 +210,9 @@ export default function Binders() {
           onClose={() => setShowCustom(false)}
           onCreated={(binder) => { setShowCustom(false); navigate(`/binder/${binder.id}`); }}
         />
+      )}
+      {showAIBuilder && (
+        <AIBinderBuilder onBuilt={(binder) => { setShowAIBuilder(false); navigate(`/binder/${binder.id}`); }} />
       )}
     </div>
   );

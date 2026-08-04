@@ -478,6 +478,7 @@ export default function BinderDetail() {
           <DigitalBinderPage
             checklist={filteredChecklist}
             binder={binder}
+            completionPercent={completion.percent}
             onSlotClick={(item) => {
               if (item.collectible) {
                 navigate(`/collectible/${item.collectible.id}`);

@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { Star, Clock } from 'lucide-react';
-import { getCategoryColor } from '@/lib/masterBinderIndex';
+import { getCategoryColor, DIFFICULTY_TIERS } from '@/lib/masterBinderIndex';
 
 const DIFFICULTY_BADGES = {
-  easy: 'bg-gain/10 text-gain',
-  moderate: 'bg-blue-500/10 text-blue-500',
-  hard: 'bg-gold/10 text-gold',
-  very_hard: 'bg-orange-500/10 text-orange-500',
-  grail: 'bg-loss/10 text-loss',
+  beginner:  'bg-gain/10 text-gain',
+  moderate:  'bg-blue-500/10 text-blue-500',
+  advanced:  'bg-purple-500/10 text-purple-500',
+  expert:    'bg-orange-500/10 text-orange-500',
+  legendary: 'bg-loss/10 text-loss',
 };
 
 export default function BinderCard({ entry, isFavorite, recentlyViewed, ownership, onToggleFavorite, onOpen }) {
@@ -50,7 +50,7 @@ export default function BinderCard({ entry, isFavorite, recentlyViewed, ownershi
           <div className="flex items-center gap-1.5">
             <span className="text-[9px] text-muted-foreground">{entry.estimatedCollectibles} items</span>
             <span className={`text-[8px] px-1 py-0.5 rounded-full font-medium ${DIFFICULTY_BADGES[entry.difficulty] || DIFFICULTY_BADGES.moderate}`}>
-              {entry.difficulty.replace('_', ' ')}
+              {(DIFFICULTY_TIERS[entry.difficulty] || DIFFICULTY_TIERS.moderate).icon} {(DIFFICULTY_TIERS[entry.difficulty] || DIFFICULTY_TIERS.moderate).label}
             </span>
           </div>
           {ownership && ownership.percent > 0 && (
