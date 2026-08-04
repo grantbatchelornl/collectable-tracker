@@ -1,12 +1,13 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, LayoutGrid, ScanLine, Heart, Compass, User } from 'lucide-react';
+import { Home, LayoutGrid, ScanLine, Heart, User, BookOpen } from 'lucide-react';
+import QuickActionsSheet from './QuickActionsSheet';
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/collection', icon: LayoutGrid, label: 'Collection' },
   { to: '/add', icon: ScanLine, label: 'Scan', isCenter: true },
   { to: '/watchlist', icon: Heart, label: 'Wishlist' },
-  { to: '/discover', icon: Compass, label: 'Discover' },
+  { to: '/binders', icon: BookOpen, label: 'Binders' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -16,7 +17,7 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border safe-bottom">
       <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-1">
-        {NAV_ITEMS.map((item) => {
+        {NAV_ITEMS.slice(0, 4).map((item) => {
           const Icon = item.icon;
           if (item.isCenter) {
             return (
@@ -37,6 +38,24 @@ export default function BottomNav() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`
+              }
+            >
+              <Icon className="w-5 h-5" />
+              <span className="text-[9px] font-medium">{item.label}</span>
+            </NavLink>
+          );
+        })}
+        <QuickActionsSheet />
+        {NAV_ITEMS.slice(4).map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
