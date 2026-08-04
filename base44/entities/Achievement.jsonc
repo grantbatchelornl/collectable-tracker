@@ -24,11 +24,15 @@
   ],
   "rls": {
     "create": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "system_only"
+      }
     },
     "read": true,
     "update": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "super_admin"
+      }
     },
     "delete": {
       "user_condition": {
