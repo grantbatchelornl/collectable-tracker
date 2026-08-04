@@ -55,8 +55,6 @@ export default function AdminDashboard() {
   const [categories, setCategories] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [settings, setSettings] = useState([]);
-  const [superAdminClaimed, setSuperAdminClaimed] = useState(false);
-  const [claiming, setClaiming] = useState(false);
   const [showAddCategory, setShowAddCategory] = useState(false);
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📦', sort_order: 0 });
   const [thresholdValue, setThresholdValue] = useState('10');
@@ -76,9 +74,6 @@ export default function AdminDashboard() {
     try {
       const allSettings = await base44.entities.AppSetting.list();
       setSettings(allSettings);
-      const claimed = allSettings.find((s) => s.key === 'super_admin_claimed');
-      setSuperAdminClaimed(claimed?.value === 'true');
-
       const threshold = allSettings.find((s) => s.key === 'default_alert_threshold');
       if (threshold) setThresholdValue(threshold.value);
 
@@ -121,29 +116,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const claimSuperAdmin = async () => {
-    setClaiming(true);
-    try {
-      await base44.entities.User.update(user.id, { role: 'super_admin' });
-      const existing = settings.find((s) => s.key === 'super_admin_claimed');
-      if (existing) {
-        await base44.entities.AppSetting.update(existing.id, { value: 'true' });
-      } else {
-        await base44.entities.AppSetting.create({
-          key: 'super_admin_claimed',
-          value: 'true',
-          label: 'Super Admin Claimed',
-        });
-      }
-      await logAction('claim_super_admin', 'user', user.id, user.email, 'Claimed super admin role');
-      window.location.reload();
-    } catch (err) {
-      console.error('Failed to claim super admin', err);
-      alert('Could not auto-promote. Please ask the AI assistant to promote your account to Super Admin.');
-      setClaiming(false);
-    }
-  };
-
   const toggleSuspend = async (u) => {
     try {
       await base44.entities.User.update(u.id, { is_suspended: !u.is_suspended });
@@ -161,6 +133,7 @@ export default function AdminDashboard() {
   };
 
   const setRole = async (u, role) => {
+    if (!isSuperAdmin || !['admin', 'user'].includes(role) || u.id === user.id) return;
     try {
       await base44.entities.User.update(u.id, { role });
       await logAction('change_role', 'user', u.id, u.email, `Set role to ${role}`);
@@ -232,32 +205,6 @@ export default function AdminDashboard() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
-  // Bootstrap: no super admin claimed yet
-  if (!isAdmin && !superAdminClaimed) {
-    return (
-      <div className="px-4 py-8 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
-          <Crown className="w-8 h-8 text-primary" />
-        </div>
-        <h2 className="font-display text-xl font-bold mb-2">Claim Super Admin</h2>
-        <p className="text-sm text-muted-foreground max-w-xs mx-auto mb-6">
-          No administrator has been set up yet. Claim the Super Admin role to manage the platform.
-        </p>
-        <Button onClick={claimSuperAdmin} disabled={claiming} className="h-12 px-8">
-          {claiming ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Claiming...
-            </>
-          ) : (
-            <>
-              <Shield className="w-4 h-4 mr-2" /> Claim Super Admin
-            </>
-          )}
-        </Button>
       </div>
     );
   }

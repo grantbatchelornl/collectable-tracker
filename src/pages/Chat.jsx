@@ -20,6 +20,7 @@ export default function Chat() {
   const [showShare, setShowShare] = useState(false);
   const [myCollectibles, setMyCollectibles] = useState([]);
   const [loadingCollectibles, setLoadingCollectibles] = useState(false);
+  const [blockStatus, setBlockStatus] = useState({ iBlockedThem: false, theyBlockedMe: false });
   const scrollRef = useRef(null);
 
   useEffect(() => {
@@ -40,12 +41,23 @@ export default function Chat() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const [profiles, msgs] = await Promise.all([
+      const [profiles, sentMsgs, receivedMsgs] = await Promise.all([
         base44.entities.CollectorProfile.filter({ user_id: userId }),
-        base44.entities.Message.list('-created_date', 500),
+        base44.entities.Message.filter({ sender_id: user.id, recipient_id: userId }, '-created_date', 500),
+        base44.entities.Message.filter({ sender_id: userId, recipient_id: user.id }, '-created_date', 500),
       ]);
       setOtherProfile(profiles[0] || null);
-      await processMessages(msgs);
+      await processMessages([...sentMsgs, ...receivedMsgs]);
+
+      try {
+        const [myBlock, theirBlock] = await Promise.all([
+          base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId }),
+          base44.entities.UserBlock.filter({ blocker_id: userId, blocked_id: user.id }),
+        ]);
+        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: theirBlock.length > 0 });
+      } catch (e) {
+        // non-critical
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -55,8 +67,11 @@ export default function Chat() {
 
   const loadMessages = async () => {
     try {
-      const msgs = await base44.entities.Message.list('-created_date', 500);
-      await processMessages(msgs);
+      const [sentMsgs, receivedMsgs] = await Promise.all([
+        base44.entities.Message.filter({ sender_id: user.id, recipient_id: userId }, '-created_date', 500),
+        base44.entities.Message.filter({ sender_id: userId, recipient_id: user.id }, '-created_date', 500),
+      ]);
+      await processMessages([...sentMsgs, ...receivedMsgs]);
     } catch (err) {
       console.error(err);
     }
@@ -86,6 +101,7 @@ export default function Chat() {
 
   const sendMessage = async (attachedItem = null) => {
     if (!input.trim() && !attachedItem) return;
+    if (blockStatus.iBlockedThem || blockStatus.theyBlockedMe) return;
     setSending(true);
     try {
       await base44.entities.Message.create({
@@ -164,7 +180,21 @@ export default function Chat() {
       </div>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto pb-4">
-        {messages.length === 0 ? (
+        {blockStatus.theyBlockedMe ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mb-3">
+              <X className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">This user has blocked you. You cannot send messages.</p>
+          </div>
+        ) : blockStatus.iBlockedThem ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mb-3">
+              <X className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-sm text-muted-foreground">You blocked this user. Unblock them to send messages.</p>
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mb-3">
               <Send className="w-8 h-8 text-muted-foreground" />
@@ -221,6 +251,7 @@ export default function Chat() {
         </div>
       )}
 
+      {blockStatus.iBlockedThem || blockStatus.theyBlockedMe ? null : (
       <div className="border-t border-border pt-3 flex items-center gap-2 safe-bottom">
         <button
           onClick={openShare}
@@ -245,6 +276,7 @@ export default function Chat() {
           {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
         </button>
       </div>
+      )}
     </div>
   );
 }

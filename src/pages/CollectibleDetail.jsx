@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { Image } from '@/components/ui/image';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,6 +42,7 @@ import MarketplaceSearch from '@/components/MarketplaceSearch';
 export default function CollectibleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [collectible, setCollectible] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [history, setHistory] = useState([]);
@@ -66,7 +68,7 @@ export default function CollectibleDetail() {
       ]);
       setPhotos(photosData);
       setHistory(historyData);
-      const allItems = await base44.entities.Collectible.filter({ created_by_id: c.created_by_id }, '-created_date', 200);
+      const allItems = user ? await base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-created_date', 200) : [];
       setAllCollectibles(allItems.filter((item) => !item.is_deleted));
       if (!photosData.some((p) => p.photo_type === 'front') && photosData.length > 0) {
         setActivePhoto('back');
@@ -235,6 +237,8 @@ export default function CollectibleDetail() {
       </div>
     );
   }
+
+  const isOwner = collectible.created_by_id === user?.id;
 
   const frontPhoto = photos.find((p) => p.photo_type === 'front');
   const backPhoto = photos.find((p) => p.photo_type === 'back');
@@ -444,6 +448,7 @@ export default function CollectibleDetail() {
         <ActionRecommendationCard collectible={collectible} collection={allCollectibles} pricingHistory={history} />
 
         {/* For Sale */}
+        {isOwner && (
         <div className="rounded-2xl bg-card border border-border p-4">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -472,6 +477,7 @@ export default function CollectibleDetail() {
             </div>
           )}
         </div>
+        )}
 
         {/* Details */}
         {detailRows.length > 0 && (
@@ -506,6 +512,7 @@ export default function CollectibleDetail() {
 
         <MarketplaceSearch collectible={collectible} />
 
+        {isOwner && (
         <div className="space-y-3">
           <Button
             onClick={handleRefreshPricing}
@@ -538,8 +545,10 @@ export default function CollectibleDetail() {
             </button>
           </div>
         </div>
+        )}
 
         {/* Showcase toggle */}
+        {isOwner && (
         <div className="flex items-center justify-between rounded-xl bg-card border border-border p-3">
           <div className="flex items-center gap-2">
             <Star className={`w-4 h-4 ${collectible.showcase_order > 0 ? 'text-gold' : 'text-muted-foreground'}`} />
@@ -555,8 +564,10 @@ export default function CollectibleDetail() {
             <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.showcase_order > 0 ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
           </button>
         </div>
+        )}
 
         {/* Trade Status */}
+        {isOwner && (
         <div className="flex items-center justify-between rounded-xl bg-card border border-border p-3">
           <div className="flex items-center gap-2">
             <Repeat className={`w-4 h-4 ${collectible.trade_status && collectible.trade_status !== 'keep' ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -578,36 +589,43 @@ export default function CollectibleDetail() {
             <option value="sell">Sell</option>
           </select>
         </div>
+        )}
 
         {/* Actions */}
         <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/collectible/${id}/edit`)}
-            className="h-11"
-          >
-            <Pencil className="w-4 h-4" /> Edit
-          </Button>
+          {isOwner && (
+            <Button
+              variant="outline"
+              onClick={() => navigate(`/collectible/${id}/edit`)}
+              className="h-11"
+            >
+              <Pencil className="w-4 h-4" /> Edit
+            </Button>
+          )}
           <Button variant="outline" onClick={handleShare} className="h-11">
             <Share2 className="w-4 h-4" /> Share
           </Button>
-          <Button
-            variant="outline"
-            onClick={cyclePrivacy}
-            className="h-11"
-          >
-            {collectible.privacy_status === 'private' && <Lock className="w-4 h-4" />}
-            {collectible.privacy_status === 'friends' && <Users className="w-4 h-4" />}
-            {collectible.privacy_status === 'public' && <Globe className="w-4 h-4" />}
-            Privacy
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setShowDelete(true)}
-            className="h-11 text-destructive border-destructive/30 hover:bg-destructive/10"
-          >
-            <Trash2 className="w-4 h-4" /> Delete
-          </Button>
+          {isOwner && (
+            <Button
+              variant="outline"
+              onClick={cyclePrivacy}
+              className="h-11"
+            >
+              {collectible.privacy_status === 'private' && <Lock className="w-4 h-4" />}
+              {collectible.privacy_status === 'friends' && <Users className="w-4 h-4" />}
+              {collectible.privacy_status === 'public' && <Globe className="w-4 h-4" />}
+              Privacy
+            </Button>
+          )}
+          {isOwner && (
+            <Button
+              variant="outline"
+              onClick={() => setShowDelete(true)}
+              className="h-11 text-destructive border-destructive/30 hover:bg-destructive/10"
+            >
+              <Trash2 className="w-4 h-4" /> Delete
+            </Button>
+          )}
         </div>
       </div>
 
