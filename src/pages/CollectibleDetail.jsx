@@ -29,6 +29,7 @@ import {
   Tag,
   RefreshCw,
   AlertTriangle,
+  Repeat,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
@@ -514,6 +515,29 @@ export default function CollectibleDetail() {
               <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${collectible.value_locked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
             </button>
           </div>
+        </div>
+
+        {/* Trade Status */}
+        <div className="flex items-center justify-between rounded-xl bg-card border border-border p-3">
+          <div className="flex items-center gap-2">
+            <Repeat className={`w-4 h-4 ${collectible.trade_status && collectible.trade_status !== 'keep' ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div>
+              <p className="text-sm font-medium">Trade Status</p>
+              <p className="text-[10px] text-muted-foreground">Add to your Trade Binder</p>
+            </div>
+          </div>
+          <select
+            value={collectible.trade_status || 'keep'}
+            onChange={async (e) => {
+              const updated = await base44.entities.Collectible.update(collectible.id, { trade_status: e.target.value });
+              setCollectible(updated);
+            }}
+            className="text-xs bg-card border border-border rounded-lg px-3 py-1.5"
+          >
+            <option value="keep">Keep</option>
+            <option value="trade">Trade</option>
+            <option value="sell">Sell</option>
+          </select>
         </div>
 
         {/* Actions */}

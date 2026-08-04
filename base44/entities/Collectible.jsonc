@@ -205,6 +205,15 @@
       "type": "number",
       "default": 0
     },
+    "trade_status": {
+      "type": "string",
+      "enum": [
+        "keep",
+        "trade",
+        "sell"
+      ],
+      "default": "keep"
+    },
     "privacy_status": {
       "type": "string",
       "enum": [

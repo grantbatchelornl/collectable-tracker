@@ -6,7 +6,8 @@ import LeagueCard from '@/components/league/LeagueCard';
 import CreateLeagueModal from '@/components/league/CreateLeagueModal';
 import JoinLeagueModal from '@/components/league/JoinLeagueModal';
 import Leaderboards from '@/pages/Leaderboards';
-import { ArrowLeft, Trophy, Users, Loader2, Plus, LogIn, Search } from 'lucide-react';
+import TradeCenter from '@/components/trade/TradeCenter';
+import { ArrowLeft, Trophy, Users, Loader2, Plus, LogIn, Search, Handshake } from 'lucide-react';
 
 export default function CommunityRankings() {
   const navigate = useNavigate();
@@ -74,10 +75,20 @@ export default function CommunityRankings() {
           >
             <Users className="w-4 h-4" /> Leagues
           </button>
+          <button
+            onClick={() => setTab('trades')}
+            className={`flex-1 h-11 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-colors ${
+              tab === 'trades' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+            }`}
+          >
+            <Handshake className="w-4 h-4" /> Trades
+          </button>
         </div>
       </div>
 
       {tab === 'leaderboards' && <Leaderboards />}
+
+      {tab === 'trades' && <TradeCenter />}
 
       {tab === 'leagues' && (
         <div className="px-4 pb-4 space-y-4">
