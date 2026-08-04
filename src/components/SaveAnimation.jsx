@@ -1,7 +1,13 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookCheck } from 'lucide-react';
+import { celebrateSmall } from '@/lib/celebrations';
 
 export default function SaveAnimation({ show }) {
+  useEffect(() => {
+    if (show) celebrateSmall();
+  }, [show]);
+
   return (
     <AnimatePresence>
       {show && (

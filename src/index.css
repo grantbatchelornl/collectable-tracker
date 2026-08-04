@@ -122,9 +122,74 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+  /* Glass & Depth */
+  .glass {
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+  .dark .glass {
+    background: hsl(var(--card) / 0.45);
+  }
+  .glass-strong {
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid hsl(var(--border) / 0.4);
+  }
+
+  /* Layered Shadows */
+  .shadow-soft {
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 4px 12px hsl(var(--foreground) / 0.06);
+  }
+  .shadow-float {
+    box-shadow: 0 4px 6px hsl(var(--foreground) / 0.04), 0 12px 28px hsl(var(--foreground) / 0.10);
+  }
+  .shadow-glow-primary {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.2), 0 4px 24px hsl(var(--primary) / 0.18);
+  }
+
+  /* Price glow — one-shot on data load */
+  .glow-gain {
+    animation: glow-gain 1.8s ease-out;
+  }
+  .glow-loss {
+    animation: glow-loss 1.8s ease-out;
+  }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.4) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
 }
 
 @keyframes holo-shift {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
+}
+
+@keyframes glow-gain {
+  0% { box-shadow: 0 0 0 0 hsl(var(--gain) / 0.5); }
+  40% { box-shadow: 0 0 0 4px hsl(var(--gain) / 0.12), 0 4px 20px hsl(var(--gain) / 0.12); }
+  100% { box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 4px 12px hsl(var(--foreground) / 0.06); }
+}
+
+@keyframes glow-loss {
+  0% { box-shadow: 0 0 0 0 hsl(var(--loss) / 0.5); }
+  40% { box-shadow: 0 0 0 4px hsl(var(--loss) / 0.12), 0 4px 20px hsl(var(--loss) / 0.12); }
+  100% { box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 4px 12px hsl(var(--foreground) / 0.06); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }

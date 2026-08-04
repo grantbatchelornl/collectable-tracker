@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
+import SkeletonCard from '@/components/ui/SkeletonCard';
 import SmartSearchBar from '@/components/SmartSearchBar';
 import { Search, Loader2, Package, Plus, FileText, Store } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
@@ -112,8 +113,19 @@ export default function Collection() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="px-4 py-4 space-y-3">
+        <h1 className="font-display text-xl font-bold">Collection</h1>
+        <div className="h-10 rounded-xl skeleton" />
+        <div className="flex gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-8 w-20 rounded-full skeleton" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -227,8 +239,8 @@ export default function Collection() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {filtered.map((c) => (
-          <CollectibleCard key={c.id} collectible={c} previousValue={previousValues[c.id]} />
+        {filtered.map((c, idx) => (
+          <CollectibleCard key={c.id} collectible={c} previousValue={previousValues[c.id]} index={idx} />
         ))}
       </div>
 

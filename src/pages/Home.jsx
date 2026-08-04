@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
+import SkeletonCard from '@/components/ui/SkeletonCard';
 import PortfolioSummary from '@/components/PortfolioSummary';
 import RawGradedBreakdown from '@/components/RawGradedBreakdown';
 import RecentPriceChanges from '@/components/RecentPriceChanges';
@@ -137,8 +138,24 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      <div className="px-4 py-4 space-y-6">
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4">
+              <div className="w-10 h-10 rounded-xl skeleton" />
+              <div className="h-3 w-12 rounded skeleton" />
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <div className="space-y-3">
+          <div className="h-20 rounded-2xl skeleton" />
+          <div className="h-20 rounded-2xl skeleton" />
+        </div>
       </div>
     );
   }
@@ -148,7 +165,7 @@ export default function Home() {
       {collectibles.length > 0 && (
         <button
           onClick={() => navigate('/collector-ai')}
-          className="w-full rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 flex items-center gap-3 hover:opacity-90 transition-opacity"
+          className="w-full rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground p-4 flex items-center gap-3 hover:opacity-90 transition-opacity shadow-float"
         >
           <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
             <Sparkles className="w-5 h-5" />
@@ -165,7 +182,7 @@ export default function Home() {
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('/collection')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <LayoutGrid className="w-5 h-5 text-primary" />
@@ -174,7 +191,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/watchlist')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Eye className="w-5 h-5 text-primary" />
@@ -183,7 +200,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/data-quality')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-primary" />
@@ -192,7 +209,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/goals')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Target className="w-5 h-5 text-primary" />
@@ -201,7 +218,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/timeline')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Clock className="w-5 h-5 text-primary" />
@@ -210,7 +227,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/binders')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <BookOpen className="w-5 h-5 text-primary" />
@@ -219,7 +236,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/conventions')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <MapPin className="w-5 h-5 text-primary" />
@@ -228,7 +245,7 @@ export default function Home() {
           </button>
           <button
             onClick={() => navigate('/discover')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Compass className="w-5 h-5 text-primary" />
@@ -298,9 +315,9 @@ export default function Home() {
             <section>
               <h2 className="font-display font-bold text-lg mb-3">Highest Value</h2>
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
-                {highestValue.map((c) => (
+                {highestValue.map((c, idx) => (
                   <div key={c.id} className="w-40 flex-shrink-0">
-                    <CollectibleCard collectible={c} />
+                    <CollectibleCard collectible={c} index={idx} />
                   </div>
                 ))}
               </div>
@@ -344,9 +361,9 @@ export default function Home() {
                 </button>
               </div>
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
-                {recentAdditions.map((c) => (
+                {recentAdditions.map((c, idx) => (
                   <div key={c.id} className="w-40 flex-shrink-0">
-                    <CollectibleCard collectible={c} />
+                    <CollectibleCard collectible={c} index={idx} />
                   </div>
                 ))}
               </div>
