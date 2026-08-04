@@ -2,8 +2,8 @@ import { MASTER_BINDERS } from './masterBinders';
 
 // Popular character → set mappings for smart suggestions
 const POPULAR_KEYWORDS = {
-  charizard: { sets: ['Base Set', 'Team Rocket', 'Celebrations', '151', "Champion's Path", 'Darkness Ablaze', 'Crown Zenith', 'Evolving Skies', 'Hidden Fates', 'Shining Fates', 'Paldean Fates', 'Obsidian Flames', 'Shrouded Fable', 'Destined Rivals'], categories: ['pokemon'] },
-  pikachu: { sets: ['Base Set', '151', 'Prismatic Evolutions', 'Vivid Voltage', 'Shining Fates', 'Hidden Fates', 'Scarlet & Violet', 'Surging Sparks'], categories: ['pokemon'] },
+  charizard: { sets: ['Base Set', 'Team Rocket', 'Celebrations', '151', "Champion's Path", 'Darkness Ablaze', 'Crown Zenith', 'Evolving Skies', 'Hidden Fates', 'Shining Fates', 'Paldean Fates', 'Obsidian Flames', 'Shrouded Fable', 'Destined Rivals', 'Black Bolt', 'Mega Evolution'], categories: ['pokemon'] },
+  pikachu: { sets: ['Base Set', '151', 'Prismatic Evolutions', 'Journey Together', 'Vivid Voltage', 'Shining Fates', 'Hidden Fates', 'Scarlet & Violet', 'Surging Sparks', 'Mega Evolution'], categories: ['pokemon'] },
   mewtwo: { sets: ['Base Set', '151', 'Shining Fates', 'Crown Zenith', 'BREAKthrough'], categories: ['pokemon'] },
   mew: { sets: ['151', 'Shining Legends', 'Hidden Fates', 'Crown Zenith', 'Celestial Storm'], categories: ['pokemon'] },
   eevee: { sets: ['Crown Zenith', '151', 'Evolving Skies', 'Hidden Fates', 'Fusion Strike'], categories: ['pokemon'] },
@@ -57,7 +57,9 @@ const KNOWN_YEARS = {
   'Brilliant Stars': 2022, 'Astral Radiance': 2022, 'Pokemon GO': 2022, 'Lost Origin': 2022,
   'Crown Zenith': 2023, '151': 2023, 'Scarlet & Violet': 2023, 'Paldea Evolved': 2023, 'Obsidian Flames': 2023,
   'Paldean Fates': 2024, 'Temporal Forces': 2024, 'Twilight Masquerade': 2024, 'Shrouded Fable': 2024,
-  'Stellar Crown': 2024, 'Surging Sparks': 2024, 'Prismatic Evolutions': 2025, 'Destined Rivals': 2025,
+  'Stellar Crown': 2024, 'Surging Sparks': 2024, 'Prismatic Evolutions': 2025, 'Journey Together': 2025, 'Destined Rivals': 2025,
+  'Black Bolt': 2025, 'White Flare': 2025, 'Mega Evolution': 2025,
+  'Mega Evolution—Phantasmal Flames': 2025, 'Mega Evolution—Chaos Rising': 2026,
   // Magic (recent)
   'Foundations': 2024, 'Modern Horizons': 2019, 'Modern Horizons 2': 2021, 'Modern Horizons 3': 2024,
   'Bloomburrow': 2024, 'Duskmourn': 2024, 'The Lost Caverns of Ixalan': 2023, 'Wilds of Eldraine': 2023,
@@ -72,7 +74,8 @@ const KNOWN_YEARS = {
 };
 
 const POPULAR_SETS = [
-  'Base Set', '151', 'Crown Zenith', 'Prismatic Evolutions', 'Crown Zenith',
+  'Base Set', '151', 'Crown Zenith', 'Prismatic Evolutions', 'Journey Together',
+  'Destined Rivals', 'Black Bolt', 'White Flare', 'Mega Evolution', 'Crown Zenith',
   'Evolving Skies', 'Hidden Fates', 'Shining Fates', 'Scarlet & Violet',
   'Foundations', 'Bloomburrow', 'The First Chapter',
   '1986 Fleer Basketball', 'American Silver Eagles', 'State Quarters',

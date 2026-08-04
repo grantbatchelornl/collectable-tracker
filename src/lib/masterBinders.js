@@ -32,7 +32,9 @@ export const MASTER_BINDERS = {
       'Brilliant Stars', 'Astral Radiance', 'Pokemon GO', 'Lost Origin',
       'Crown Zenith', 'Scarlet & Violet', 'Paldea Evolved', 'Obsidian Flames',
       'Paldean Fates', 'Temporal Forces', 'Twilight Masquerade', 'Shrouded Fable',
-      'Stellar Crown', 'Surging Sparks', 'Prismatic Evolutions', 'Destined Rivals',
+      'Stellar Crown', 'Surging Sparks', 'Prismatic Evolutions', 'Journey Together',
+      'Destined Rivals', 'Black Bolt', 'White Flare', 'Mega Evolution',
+      'Mega Evolution—Phantasmal Flames', 'Mega Evolution—Chaos Rising',
     ],
   },
   magic: {
