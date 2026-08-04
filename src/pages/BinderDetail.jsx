@@ -200,6 +200,13 @@ export default function BinderDetail() {
     setBinder(updated);
   };
 
+  const toggleShowcase = async () => {
+    const updated = await base44.entities.CollectionBinder.update(binder.id, {
+      is_showcased: !binder.is_showcased,
+    });
+    setBinder(updated);
+  };
+
   const handleMarkForTrade = async (item) => {
     if (!item.tradeableIds?.length) return;
     try {
@@ -373,6 +380,33 @@ export default function BinderDetail() {
           onViewHallOfFame={() => navigate('/hall-of-fame')}
           onShare={handleShareBinder}
         />
+
+        {/* Pin to Profile — only for 100% completed binders */}
+        {completion.percent === 100 && (
+          <button
+            onClick={toggleShowcase}
+            className={`w-full flex items-center justify-between rounded-xl border p-3 transition-colors ${
+              binder.is_showcased
+                ? 'bg-gold/5 border-gold/30'
+                : 'bg-card border-border'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Trophy className={`w-4 h-4 ${binder.is_showcased ? 'text-gold' : 'text-muted-foreground'}`} />
+              <div className="text-left">
+                <p className="text-sm font-medium">Pin to Profile</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {binder.is_showcased
+                    ? 'Showcased on your profile for friends to browse'
+                    : 'Show off your completed binder on your profile'}
+                </p>
+              </div>
+            </div>
+            <span className={`text-xs font-medium ${binder.is_showcased ? 'text-gold' : 'text-muted-foreground'}`}>
+              {binder.is_showcased ? 'Pinned' : 'Pin'}
+            </span>
+          </button>
+        )}
 
         {/* Privacy / Showcase toggle */}
         <button
