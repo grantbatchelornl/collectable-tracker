@@ -24,7 +24,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin } from 'lucide-react';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -209,6 +209,15 @@ export default function Home() {
               <MapPin className="w-5 h-5 text-primary" />
             </div>
             <span className="text-xs font-medium">Shows</span>
+          </button>
+          <button
+            onClick={() => navigate('/discover')}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Compass className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium">Discover</span>
           </button>
         </div>
       )}

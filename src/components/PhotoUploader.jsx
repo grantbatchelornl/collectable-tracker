@@ -7,6 +7,7 @@ import { checkPhotoQuality } from '@/lib/photoQuality';
 function PhotoSlot({ label, photo, required, onPhotoChange }) {
   const [uploading, setUploading] = useState(false);
   const [qualityIssues, setQualityIssues] = useState([]);
+  const [uploadError, setUploadError] = useState('');
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
 
@@ -27,11 +28,13 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
   const handleFile = async (file) => {
     if (!file) return;
     setUploading(true);
+    setUploadError('');
     try {
       const result = await base44.integrations.Core.UploadFile({ file });
       onPhotoChange(result.file_url);
     } catch (err) {
       console.error('Upload failed', err);
+      setUploadError('Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -93,6 +96,9 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
           </div>
         )}
       </div>
+      {uploadError && (
+        <p className="text-[10px] text-loss mt-1">{uploadError}</p>
+      )}
       <input
         ref={cameraRef}
         type="file"

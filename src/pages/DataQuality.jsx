@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Lock,
   ImageIcon,
+  RotateCcw,
+  Trash2,
 } from 'lucide-react';
 import {
   computeQualityScore,
@@ -75,6 +77,8 @@ export default function DataQuality() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [expandedIssue, setExpandedIssue] = useState(null);
+  const [deletedItems, setDeletedItems] = useState([]);
+  const [showDeleted, setShowDeleted] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -89,11 +93,34 @@ export default function DataQuality() {
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectiblePhoto.list('-created_date', 500),
       ]);
-      setData(computeQualityScore(collectibles, pricingHistory, photos));
+      const active = collectibles.filter((c) => !c.is_deleted);
+      const deleted = collectibles.filter((c) => c.is_deleted);
+      setData(computeQualityScore(active, pricingHistory, photos));
+      setDeletedItems(deleted);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const restoreItem = async (id) => {
+    try {
+      await base44.entities.Collectible.update(id, { is_deleted: false, deleted_date: '' });
+      setDeletedItems((prev) => prev.filter((c) => c.id !== id));
+      loadData();
+    } catch (err) {
+      console.error('Restore failed', err);
+    }
+  };
+
+  const permanentlyDelete = async (id) => {
+    if (!confirm('Permanently delete this collectible? This cannot be undone.')) return;
+    try {
+      await base44.entities.Collectible.delete(id);
+      setDeletedItems((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error('Permanent delete failed', err);
     }
   };
 
@@ -278,6 +305,58 @@ export default function DataQuality() {
           </div>
         ))}
       </div>
+
+      {/* Recently Deleted */}
+      {deletedItems.length > 0 && (
+        <div className="rounded-2xl bg-card border border-border overflow-hidden">
+          <button
+            onClick={() => setShowDeleted(!showDeleted)}
+            className="w-full flex items-center justify-between p-4"
+          >
+            <div className="flex items-center gap-3">
+              <Trash2 className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-left">Recently Deleted</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold">{deletedItems.length}</span>
+              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${showDeleted ? 'rotate-180' : ''}`} />
+            </div>
+          </button>
+          {showDeleted && (
+            <div className="px-4 pb-4 space-y-1.5 max-h-72 overflow-y-auto">
+              {deletedItems.map((c) => (
+                <div key={c.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  {c.primary_photo_url ? (
+                    <Image src={c.primary_photo_url} fittingType="fill" className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0" alt={c.item_name} />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium truncate">{c.item_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{c.category_name}</p>
+                  </div>
+                  <button
+                    onClick={() => restoreItem(c.id)}
+                    className="w-8 h-8 rounded-full bg-gain/10 text-gain flex items-center justify-center hover:bg-gain/20 flex-shrink-0"
+                    title="Restore"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => permanentlyDelete(c.id)}
+                    className="w-8 h-8 rounded-full bg-loss/10 text-loss flex items-center justify-center hover:bg-loss/20 flex-shrink-0"
+                    title="Delete permanently"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Privacy note */}
       <div className="flex items-start gap-2 rounded-2xl bg-accent/50 p-3">

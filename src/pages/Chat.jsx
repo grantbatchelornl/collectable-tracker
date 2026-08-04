@@ -119,7 +119,7 @@ export default function Chat() {
     }
     setLoadingCollectibles(true);
     try {
-      const items = await base44.entities.Collectible.list('-created_date', 100);
+      const items = await base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-created_date', 100);
       setMyCollectibles(items);
       setShowShare(true);
     } catch (err) {

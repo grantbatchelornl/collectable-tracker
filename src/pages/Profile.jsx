@@ -52,11 +52,11 @@ export default function Profile() {
     setLoading(true);
     try {
       const [items, requests, profiles] = await Promise.all([
-        base44.entities.Collectible.list('-created_date', 200),
+        base44.entities.Collectible.filter({ created_by_id: user?.id }, '-created_date', 200),
         base44.entities.Follow.filter({ following_id: user?.id, status: 'pending' }, '-created_date', 50),
         base44.entities.CollectorProfile.filter({ user_id: user?.id }),
       ]);
-      setCollectibles(items);
+      setCollectibles(items.filter((c) => !c.is_deleted));
       setCollectorProfile(profiles[0] || null);
       setFriendRequests(requests);
       checkAndAwardBadges(user).catch(() => {});

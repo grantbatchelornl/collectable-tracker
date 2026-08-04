@@ -95,6 +95,7 @@ export default function AddCollectible() {
   const [data, setData] = useState(EMPTY);
   const [verified, setVerified] = useState(false);
   const [fraudAcknowledged, setFraudAcknowledged] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     base44.entities.CollectibleCategory.list('sort_order', 50)
@@ -193,6 +194,7 @@ export default function AddCollectible() {
 
   const handleConfirm = async () => {
     setSaving(true);
+    setSaveError('');
     try {
       const collectible = await base44.entities.Collectible.create({
         item_name: data.item_name,
@@ -310,6 +312,7 @@ export default function AddCollectible() {
     } catch (err) {
       console.error('Failed to save collectible', err);
       setSaving(false);
+      setSaveError('Could not save collectible. Please check your connection and try again.');
     }
   };
 
@@ -444,6 +447,12 @@ export default function AddCollectible() {
                 />
                 <span className="text-xs font-medium">I've verified these details are correct</span>
               </label>
+            </div>
+          )}
+          {saveError && (
+            <div className="rounded-2xl bg-loss/5 border border-loss/30 p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-loss flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-loss">{saveError}</p>
             </div>
           )}
           <CollectibleFormFields data={data} update={update} />

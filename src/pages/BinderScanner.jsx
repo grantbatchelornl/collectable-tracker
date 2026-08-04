@@ -139,8 +139,10 @@ export default function BinderScanner() {
     if (confirmed.length === 0) return;
     setImporting(true);
     setError('');
-    try {
-      for (const card of confirmed) {
+    let successCount = 0;
+    const failedCards = [];
+    for (const card of confirmed) {
+      try {
         const collectible = await base44.entities.Collectible.create({
           item_name: card.item_name || 'Unknown Card',
           category_id: selectedCategory.id,
@@ -172,16 +174,25 @@ export default function BinderScanner() {
           confidence: card.confidence || 'low',
           valuation_notes: card.identification_notes || undefined,
         });
+        successCount++;
+      } catch (err) {
+        console.error('Failed to import card', card.item_name, err);
+        failedCards.push(card.item_name || 'Unknown Card');
       }
-      await checkAndAwardBadges(user);
-      setImportedCount(confirmed.length);
-      setStep(4);
-    } catch (err) {
-      console.error('Import failed', err);
-      setError('Import failed. Please try again.');
-    } finally {
-      setImporting(false);
     }
+    if (successCount > 0) {
+      await checkAndAwardBadges(user);
+    }
+    setImportedCount(successCount);
+    if (successCount > 0 && failedCards.length === 0) {
+      setStep(4);
+    } else if (successCount > 0 && failedCards.length > 0) {
+      setError(`${successCount} card(s) imported successfully, but ${failedCards.length} failed: ${failedCards.join(', ')}. You can continue to the success screen.`);
+      setStep(4);
+    } else {
+      setError('Import failed for all cards. Please try again.');
+    }
+    setImporting(false);
   };
 
   const confirmedCount = detectedCards.filter((c) => c.confirmed).length;

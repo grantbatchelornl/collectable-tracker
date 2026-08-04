@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import PhotoUploader from '@/components/PhotoUploader';
-import { ArrowLeft, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, Loader2, AlertTriangle } from 'lucide-react';
 
 export default function EditCollectible() {
   const { id } = useParams();
@@ -14,6 +14,7 @@ export default function EditCollectible() {
   const [data, setData] = useState(null);
   const [existingPhotos, setExistingPhotos] = useState({ front: null, back: null });
   const [photoChanged, setPhotoChanged] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     loadData();
@@ -86,6 +87,7 @@ export default function EditCollectible() {
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError('');
     try {
       const oldValue = parseFloat(data.estimated_value) || 0;
       const updated = await base44.entities.Collectible.update(id, {
@@ -176,6 +178,7 @@ export default function EditCollectible() {
     } catch (err) {
       console.error(err);
       setSaving(false);
+      setSaveError('Could not save changes. Please check your connection and try again.');
     }
   };
 
@@ -210,6 +213,12 @@ export default function EditCollectible() {
         />
       </div>
 
+      {saveError && (
+        <div className="rounded-2xl bg-loss/5 border border-loss/30 p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-loss flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-loss">{saveError}</p>
+        </div>
+      )}
       <CollectibleFormFields data={data} update={update} />
 
       <button

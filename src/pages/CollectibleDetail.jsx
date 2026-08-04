@@ -617,7 +617,7 @@ export default function CollectibleDetail() {
           <DialogHeader>
             <DialogTitle>Delete this collectible?</DialogTitle>
             <DialogDescription>
-              This will permanently remove "{collectible.item_name}" and all its pricing history. This action cannot be undone.
+              This will move "{collectible.item_name}" to your deleted items. You can restore it later from Data Quality.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

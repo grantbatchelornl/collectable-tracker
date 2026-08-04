@@ -43,7 +43,7 @@ export default function PublicProfile() {
         ),
       ]);
       setProfile(profiles[0] || null);
-      setCollectibles(items);
+      setCollectibles(items.filter((c) => !c.is_deleted));
 
       if (user?.id && userId !== user.id) {
         const [myFollow, theirFollow] = await Promise.all([
