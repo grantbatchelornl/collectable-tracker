@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -33,9 +33,11 @@ export default function TradeReviewModal({ open, onClose, trade, reviewerId, rev
     setChecked(true);
   };
 
-  if (open && !checked) {
-    handleCheck();
-  }
+  useEffect(() => {
+    if (open && !checked && trade && reviewerId) {
+      handleCheck();
+    }
+  }, [open, checked, trade, reviewerId]);
 
   const handleSubmit = async () => {
     setSubmitting(true);
