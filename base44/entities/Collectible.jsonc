@@ -78,9 +78,25 @@
       "type": "number",
       "default": 0
     },
+    "average_price": {
+      "type": "number",
+      "default": 0
+    },
+    "purchase_cost": {
+      "type": "number",
+      "default": 0
+    },
     "value_source": {
       "type": "string",
       "default": "Manual"
+    },
+    "value_type": {
+      "type": "string",
+      "enum": [
+        "verified_sold",
+        "manual"
+      ],
+      "default": "manual"
     },
     "value_locked": {
       "type": "boolean",
@@ -98,6 +114,23 @@
     "comparables_count": {
       "type": "number",
       "default": 0
+    },
+    "most_recent_sale_date": {
+      "type": "string"
+    },
+    "comparable_date_range": {
+      "type": "string"
+    },
+    "matching_criteria": {
+      "type": "string"
+    },
+    "includes_shipping": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_stale": {
+      "type": "boolean",
+      "default": false
     },
     "valuation_notes": {
       "type": "string"

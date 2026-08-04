@@ -49,6 +49,7 @@ export default function EditCollectible() {
         privacy_status: c.privacy_status || 'private',
         for_sale: c.for_sale || false,
         asking_price: c.asking_price?.toString() || '',
+        purchase_cost: c.purchase_cost?.toString() || '',
         notes: c.notes || '',
         originalValue: c.estimated_value,
       });
@@ -95,6 +96,7 @@ export default function EditCollectible() {
         privacy_status: data.privacy_status,
         for_sale: data.for_sale,
         asking_price: parseFloat(data.asking_price) || 0,
+        purchase_cost: parseFloat(data.purchase_cost) || 0,
         notes: data.notes || undefined,
       });
 
@@ -108,7 +110,8 @@ export default function EditCollectible() {
           low_value: parseFloat(data.low_value) || 0,
           high_value: parseFloat(data.high_value) || 0,
           pricing_source: 'Manual',
-          confidence: 'medium',
+          value_type: 'manual',
+          confidence: 'low',
         });
       }
 

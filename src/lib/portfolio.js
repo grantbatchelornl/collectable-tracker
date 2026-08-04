@@ -86,3 +86,73 @@ export function getTopMovers(collectibles, pricingHistory) {
 
   return { gainers, losers };
 }
+
+export function getVerifiedManualSplit(collectibles) {
+  let verified = 0;
+  let manual = 0;
+  collectibles.forEach((c) => {
+    if (c.value_type === 'verified_sold') {
+      verified += c.estimated_value || 0;
+    } else {
+      manual += c.estimated_value || 0;
+    }
+  });
+  return { verified, manual };
+}
+
+export function getRawGradedBreakdown(collectibles) {
+  let rawValue = 0, gradedValue = 0, rawCount = 0, gradedCount = 0;
+  collectibles.forEach((c) => {
+    if (c.grading_company) {
+      gradedValue += c.estimated_value || 0;
+      gradedCount++;
+    } else {
+      rawValue += c.estimated_value || 0;
+      rawCount++;
+    }
+  });
+  return { rawValue, gradedValue, rawCount, gradedCount };
+}
+
+export function getRecentPriceChanges(pricingHistory, collectibles) {
+  const collectibleMap = {};
+  collectibles.forEach((c) => {
+    collectibleMap[c.id] = c;
+  });
+
+  const historyByCollectible = {};
+  pricingHistory.forEach((h) => {
+    if (!historyByCollectible[h.collectible_id]) {
+      historyByCollectible[h.collectible_id] = [];
+    }
+    historyByCollectible[h.collectible_id].push(h);
+  });
+
+  const changes = [];
+  Object.entries(historyByCollectible).forEach(([id, history]) => {
+    const sorted = history.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    if (sorted.length < 2) return;
+    const latest = sorted[0];
+    const previous = sorted[1];
+    const change = latest.estimated_value - previous.estimated_value;
+    if (change === 0) return;
+    const collectible = collectibleMap[id];
+    changes.push({
+      id: latest.id,
+      name: collectible?.item_name || latest.collectible_name,
+      photo: collectible?.primary_photo_url,
+      date: latest.created_date,
+      change,
+      newValue: latest.estimated_value,
+      oldValue: previous.estimated_value,
+    });
+  });
+
+  return changes.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+export function getPurchaseStats(collectibles) {
+  const totalCost = collectibles.reduce((sum, c) => sum + (c.purchase_cost || 0), 0);
+  const totalValue = collectibles.reduce((sum, c) => sum + (c.estimated_value || 0), 0);
+  return { totalCost, totalValue, gainLoss: totalValue - totalCost };
+}

@@ -164,16 +164,28 @@ export default function CollectibleFormFields({ data, update }) {
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           Estimated Value <span className="text-primary normal-case">required</span>
         </h3>
-        <Field label="Estimated Value" required>
-          <Input
-            type="number"
-            step="0.01"
-            value={data.estimated_value}
-            onChange={(e) => update('estimated_value', e.target.value)}
-            placeholder="0.00"
-            className="h-11"
-          />
-        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Estimated Value" required>
+            <Input
+              type="number"
+              step="0.01"
+              value={data.estimated_value}
+              onChange={(e) => update('estimated_value', e.target.value)}
+              placeholder="0.00"
+              className="h-11"
+            />
+          </Field>
+          <Field label="Purchase Cost">
+            <Input
+              type="number"
+              step="0.01"
+              value={data.purchase_cost}
+              onChange={(e) => update('purchase_cost', e.target.value)}
+              placeholder="0.00"
+              className="h-11"
+            />
+          </Field>
+        </div>
         <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2.5">
           Values are estimates and not guaranteed sale prices. Manual values are clearly labeled.
         </p>

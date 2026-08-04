@@ -28,6 +28,7 @@ import {
   Award,
   Tag,
   RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
@@ -99,34 +100,57 @@ export default function CollectibleDetail() {
     setRefreshing(true);
     try {
       const result = await estimatePrice(collectible);
-      const newValue = result.estimated_value || 0;
-      const newLow = result.low_value || 0;
-      const newHigh = result.high_value || 0;
+      const hasSufficientData =
+        result.comparables_count >= 2 && result.value_type !== 'insufficient';
       const source = result.pricing_source || 'AI Estimate';
 
       await base44.entities.PricingHistory.create({
         collectible_id: id,
         collectible_name: collectible.item_name,
-        estimated_value: newValue,
-        low_value: newLow,
-        high_value: newHigh,
+        estimated_value: hasSufficientData ? result.estimated_value || 0 : collectible.estimated_value,
+        low_value: hasSufficientData ? result.low_value || 0 : collectible.low_value,
+        high_value: hasSufficientData ? result.high_value || 0 : collectible.high_value,
+        average_price: result.average_price || 0,
         pricing_source: source,
+        value_type: hasSufficientData ? 'verified_sold' : 'manual',
         confidence: result.confidence || 'low',
         comparables_count: result.comparables_count || 0,
+        most_recent_sale_date: result.most_recent_sale_date || undefined,
+        comparable_date_range: result.comparable_date_range || undefined,
+        matching_criteria: result.matching_criteria || undefined,
+        includes_shipping: result.includes_shipping || false,
+        is_stale: !hasSufficientData,
         valuation_notes: result.valuation_notes || undefined,
       });
 
       if (!collectible.value_locked) {
-        const updated = await base44.entities.Collectible.update(id, {
-          estimated_value: newValue,
-          low_value: newLow,
-          high_value: newHigh,
-          value_source: source,
-          value_confidence: result.confidence || 'low',
-          comparables_count: result.comparables_count || 0,
-          valuation_notes: result.valuation_notes || undefined,
-        });
-        setCollectible(updated);
+        if (hasSufficientData) {
+          const updated = await base44.entities.Collectible.update(id, {
+            estimated_value: result.estimated_value || 0,
+            low_value: result.low_value || 0,
+            high_value: result.high_value || 0,
+            average_price: result.average_price || 0,
+            value_source: source,
+            value_type: 'verified_sold',
+            value_confidence: result.confidence || 'low',
+            comparables_count: result.comparables_count || 0,
+            most_recent_sale_date: result.most_recent_sale_date || undefined,
+            comparable_date_range: result.comparable_date_range || undefined,
+            matching_criteria: result.matching_criteria || undefined,
+            includes_shipping: result.includes_shipping || false,
+            is_stale: false,
+            valuation_notes: result.valuation_notes || undefined,
+          });
+          setCollectible(updated);
+        } else {
+          const updated = await base44.entities.Collectible.update(id, {
+            is_stale: true,
+            valuation_notes:
+              result.valuation_notes ||
+              'Insufficient recent sold data. Last valid estimate preserved.',
+          });
+          setCollectible(updated);
+        }
       }
 
       const historyData = await base44.entities.PricingHistory.filter(
@@ -287,9 +311,34 @@ export default function CollectibleDetail() {
           </p>
         </div>
 
+        {collectible.is_stale && (
+          <div className="flex items-start gap-2 rounded-2xl bg-gold/5 border border-gold/20 p-3">
+            <AlertTriangle className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-medium text-gold">Stale Pricing</p>
+              <p className="text-[11px] text-muted-foreground">Insufficient recent sold data. Last valid estimate preserved.</p>
+            </div>
+          </div>
+        )}
+
         {/* Valuation provenance */}
         <div className="rounded-2xl bg-card border border-border p-4 space-y-2.5">
-          <h3 className="font-semibold text-sm">Valuation Details</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-sm">Valuation Details</h3>
+            {collectible.is_stale && (
+              <span className="inline-flex items-center gap-1 text-[10px] bg-gold/10 text-gold rounded-full px-2 py-0.5 font-medium">
+                <AlertTriangle className="w-3 h-3" /> Stale
+              </span>
+            )}
+          </div>
+          {collectible.value_type && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Value Type</span>
+              <span className={`font-semibold ${collectible.value_type === 'verified_sold' ? 'text-gain' : 'text-muted-foreground'}`}>
+                {collectible.value_type === 'verified_sold' ? 'Verified Sold' : 'Manual'}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Source</span>
             <span className="font-medium text-right text-xs">{collectible.value_source || 'Manual'}</span>
@@ -307,6 +356,34 @@ export default function CollectibleDetail() {
               <span className="font-semibold">{collectible.comparables_count}</span>
             </div>
           )}
+          {collectible.comparable_date_range && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Sale Date Range</span>
+              <span className="font-medium text-xs">{collectible.comparable_date_range}</span>
+            </div>
+          )}
+          {collectible.average_price > 0 && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Average Sold</span>
+              <span className="font-semibold">{formatCurrency(collectible.average_price)}</span>
+            </div>
+          )}
+          {collectible.most_recent_sale_date && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Most Recent Sale</span>
+              <span className="font-medium text-xs">{collectible.most_recent_sale_date}</span>
+            </div>
+          )}
+          {collectible.matching_criteria && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Matched On</span>
+              <span className="font-medium text-right text-xs">{collectible.matching_criteria}</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Includes Shipping</span>
+            <span className="font-medium text-xs">{collectible.includes_shipping ? 'Yes' : 'No'}</span>
+          </div>
           {history.length > 0 && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Last Refreshed</span>

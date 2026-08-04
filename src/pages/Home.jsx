@@ -3,12 +3,22 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
+import PortfolioSummary from '@/components/PortfolioSummary';
+import RawGradedBreakdown from '@/components/RawGradedBreakdown';
+import RecentPriceChanges from '@/components/RecentPriceChanges';
 import PortfolioChart from '@/components/PortfolioChart';
 import CategoryBreakdown from '@/components/CategoryBreakdown';
 import TopMovers from '@/components/TopMovers';
-import { buildPortfolioTimeSeries, getCategoryBreakdown, getTopMovers } from '@/lib/portfolio';
-import { Plus, TrendingUp, TrendingDown, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
+import {
+  buildPortfolioTimeSeries,
+  getCategoryBreakdown,
+  getTopMovers,
+  getVerifiedManualSplit,
+  getRawGradedBreakdown,
+  getRecentPriceChanges,
+  getPurchaseStats,
+} from '@/lib/portfolio';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -87,24 +97,11 @@ export default function Home() {
     return { totalValue, count: collectibles.length, changes };
   }, [collectibles, pricingHistory]);
 
-  const previousValues = useMemo(() => {
-    const historyByCollectible = {};
-    pricingHistory.forEach((h) => {
-      if (!historyByCollectible[h.collectible_id])
-        historyByCollectible[h.collectible_id] = [];
-      historyByCollectible[h.collectible_id].push(h);
-    });
-    const result = {};
-    Object.entries(historyByCollectible).forEach(([id, history]) => {
-      const sorted = history.sort(
-        (a, b) => new Date(a.created_date) - new Date(b.created_date)
-      );
-      if (sorted.length >= 2) {
-        result[id] = sorted[sorted.length - 2].estimated_value;
-      }
-    });
-    return result;
-  }, [pricingHistory]);
+  const verifiedManual = useMemo(() => getVerifiedManualSplit(collectibles), [collectibles]);
+  const rawGraded = useMemo(() => getRawGradedBreakdown(collectibles), [collectibles]);
+  const recentChanges = useMemo(() => getRecentPriceChanges(pricingHistory, collectibles), [pricingHistory, collectibles]);
+  const purchaseStats = useMemo(() => getPurchaseStats(collectibles), [collectibles]);
+  const staleCount = useMemo(() => collectibles.filter((c) => c.is_stale).length, [collectibles]);
 
   const highestValue = useMemo(
     () =>
@@ -122,27 +119,6 @@ export default function Home() {
     [collectibles]
   );
 
-  const ChangePill = ({ value }) => {
-    if (value === 0)
-      return <span className="text-sm font-medium text-muted-foreground">$0</span>;
-    const isGain = value > 0;
-    return (
-      <span
-        className={`flex items-center gap-0.5 text-sm font-semibold ${
-          isGain ? 'text-gain' : 'text-loss'
-        }`}
-      >
-        {isGain ? (
-          <TrendingUp className="w-3.5 h-3.5" />
-        ) : (
-          <TrendingDown className="w-3.5 h-3.5" />
-        )}
-        {isGain ? '+' : ''}
-        {formatCurrency(value)}
-      </span>
-    );
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -153,33 +129,15 @@ export default function Home() {
 
   return (
     <div className="px-4 py-4 space-y-6">
-      <div className="rounded-3xl bg-card border border-border p-5 holo-shimmer">
-        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
-          Total Collection Value
-        </p>
-        <p className="font-display text-4xl font-extrabold tracking-tight mt-1">
-          {formatCurrency(stats.totalValue)}
-        </p>
-        <div className="flex gap-4 mt-4">
-          {[
-            { label: '1D', value: stats.changes.day },
-            { label: '1W', value: stats.changes.week },
-            { label: '1M', value: stats.changes.month },
-            { label: '1Y', value: stats.changes.year },
-          ].map((p) => (
-            <div key={p.label} className="flex-1">
-              <p className="text-[10px] text-muted-foreground mb-0.5">{p.label}</p>
-              <ChangePill value={p.value} />
-            </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border">
-          <Package className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">
-            {stats.count} collectible{stats.count !== 1 ? 's' : ''} in your collection
-          </span>
-        </div>
-      </div>
+      <PortfolioSummary
+        totalValue={stats.totalValue}
+        verifiedValue={verifiedManual.verified}
+        manualValue={verifiedManual.manual}
+        purchaseCost={purchaseStats.totalCost}
+        changes={stats.changes}
+        count={stats.count}
+        staleCount={staleCount}
+      />
 
       {collectibles.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
@@ -244,7 +202,7 @@ export default function Home() {
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
                 {highestValue.map((c) => (
                   <div key={c.id} className="w-40 flex-shrink-0">
-                    <CollectibleCard collectible={c} previousValue={previousValues[c.id]} />
+                    <CollectibleCard collectible={c} />
                   </div>
                 ))}
               </div>
@@ -263,6 +221,15 @@ export default function Home() {
             return breakdown.length > 1 ? <CategoryBreakdown data={breakdown} /> : null;
           })()}
 
+          <RawGradedBreakdown
+            rawValue={rawGraded.rawValue}
+            gradedValue={rawGraded.gradedValue}
+            rawCount={rawGraded.rawCount}
+            gradedCount={rawGraded.gradedCount}
+          />
+
+          <RecentPriceChanges changes={recentChanges} />
+
           {recentAdditions.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
@@ -277,7 +244,7 @@ export default function Home() {
               <div className="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
                 {recentAdditions.map((c) => (
                   <div key={c.id} className="w-40 flex-shrink-0">
-                    <CollectibleCard collectible={c} previousValue={previousValues[c.id]} />
+                    <CollectibleCard collectible={c} />
                   </div>
                 ))}
               </div>

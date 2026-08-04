@@ -20,12 +20,18 @@ const IDENTIFY_SCHEMA = {
     estimated_value: { type: 'number' },
     low_value: { type: 'number' },
     high_value: { type: 'number' },
+    average_price: { type: 'number' },
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     identification_confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     identification_notes: { type: 'string' },
     comparables_count: { type: 'number' },
+    most_recent_sale_date: { type: 'string' },
+    comparable_date_range: { type: 'string' },
+    matching_criteria: { type: 'string' },
+    includes_shipping: { type: 'boolean' },
     pricing_source: { type: 'string' },
     valuation_notes: { type: 'string' },
+    value_type: { type: 'string', enum: ['verified_sold', 'insufficient'] },
   },
 };
 
@@ -35,25 +41,50 @@ const PRICE_SCHEMA = {
     estimated_value: { type: 'number' },
     low_value: { type: 'number' },
     high_value: { type: 'number' },
+    average_price: { type: 'number' },
     confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
     comparables_count: { type: 'number' },
+    most_recent_sale_date: { type: 'string' },
+    comparable_date_range: { type: 'string' },
+    matching_criteria: { type: 'string' },
+    includes_shipping: { type: 'boolean' },
     pricing_source: { type: 'string' },
     valuation_notes: { type: 'string' },
+    value_type: { type: 'string', enum: ['verified_sold', 'insufficient'] },
   },
 };
 
+const PRICING_RULES = `You are an expert collectibles appraiser. Follow these rules STRICTLY:
+
+SOLD SALES ONLY: Use ONLY verified completed/sold sales. NEVER use active listings, Buy It Now asking prices that haven't sold, unsold auction prices, seller estimates, manufacturer retail prices, current marketplace inventory, or price guides based on asking prices.
+
+ACCEPTED EVIDENCE: Verified completed marketplace sales, confirmed auction results, sold-history data from approved providers, documented completed dealer or auction-house transactions.
+
+EXCLUDE unreliable transactions: multi-item lots when individual value cannot be separated, counterfeits, reproductions, proxy cards, empty boxes, replacement packaging, incorrect variants, canceled or refunded sales, unknown Best Offer prices, unknown currency, shipping-only transactions, deposits, duplicate records, extreme outliers, suspicious transactions.
+
+CATEGORY-SPECIFIC MATCHING — require a reasonably exact match:
+- Trading Cards (Pokémon, MTG, Disney Lorcana): Match game, set, card name, card number, language, finish, variant, edition, raw or graded status, grading company, grade, condition when raw.
+- Sports Cards: Match sport, athlete, year, manufacturer, product line, set, card number, parallel, serial numbering, autograph, patch or memorabilia, rookie status, raw or graded status, grading company, grade.
+- Funko Pop!: Match character, franchise, box number, series, exclusive, sticker, chase, variant, boxed or unboxed status, signed status, box condition, figure condition. NEVER use chase, prototype, signed, exclusive, error, convention, or special-variant sales for a normal Funko.
+- Coins: Match country, denomination, year, mint mark, variety, composition, raw or graded status, grading company, grade, cleaning or damage designation.
+- Sports Memorabilia: Match athlete or team, sport, item type, manufacturer, year or era, autograph status, authentication company, game-used or event-used status, condition.
+
+USE MULTIPLE VALID COMPARABLES when available. Use the MEDIAN (or weighted median) as the primary estimated_value. Weight recent and closer-condition matches more heavily.
+
+CONFIDENCE: "high" = 5+ recent sold comparables with exact matches. "medium" = 2-4 comparables. "low" = fewer than 2 or no exact match.
+
+INSUFFICIENT DATA: If fewer than 2 reliable sold comparables exist, set value_type to "insufficient", estimated_value to 0, confidence to "low", comparables_count to the actual number found, and explain in valuation_notes. Do NOT substitute active listings or asking prices.
+
+REPORT ALL FIELDS: comparables_count, comparable_date_range (e.g. "Jan 2026 - Jul 2026"), most_recent_sale_date, low_value (lowest sold), high_value (highest sold), average_price (mean of sold prices), matching_criteria (what was matched), includes_shipping (whether prices include shipping/buyer premium), pricing_source (where data came from), valuation_notes (caveats).
+
+TCGplayer may be used for identification and product matching, but only use its value as pricing if it provides completed-sale evidence. Do not treat listing-based market numbers as completed-sale estimates.`;
+
 export async function identifyAndPrice(photoUrl) {
-  const prompt = `You are an expert collectibles appraiser. Follow these rules strictly:
+  const prompt = `${PRICING_RULES}
 
-ACCURACY FIRST: Never invent information. If you cannot identify the item from the photo, return null for all identification fields, set identification_confidence to "low", and explain what could not be determined in identification_notes.
+Analyze this photo of a collectible. Identify it and find its current market value based on sold sales only.
 
-IDENTIFICATION: Analyze the photo and identify the collectible. Look for trading cards (Pokémon, Magic: The Gathering, Disney Lorcana, sports cards), Funko Pops, coins, sports memorabilia, and other collectibles. Read any visible text, numbers, logos, grading labels, and holographic patterns.
-
-VALUATION FROM SOLD SALES ONLY: Base the estimated value ONLY on verified completed/sold sales data. NEVER use asking prices, current active listings, retail prices, or seller estimates as the primary value. If you cannot find sufficient sold sales, set confidence to "low", report the actual count in comparables_count, and explain in valuation_notes.
-
-PROVENANCE: Report in comparables_count exactly how many sold comparables were used. Report in pricing_source where the data came from (e.g., "eBay Sold Listings", "PWCC Auctions", "PSA Registry Sales"). Explain any caveats in valuation_notes.
-
-HONEST CONFIDENCE: Set confidence based on actual data: "high" = 5+ recent sold comparables, "medium" = 2-4 comparables, "low" = fewer than 2 or no exact match.
+If you cannot identify the item, return null for all identification fields, set identification_confidence to "low", and explain in identification_notes.
 
 If you cannot determine a field from the image, use null. Do not guess.`;
 
@@ -69,19 +100,12 @@ If you cannot determine a field from the image, use null. Do not guess.`;
 }
 
 export async function estimatePrice(collectible) {
-  const prompt = `You are an expert collectibles market analyst. Follow these rules strictly:
+  const prompt = `${PRICING_RULES}
 
-SOLD SALES ONLY: Search ONLY for verified completed/sold sales for this item. NEVER base the estimated value on asking prices, current active listings, retail prices, or seller estimates. Only use actual sold transaction prices.
-
-INSUFFICIENT DATA: If there are fewer than 2 sold sales, set confidence to "low", report the actual count in comparables_count, and explain in valuation_notes that insufficient sold sales data was found. If zero sold sales exist, set estimated_value to 0.
-
-PROVENANCE: Report in comparables_count exactly how many sold comparables were used. Report in pricing_source where the data came from. Explain caveats in valuation_notes.
-
-HONEST CONFIDENCE: "high" = 5+ recent sold comparables, "medium" = 2-4, "low" = fewer than 2.
-
-Do not invent data. If you cannot find sold sales, return estimated_value of 0 and confidence "low".
+Search for completed/sold sales for this specific item and provide a market value estimate based ONLY on those sold transactions.
 
 Item: ${collectible.item_name || 'Unknown'}
+Category: ${collectible.category_name || 'N/A'}
 Character/Athlete: ${collectible.character_athlete_name || 'N/A'}
 Brand: ${collectible.brand || 'N/A'}
 Product Line: ${collectible.product_line || 'N/A'}
@@ -92,8 +116,12 @@ Grading: ${collectible.grading_company || 'N/A'} ${collectible.grade || ''}
 Variant: ${collectible.variant || 'N/A'}
 Parallel: ${collectible.parallel || 'N/A'}
 Edition: ${collectible.edition || 'N/A'}
+Serial Number: ${collectible.serial_number || 'N/A'}
 Autographed: ${collectible.has_autograph ? 'Yes' : 'No'}
-Authentication: ${collectible.authentication_company || 'N/A'}`;
+Authentication: ${collectible.authentication_company || 'N/A'}
+Team: ${collectible.team || 'N/A'}
+
+Apply the category-specific matching criteria for this item's category. If fewer than 2 reliable sold comparables exist, set value_type to "insufficient" and estimated_value to 0.`;
 
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
