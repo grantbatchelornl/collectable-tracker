@@ -47,6 +47,25 @@
     "requested_value": {
       "type": "number",
       "default": 0
+    },
+    "cash_adjustment": {
+      "type": "number",
+      "default": 0
+    },
+    "cash_direction": {
+      "type": "string",
+      "enum": [
+        "proposer_to_recipient",
+        "recipient_to_proposer"
+      ],
+      "default": "proposer_to_recipient"
+    },
+    "is_counter_offer": {
+      "type": "boolean",
+      "default": false
+    },
+    "original_trade_id": {
+      "type": "string"
     }
   },
   "required": [

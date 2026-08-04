@@ -20,6 +20,40 @@
     "show_public_value": {
       "type": "boolean",
       "default": false
+    },
+    "favorite_categories": {
+      "type": "string"
+    },
+    "favorite_sets": {
+      "type": "string"
+    },
+    "favorite_franchises": {
+      "type": "string"
+    },
+    "favorite_athletes": {
+      "type": "string"
+    },
+    "favorite_teams": {
+      "type": "string"
+    },
+    "favorite_characters": {
+      "type": "string"
+    },
+    "budget": {
+      "type": "number",
+      "default": 0
+    },
+    "goals": {
+      "type": "string"
+    },
+    "risk_tolerance": {
+      "type": "string",
+      "enum": [
+        "conservative",
+        "moderate",
+        "aggressive"
+      ],
+      "default": "moderate"
     }
   },
   "required": [
