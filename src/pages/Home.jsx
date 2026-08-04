@@ -26,6 +26,7 @@ import {
   getPurchaseStats,
 } from '@/lib/portfolio';
 import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star, Sparkles } from 'lucide-react';
+import EmptyState from '@/components/ui/EmptyState';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -287,21 +288,13 @@ export default function Home() {
       )}
 
       {collectibles.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-20 h-20 rounded-3xl bg-accent flex items-center justify-center mx-auto mb-4">
-            <Package className="w-10 h-10 text-muted-foreground" />
-          </div>
-          <h2 className="font-display text-xl font-bold mb-2">Start Your Collection</h2>
-          <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-            Scan or add your first collectible to start tracking its value over time.
-          </p>
-          <button
-            onClick={() => navigate('/add')}
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-3 font-medium"
-          >
-            <Plus className="w-5 h-5" /> Add Collectible
-          </button>
-        </div>
+        <EmptyState
+          icon={Package}
+          title="Start Your Collection"
+          description="Scan or add your first collectible to start tracking its value over time."
+          actionLabel="Add Collectible"
+          onAction={() => navigate('/add')}
+        />
       ) : (
         <>
           {pricingHistory.length > 1 && (

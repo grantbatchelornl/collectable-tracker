@@ -7,6 +7,8 @@ import SkeletonCard from '@/components/ui/SkeletonCard';
 import SmartSearchBar from '@/components/SmartSearchBar';
 import { Search, Loader2, Package, Plus, FileText, Store } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
+import EmptyState from '@/components/ui/EmptyState';
+import { getCategoryIcon } from '@/lib/categoryIcons';
 
 export default function Collection() {
   const navigate = useNavigate();
@@ -132,21 +134,13 @@ export default function Collection() {
 
   if (collectibles.length === 0) {
     return (
-      <div className="text-center py-16 px-4">
-        <div className="w-20 h-20 rounded-3xl bg-accent flex items-center justify-center mx-auto mb-4">
-          <Package className="w-10 h-10 text-muted-foreground" />
-        </div>
-        <h2 className="font-display text-xl font-bold mb-2">No Collectibles Yet</h2>
-        <p className="text-muted-foreground text-sm mb-6 max-w-xs mx-auto">
-          Scan or add your first collectible to start building your collection.
-        </p>
-        <button
-          onClick={() => navigate('/add')}
-          className="inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-3 font-medium"
-        >
-          <Plus className="w-5 h-5" /> Add Collectible
-        </button>
-      </div>
+      <EmptyState
+        icon={Package}
+        title="No Collectibles Yet"
+        description="Scan or add your first collectible to start building your collection."
+        actionLabel="Add Collectible"
+        onAction={() => navigate('/add')}
+      />
     );
   }
 
@@ -211,17 +205,21 @@ export default function Collection() {
         >
           All
         </button>
-        {categories.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setActiveCategory(c.id)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
-              activeCategory === c.id ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
-            }`}
-          >
-            {c.name}
-          </button>
-        ))}
+        {categories.map((c) => {
+          const CatIcon = getCategoryIcon(c.name);
+          return (
+            <button
+              key={c.id}
+              onClick={() => setActiveCategory(c.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap inline-flex items-center gap-1.5 ${
+                activeCategory === c.id ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+              }`}
+            >
+              <CatIcon className="w-3 h-3" />
+              {c.name}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between">

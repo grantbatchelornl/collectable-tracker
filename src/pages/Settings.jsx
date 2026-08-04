@@ -20,6 +20,9 @@ import {
   Sun,
   Plane,
 } from 'lucide-react';
+import { useTheme } from '@/lib/theme';
+import ThemePicker from '@/components/ThemePicker';
+import { getSoundsEnabled, setSoundsEnabled as setSfxEnabled } from '@/lib/sounds';
 
 const SECTIONS = [
   { key: 'account', label: 'Account', icon: User },
@@ -43,13 +46,13 @@ export default function Settings() {
   const [expanded, setExpanded] = useState('notifications');
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
+  const { theme, setTheme } = useTheme();
   const [reducedMotion, setReducedMotion] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [soundsOn, setSoundsOn] = useState(getSoundsEnabled());
 
   useEffect(() => {
     loadData();
-    setDarkMode(document.documentElement.classList.contains('dark'));
   }, [user]);
 
   const loadData = async () => {
@@ -71,16 +74,6 @@ export default function Settings() {
       setProfile(updated);
     } catch (err) {
       console.error(err);
-    }
-  };
-
-  const toggleDarkMode = () => {
-    const next = !darkMode;
-    setDarkMode(next);
-    if (next) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
     }
   };
 
@@ -214,13 +207,18 @@ export default function Settings() {
                 )}
 
                 {section.key === 'appearance' && (
-                  <SettingToggle
-                    label="Dark Mode"
-                    description="Switch between light and dark themes"
-                    checked={darkMode}
-                    onChange={toggleDarkMode}
-                    icon={darkMode ? Moon : Sun}
-                  />
+                  <>
+                    <ThemePicker />
+                    <SettingToggle
+                      label="Sound Effects"
+                      description="Subtle sounds for actions and achievements"
+                      checked={soundsOn}
+                      onChange={(v) => {
+                        setSoundsOn(v);
+                        setSfxEnabled(v);
+                      }}
+                    />
+                  </>
                 )}
 
                 {section.key === 'accessibility' && (
