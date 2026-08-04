@@ -50,13 +50,10 @@ export default function Chat() {
       await processMessages([...sentMsgs, ...receivedMsgs]);
 
       try {
-        const [myBlock, theirBlock] = await Promise.all([
-          base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId }),
-          base44.entities.UserBlock.filter({ blocker_id: userId, blocked_id: user.id }),
-        ]);
-        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: theirBlock.length > 0 });
+        const myBlock = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
+        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: false });
       } catch (e) {
-        // non-critical
+        // non-critical — backend function enforces blocks on send
       }
     } catch (err) {
       console.error(err);
@@ -104,20 +101,22 @@ export default function Chat() {
     if (blockStatus.iBlockedThem || blockStatus.theyBlockedMe) return;
     setSending(true);
     try {
-      await base44.entities.Message.create({
-        sender_id: user.id,
-        recipient_id: userId,
-        sender_name: user.display_name || user.full_name || '',
-        recipient_name: otherProfile?.display_name || '',
-        sender_photo: user.profile_photo || '',
-        recipient_photo: otherProfile?.profile_photo || '',
+      const response = await base44.functions.invoke('sendMessage', {
+        recipientId: userId,
         body: input.trim(),
-        read: false,
-        attached_collectible_id: attachedItem?.id || '',
-        attached_collectible_name: attachedItem?.item_name || '',
-        attached_collectible_photo: attachedItem?.primary_photo_url || '',
-        attached_collectible_value: attachedItem?.estimated_value || 0,
+        attachedCollectibleId: attachedItem?.id || '',
+        attachedCollectibleName: attachedItem?.item_name || '',
+        attachedCollectiblePhoto: attachedItem?.primary_photo_url || '',
+        attachedCollectibleValue: attachedItem?.estimated_value || 0,
       });
+      if (response.data?.error === 'blocked') {
+        setBlockStatus((prev) => ({ ...prev, theyBlockedMe: true }));
+        return;
+      }
+      if (response.data?.error) {
+        console.error('sendMessage error:', response.data.error);
+        return;
+      }
       setInput('');
       if (attachedItem) setShowShare(false);
       await loadMessages();
