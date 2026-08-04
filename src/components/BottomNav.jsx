@@ -1,11 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Compass, Plus, MessageCircle, User } from 'lucide-react';
+import { Home, LayoutGrid, ScanLine, Heart, Users, User } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
-  { to: '/discover', icon: Compass, label: 'Discover' },
-  { to: '/add', icon: Plus, label: 'Add', isCenter: true },
-  { to: '/messages', icon: MessageCircle, label: 'Messages' },
+  { to: '/collection', icon: LayoutGrid, label: 'Collection' },
+  { to: '/add', icon: ScanLine, label: 'Scan', isCenter: true },
+  { to: '/watchlist', icon: Heart, label: 'Wishlist' },
+  { to: '/messages', icon: Users, label: 'Community' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 
@@ -14,7 +15,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border safe-bottom">
-      <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-2">
+      <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-1">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           if (item.isCenter) {
@@ -23,7 +24,7 @@ export default function BottomNav() {
                 key={item.to}
                 onClick={() => navigate(item.to)}
                 className="flex flex-col items-center -mt-6"
-                aria-label="Add collectible"
+                aria-label="Scan collectible"
               >
                 <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background">
                   <Icon className="w-7 h-7 text-primary-foreground" />
@@ -37,13 +38,13 @@ export default function BottomNav() {
               to={item.to}
               end={item.to === '/'}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 py-2 px-3 min-w-[48px] transition-colors ${
+                `flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`
               }
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span className="text-[9px] font-medium">{item.label}</span>
             </NavLink>
           );
         })}

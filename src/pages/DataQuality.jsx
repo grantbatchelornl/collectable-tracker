@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import {
@@ -69,19 +70,21 @@ function ScoreRing({ score }) {
 
 export default function DataQuality() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [expandedIssue, setExpandedIssue] = useState(null);
 
   useEffect(() => {
+    if (!user) return;
     loadData();
-  }, []);
+  }, [user]);
 
   const loadData = async () => {
     setLoading(true);
     try {
       const [collectibles, pricingHistory, photos] = await Promise.all([
-        base44.entities.Collectible.list('-created_date', 500),
+        base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectiblePhoto.list('-created_date', 500),
       ]);
