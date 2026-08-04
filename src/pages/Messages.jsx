@@ -24,13 +24,10 @@ export default function Messages() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const [messages, trades, blocks] = await Promise.all([
+      const [messages, trades] = await Promise.all([
         base44.entities.Message.list('-created_date', 500),
         base44.entities.Trade.list('-created_date', 200),
-        base44.entities.UserBlock.filter({ blocker_id: user.id }),
       ]);
-      const blockedIdSet = new Set(blocks.map((b) => b.blocked_id));
-      setBlockedIds(blockedIdSet);
 
       const convMap = new Map();
       messages.forEach((msg) => {
@@ -59,13 +56,19 @@ export default function Messages() {
         }
       });
 
+      const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id });
+      const blockedSet = new Set(blocks.map((b) => b.blocked_id));
+      setBlockedIds(blockedSet);
+
       setConversations(
         Array.from(convMap.values())
-          .filter((c) => !blockedIdSet.has(c.otherUserId))
-          .sort((a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate))
+          .filter((conv) => !blockedSet.has(conv.otherUserId))
+          .sort(
+          (a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate)
+        )
       );
-      setIncomingTrades(trades.filter((t) => t.recipient_id === user.id && !blockedIdSet.has(t.proposer_id)));
-      setOutgoingTrades(trades.filter((t) => t.proposer_id === user.id && !blockedIdSet.has(t.recipient_id)));
+      setIncomingTrades(trades.filter((t) => t.recipient_id === user.id && !blockedSet.has(t.proposer_id)));
+      setOutgoingTrades(trades.filter((t) => t.proposer_id === user.id && !blockedSet.has(t.recipient_id)));
     } catch (err) {
       console.error(err);
     } finally {

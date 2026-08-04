@@ -5,7 +5,7 @@ import { Image } from '@/components/ui/image';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { parseTradeItems } from '@/lib/social';
 import FairnessIndicator from './FairnessIndicator';
-import { ArrowLeftRight, Check, X, Loader2, DollarSign } from 'lucide-react';
+import { ArrowLeftRight, Check, X, Loader2 } from 'lucide-react';
 
 const STATUS_STYLES = {
   pending: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
@@ -85,16 +85,12 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
           {trade.offered_value > 0 && trade.requested_value > 0 && (
             <FairnessIndicator offered={trade.offered_value} requested={trade.requested_value} />
           )}
+          {trade.cash_adjustment > 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              + {formatCurrency(trade.cash_adjustment)} cash {trade.cash_direction === 'proposer_to_recipient' ? '→' : '←'}
+            </p>
+          )}
         </div>
-        {trade.cash_adjustment > 0 && (
-          <div className="flex items-center gap-1.5 text-xs">
-            <DollarSign className="w-3 h-3 text-gold" />
-            <span className="text-muted-foreground">
-              {trade.cash_direction === 'recipient_to_proposer' ? 'They pay' : 'You pay'}:
-            </span>
-            <span className="font-semibold text-gold">{formatCurrency(trade.cash_adjustment)}</span>
-          </div>
-        )}
       </div>
 
       {isIncoming && status === 'pending' && (
@@ -107,13 +103,6 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><X className="w-4 h-4" /> Decline</>)}
           </button>
           <button
-            onClick={() => navigate(`/collector/${trade.proposer_id}`)}
-            disabled={loading}
-            className="flex-1 h-9 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center justify-center gap-1.5 transition-colors"
-          >
-            Counter
-          </button>
-          <button
             onClick={() => handleUpdate('accepted')}
             disabled={loading}
             className="flex-1 h-9 rounded-lg bg-gain text-white text-sm font-medium hover:bg-gain/90 flex items-center justify-center gap-1.5 transition-colors"
@@ -121,6 +110,14 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><Check className="w-4 h-4" /> Accept</>)}
           </button>
         </div>
+      )}
+      {isIncoming && status === 'pending' && (
+        <button
+          onClick={() => navigate(`/collector/${trade.proposer_id}`)}
+          className="w-full h-9 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 flex items-center justify-center gap-1.5 transition-colors mb-2"
+        >
+          <ArrowLeftRight className="w-4 h-4" /> Counter Offer
+        </button>
       )}
       {!isIncoming && status === 'pending' && (
         <button

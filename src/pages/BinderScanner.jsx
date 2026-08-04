@@ -66,6 +66,16 @@ export default function BinderScanner() {
       }));
       setDetectedCards(cards);
       setStep(3);
+      try {
+        const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
+        if (profiles[0]) {
+          await base44.entities.CollectorProfile.update(profiles[0].id, {
+            binder_scan_count: (profiles[0].binder_scan_count || 0) + 1,
+          });
+        }
+      } catch (e) {
+        // non-critical
+      }
     } catch (err) {
       console.error('Binder scan failed', err);
       setError('Could not scan binder page. Please try a clearer photo.');

@@ -29,8 +29,8 @@ export default function Watchlist() {
     notes: '',
     priority: 'medium',
     visibility: 'private',
-    raw_or_graded: 'any',
     alerts_enabled: true,
+    raw_or_graded: 'any',
   });
 
   useEffect(() => {
@@ -71,11 +71,11 @@ export default function Watchlist() {
         notes: form.notes || undefined,
         priority: form.priority || 'medium',
         visibility: form.visibility || 'private',
-        raw_or_graded: form.raw_or_graded || 'any',
         alerts_enabled: form.alerts_enabled ?? true,
+        raw_or_graded: form.raw_or_graded || 'any',
         status: 'active',
       });
-      setForm({ item_name: '', category_id: '', target_price: '', notes: '', priority: 'medium', visibility: 'private', raw_or_graded: 'any', alerts_enabled: true });
+      setForm({ item_name: '', category_id: '', target_price: '', notes: '', priority: 'medium', visibility: 'private', alerts_enabled: true, raw_or_graded: 'any' });
       setShowAdd(false);
       loadData();
     } catch (err) {
@@ -192,6 +192,20 @@ export default function Watchlist() {
               </select>
             </div>
             <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Visibility</label>
+              <select
+                value={form.visibility}
+                onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="private">Private</option>
+                <option value="friends">Friends</option>
+                <option value="public">Public</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Raw / Graded</label>
               <select
                 value={form.raw_or_graded}
@@ -203,18 +217,15 @@ export default function Watchlist() {
                 <option value="graded">Graded</option>
               </select>
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">Visibility</label>
-            <select
-              value={form.visibility}
-              onChange={(e) => setForm({ ...form, visibility: e.target.value })}
-              className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="private">Private</option>
-              <option value="friends">Friends</option>
-              <option value="public">Public</option>
-            </select>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Price Alerts</label>
+              <button
+                onClick={() => setForm({ ...form, alerts_enabled: !form.alerts_enabled })}
+                className={`w-full h-11 rounded-md border border-input flex items-center justify-center text-sm font-medium ${form.alerts_enabled ? 'bg-primary/10 text-primary' : 'text-muted-foreground'}`}
+              >
+                {form.alerts_enabled ? 'Enabled' : 'Disabled'}
+              </button>
+            </div>
           </div>
           <button
             onClick={handleAdd}
@@ -263,6 +274,20 @@ export default function Watchlist() {
                   {item.category_name && (
                     <p className="text-xs text-muted-foreground">{item.category_name}</p>
                   )}
+                  <div className="flex items-center gap-1.5 mt-2">
+                    {item.priority === 'high' && (
+                      <span className="text-[10px] bg-loss/10 text-loss rounded-full px-1.5 py-0.5 font-medium">High Priority</span>
+                    )}
+                    {item.priority === 'medium' && (
+                      <span className="text-[10px] bg-gold/10 text-gold rounded-full px-1.5 py-0.5 font-medium">Medium</span>
+                    )}
+                    {item.raw_or_graded && item.raw_or_graded !== 'any' && (
+                      <span className="text-[10px] bg-accent text-accent-foreground rounded-full px-1.5 py-0.5 font-medium capitalize">{item.raw_or_graded}</span>
+                    )}
+                    {item.visibility === 'public' && (
+                      <span className="text-[10px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-medium">Public</span>
+                    )}
+                  </div>
                   {item.target_price > 0 && (
                     <div className="flex items-center gap-1.5 mt-2">
                       <Target className="w-3.5 h-3.5 text-primary" />
@@ -272,22 +297,6 @@ export default function Watchlist() {
                       </span>
                     </div>
                   )}
-                  {(item.priority && item.priority !== 'medium') || (item.raw_or_graded && item.raw_or_graded !== 'any') ? (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {item.priority && item.priority !== 'medium' && (
-                        <span className={`inline-flex text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                          item.priority === 'high' ? 'bg-loss/10 text-loss' : 'bg-muted text-muted-foreground'
-                        }`}>
-                          {item.priority} priority
-                        </span>
-                      )}
-                      {item.raw_or_graded && item.raw_or_graded !== 'any' && (
-                        <span className="inline-flex text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-primary/10 text-primary">
-                          {item.raw_or_graded}
-                        </span>
-                      )}
-                    </div>
-                  ) : null}
                   {item.notes && (
                     <p className="text-xs text-muted-foreground mt-2">{item.notes}</p>
                   )}

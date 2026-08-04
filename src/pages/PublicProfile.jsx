@@ -22,8 +22,7 @@ export default function PublicProfile() {
   const [isFriend, setIsFriend] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const [reportReason, setReportReason] = useState('');
-  const [reportDesc, setReportDesc] = useState('');
+  const [reportReason, setReportReason] = useState('spam');
 
   useEffect(() => {
     loadData();
@@ -58,6 +57,7 @@ export default function PublicProfile() {
           }),
         ]);
         setIsFriend(myFollow.length > 0 && theirFollow.length > 0);
+
         const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
         setIsBlocked(blocks.length > 0);
       }
@@ -70,37 +70,6 @@ export default function PublicProfile() {
 
   const displayName = profile?.display_name || 'Collector';
   const totalValue = collectibles.reduce((s, c) => s + (c.estimated_value || 0), 0);
-
-  const handleBlock = async () => {
-    if (isBlocked) {
-      const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
-      if (blocks[0]) await base44.entities.UserBlock.delete(blocks[0].id);
-      setIsBlocked(false);
-    } else {
-      await base44.entities.UserBlock.create({
-        blocker_id: user.id,
-        blocked_id: userId,
-        blocked_name: displayName,
-      });
-      setIsBlocked(true);
-    }
-  };
-
-  const handleReport = async () => {
-    if (!reportReason) return;
-    await base44.entities.Report.create({
-      reporter_id: user.id,
-      reported_id: userId,
-      report_type: 'user',
-      target_id: userId,
-      reason: reportReason,
-      description: reportDesc || undefined,
-    });
-    setShowReport(false);
-    setReportReason('');
-    setReportDesc('');
-    alert('Report submitted. Thank you.');
-  };
 
   if (loading) {
     return (
@@ -187,20 +156,32 @@ export default function PublicProfile() {
               Messaging unlocks once you're mutual friends.
             </p>
           )}
-          <div className="flex gap-3">
-            <button
-              onClick={handleBlock}
-              className="flex-1 h-9 rounded-lg border border-border text-xs font-medium hover:bg-accent flex items-center justify-center gap-1.5"
-            >
-              <Ban className="w-3.5 h-3.5" /> {isBlocked ? 'Unblock' : 'Block'}
-            </button>
-            <button
-              onClick={() => setShowReport(true)}
-              className="flex-1 h-9 rounded-lg border border-border text-xs font-medium hover:bg-accent flex items-center justify-center gap-1.5"
-            >
-              <Flag className="w-3.5 h-3.5" /> Report
-            </button>
-          </div>
+        </div>
+      )}
+
+      {userId !== user?.id && (
+        <div className="flex gap-2">
+          <button
+            onClick={async () => {
+              if (isBlocked) {
+                const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
+                if (blocks[0]) await base44.entities.UserBlock.delete(blocks[0].id);
+                setIsBlocked(false);
+              } else {
+                await base44.entities.UserBlock.create({ blocker_id: user.id, blocked_id: userId, blocked_name: displayName });
+                setIsBlocked(true);
+              }
+            }}
+            className={`flex-1 h-9 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 ${isBlocked ? 'bg-destructive/10 text-destructive' : 'border border-border text-muted-foreground'}`}
+          >
+            <Ban className="w-3.5 h-3.5" /> {isBlocked ? 'Unblock' : 'Block'}
+          </button>
+          <button
+            onClick={() => setShowReport(true)}
+            className="flex-1 h-9 rounded-lg border border-border text-xs font-medium text-muted-foreground flex items-center justify-center gap-1.5"
+          >
+            <Flag className="w-3.5 h-3.5" /> Report
+          </button>
         </div>
       )}
 
@@ -208,40 +189,35 @@ export default function PublicProfile() {
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
           <div className="bg-card w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-display text-lg font-bold">Report User</h3>
+              <h3 className="font-display text-lg font-bold">Report {displayName}</h3>
               <button onClick={() => setShowReport(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-accent">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">Reason</label>
-              <select
-                value={reportReason}
-                onChange={(e) => setReportReason(e.target.value)}
-                className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Select a reason...</option>
-                <option value="spam">Spam</option>
-                <option value="harassment">Harassment</option>
-                <option value="fake_item">Fake/Counterfeit Items</option>
-                <option value="scam">Scam</option>
-                <option value="inappropriate">Inappropriate Content</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">Description (optional)</label>
-              <textarea
-                value={reportDesc}
-                onChange={(e) => setReportDesc(e.target.value)}
-                placeholder="Provide additional details..."
-                className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
+            <select
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm"
+            >
+              <option value="spam">Spam</option>
+              <option value="harassment">Harassment</option>
+              <option value="fake_item">Fake Item</option>
+              <option value="scam">Scam</option>
+              <option value="inappropriate">Inappropriate Content</option>
+              <option value="other">Other</option>
+            </select>
             <button
-              onClick={handleReport}
-              disabled={!reportReason}
-              className="w-full h-11 rounded-xl bg-destructive text-destructive-foreground font-medium disabled:opacity-40"
+              onClick={async () => {
+                await base44.entities.Report.create({
+                  reporter_id: user.id,
+                  reported_id: userId,
+                  report_type: 'user',
+                  target_id: userId,
+                  reason: reportReason,
+                });
+                setShowReport(false);
+              }}
+              className="w-full h-11 rounded-xl bg-destructive text-destructive-foreground font-medium"
             >
               Submit Report
             </button>

@@ -21,6 +21,8 @@ import {
   UserPlus,
   Check,
   ArrowLeftRight,
+  Trophy,
+  Sparkles,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { syncCollectorProfile } from '@/lib/social';
@@ -54,8 +56,8 @@ export default function Profile() {
         base44.entities.CollectorProfile.filter({ user_id: user?.id }),
       ]);
       setCollectibles(items);
-      setFriendRequests(requests);
       setCollectorProfile(profiles[0] || null);
+      setFriendRequests(requests);
       checkAndAwardBadges(user).catch(() => {});
     } catch (err) {
       console.error(err);
@@ -127,6 +129,19 @@ export default function Profile() {
         privacy_show_public_value: editData.privacy_show_public_value,
         notification_in_app_enabled: editData.notification_in_app_enabled,
       });
+      if (collectorProfile) {
+        await base44.entities.CollectorProfile.update(collectorProfile.id, {
+          favorite_categories: editData.favorite_categories,
+          favorite_sets: editData.favorite_sets,
+          favorite_franchises: editData.favorite_franchises,
+          favorite_athletes: editData.favorite_athletes,
+          favorite_teams: editData.favorite_teams,
+          favorite_characters: editData.favorite_characters,
+          budget: parseFloat(editData.budget) || 0,
+          goals: editData.goals,
+          risk_tolerance: editData.risk_tolerance,
+        });
+      }
       await syncCollectorProfile({
         ...user,
         display_name: editData.display_name,
@@ -135,19 +150,6 @@ export default function Profile() {
         profile_photo: editData.profile_photo,
         privacy_show_public_value: editData.privacy_show_public_value,
       });
-      if (collectorProfile) {
-        await base44.entities.CollectorProfile.update(collectorProfile.id, {
-          favorite_categories: editData.favorite_categories || undefined,
-          favorite_sets: editData.favorite_sets || undefined,
-          favorite_franchises: editData.favorite_franchises || undefined,
-          favorite_athletes: editData.favorite_athletes || undefined,
-          favorite_teams: editData.favorite_teams || undefined,
-          favorite_characters: editData.favorite_characters || undefined,
-          budget: parseFloat(editData.budget) || 0,
-          goals: editData.goals || undefined,
-          risk_tolerance: editData.risk_tolerance || 'moderate',
-        });
-      }
       setEditing(false);
       window.location.reload();
     } catch (err) {
@@ -261,6 +263,46 @@ export default function Profile() {
           </div>
         </div>
       )}
+
+      {/* Leaderboards, AI & Settings */}
+      <div className="space-y-2">
+        <button
+          onClick={() => navigate('/leaderboards')}
+          className="w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left hover:bg-accent transition-colors"
+        >
+          <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-gold" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm">Leaderboards</p>
+            <p className="text-xs text-muted-foreground">Compete with other collectors</p>
+          </div>
+        </button>
+        <button
+          onClick={() => navigate('/collector-ai')}
+          className="w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left hover:bg-accent transition-colors"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm">Collector AI</p>
+            <p className="text-xs text-muted-foreground">Ask questions about your collection</p>
+          </div>
+        </button>
+        <button
+          onClick={() => navigate('/settings')}
+          className="w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left hover:bg-accent transition-colors"
+        >
+          <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center">
+            <Settings className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="font-semibold text-sm">Settings</p>
+            <p className="text-xs text-muted-foreground">Account, privacy, notifications</p>
+          </div>
+        </button>
+      </div>
 
       {/* Trades & Messages link */}
       <button
@@ -386,64 +428,51 @@ export default function Profile() {
               onChange={(v) => setEditData((d) => ({ ...d, notification_in_app_enabled: v }))}
             />
 
-            <div className="pt-2 border-t border-border">
-              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Collector Preferences</h4>
-              <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <Label>Favorite Categories</Label>
-                  <Input value={editData.favorite_categories || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_categories: e.target.value }))} placeholder="Pokémon, Sports Cards..." className="h-11" />
+            <div className="pt-2 border-t border-border space-y-3">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Collector Preferences</p>
+              <div className="space-y-2">
+                <Label>Favorite Categories</Label>
+                <Input value={editData.favorite_categories} onChange={(e) => setEditData((d) => ({ ...d, favorite_categories: e.target.value }))} placeholder="Pokémon, Sports Cards..." className="h-10" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label>Favorite Sets</Label>
+                  <Input value={editData.favorite_sets} onChange={(e) => setEditData((d) => ({ ...d, favorite_sets: e.target.value }))} className="h-10" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Favorite Sets</Label>
-                    <Input value={editData.favorite_sets || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_sets: e.target.value }))} className="h-11" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Favorite Franchises</Label>
-                    <Input value={editData.favorite_franchises || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_franchises: e.target.value }))} className="h-11" />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Favorite Franchises</Label>
+                  <Input value={editData.favorite_franchises} onChange={(e) => setEditData((d) => ({ ...d, favorite_franchises: e.target.value }))} className="h-10" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Favorite Athletes</Label>
-                    <Input value={editData.favorite_athletes || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_athletes: e.target.value }))} className="h-11" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Favorite Teams</Label>
-                    <Input value={editData.favorite_teams || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_teams: e.target.value }))} className="h-11" />
-                  </div>
+                <div className="space-y-2">
+                  <Label>Favorite Athletes</Label>
+                  <Input value={editData.favorite_athletes} onChange={(e) => setEditData((d) => ({ ...d, favorite_athletes: e.target.value }))} className="h-10" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Favorite Characters</Label>
-                  <Input value={editData.favorite_characters || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_characters: e.target.value }))} className="h-11" />
+                <div className="space-y-2">
+                  <Label>Favorite Teams</Label>
+                  <Input value={editData.favorite_teams} onChange={(e) => setEditData((d) => ({ ...d, favorite_teams: e.target.value }))} className="h-10" />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label>Budget</Label>
-                    <Input type="number" value={editData.budget || ''} onChange={(e) => setEditData((d) => ({ ...d, budget: e.target.value }))} placeholder="0.00" className="h-11" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Risk Tolerance</Label>
-                    <select
-                      value={editData.risk_tolerance || 'moderate'}
-                      onChange={(e) => setEditData((d) => ({ ...d, risk_tolerance: e.target.value }))}
-                      className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="conservative">Conservative</option>
-                      <option value="moderate">Moderate</option>
-                      <option value="aggressive">Aggressive</option>
-                    </select>
-                  </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Favorite Characters</Label>
+                <Input value={editData.favorite_characters} onChange={(e) => setEditData((d) => ({ ...d, favorite_characters: e.target.value }))} className="h-10" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label>Budget ($)</Label>
+                  <Input type="number" value={editData.budget} onChange={(e) => setEditData((d) => ({ ...d, budget: e.target.value }))} className="h-10" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Goals</Label>
-                  <textarea
-                    value={editData.goals || ''}
-                    onChange={(e) => setEditData((d) => ({ ...d, goals: e.target.value }))}
-                    placeholder="What are you collecting for?"
-                    className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                <div className="space-y-2">
+                  <Label>Risk Tolerance</Label>
+                  <select value={editData.risk_tolerance} onChange={(e) => setEditData((d) => ({ ...d, risk_tolerance: e.target.value }))} className="w-full h-10 rounded-md border border-input bg-transparent px-2 text-sm">
+                    <option value="conservative">Conservative</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="aggressive">Aggressive</option>
+                  </select>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Goals</Label>
+                <textarea value={editData.goals} onChange={(e) => setEditData((d) => ({ ...d, goals: e.target.value }))} placeholder="What are you collecting for?" className="w-full h-16 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none" />
               </div>
             </div>
 

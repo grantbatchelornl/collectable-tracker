@@ -26,7 +26,12 @@ import {
   Ban,
   CheckCircle2,
   TrendingUp,
+  Flag,
+  ToggleLeft,
+  Award,
+  Server,
 } from 'lucide-react';
+import AchievementBuilder from '@/components/AchievementBuilder';
 import { formatCurrency, formatRelativeDate, formatDate } from '@/lib/format';
 
 const TABS = [
@@ -35,6 +40,10 @@ const TABS = [
   { key: 'categories', label: 'Categories', icon: Tag },
   { key: 'settings', label: 'Settings', icon: SettingsIcon },
   { key: 'audit', label: 'Audit Log', icon: ScrollText },
+  { key: 'reports', label: 'Reports', icon: Flag },
+  { key: 'flags', label: 'Feature Flags', icon: ToggleLeft },
+  { key: 'achievements', label: 'Achievements', icon: Award },
+  { key: 'system', label: 'System', icon: Server },
 ];
 
 export default function AdminDashboard() {
@@ -52,6 +61,8 @@ export default function AdminDashboard() {
   const [newCategory, setNewCategory] = useState({ name: '', icon: '📦', sort_order: 0 });
   const [thresholdValue, setThresholdValue] = useState('10');
   const [savingThreshold, setSavingThreshold] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [featureFlags, setFeatureFlags] = useState([]);
 
   const isSuperAdmin = user?.role === 'super_admin';
   const isAdmin = user?.role === 'admin' || isSuperAdmin;
@@ -82,6 +93,12 @@ export default function AdminDashboard() {
         setCategories(cats);
         setAuditLogs(logs);
         setCollectibles(allCollectibles);
+        const [reportData, flagData] = await Promise.all([
+          base44.entities.Report.list('-created_date', 100),
+          base44.entities.AppFeatureFlag.list(),
+        ]);
+        setReports(reportData);
+        setFeatureFlags(flagData);
       }
     } catch (err) {
       console.error('Admin load failed', err);
@@ -468,6 +485,93 @@ export default function AdminDashboard() {
           {auditLogs.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-8">No audit log entries yet.</p>
           )}
+        </div>
+      )}
+
+      {/* Reports */}
+      {tab === 'reports' && (
+        <div className="space-y-2">
+          {reports.map((r) => (
+            <div key={r.id} className="rounded-2xl bg-card border border-border p-3">
+              <div className="flex items-center justify-between">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                  r.status === 'pending' ? 'bg-gold/10 text-gold' :
+                  r.status === 'resolved' ? 'bg-gain/10 text-gain' : 'bg-muted text-muted-foreground'
+                }`}>{r.status}</span>
+                <span className="text-[10px] text-muted-foreground">{formatRelativeDate(r.created_date)}</span>
+              </div>
+              <p className="text-sm font-medium mt-1 capitalize">{r.report_type}: {r.reason}</p>
+              {r.description && <p className="text-xs text-muted-foreground">{r.description}</p>}
+            </div>
+          ))}
+          {reports.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No reports.</p>}
+        </div>
+      )}
+
+      {/* Feature Flags */}
+      {tab === 'flags' && (
+        <div className="space-y-2">
+          {featureFlags.map((f) => (
+            <div key={f.id} className="rounded-2xl bg-card border border-border p-4 flex items-center justify-between">
+              <div className="min-w-0">
+                <p className="font-semibold text-sm">{f.label}</p>
+                {f.description && <p className="text-xs text-muted-foreground">{f.description}</p>}
+              </div>
+              <button
+                onClick={async () => {
+                  await base44.entities.AppFeatureFlag.update(f.id, { enabled: !f.enabled });
+                  await logAction('toggle_feature', 'feature_flag', f.id, f.key, f.enabled ? 'Disabled' : 'Enabled');
+                  loadData();
+                }}
+                className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${f.enabled ? 'bg-gain' : 'bg-muted'}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${f.enabled ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+          ))}
+          {featureFlags.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No feature flags configured.</p>}
+        </div>
+      )}
+
+      {/* Achievements */}
+      {tab === 'achievements' && (
+        <AchievementBuilder />
+      )}
+
+      {/* System */}
+      {tab === 'system' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl bg-card border border-border p-4 flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-sm">Maintenance Mode</p>
+              <p className="text-xs text-muted-foreground">Temporarily restrict app access</p>
+            </div>
+            <button
+              onClick={async () => {
+                const existing = settings.find((s) => s.key === 'maintenance_mode');
+                const newValue = existing?.value !== 'true';
+                if (existing) {
+                  await base44.entities.AppSetting.update(existing.id, { value: newValue ? 'true' : 'false' });
+                } else {
+                  await base44.entities.AppSetting.create({ key: 'maintenance_mode', value: newValue ? 'true' : 'false', label: 'Maintenance Mode' });
+                }
+                await logAction('toggle_maintenance', 'setting', '', 'maintenance_mode', newValue ? 'Enabled' : 'Disabled');
+                loadData();
+              }}
+              className={`w-10 h-6 rounded-full transition-colors relative flex-shrink-0 ${settings.find((s) => s.key === 'maintenance_mode')?.value === 'true' ? 'bg-destructive' : 'bg-muted'}`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${settings.find((s) => s.key === 'maintenance_mode')?.value === 'true' ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+          <div className="rounded-2xl bg-card border border-border p-4">
+            <p className="font-semibold text-sm mb-2">System Health</p>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div><span className="text-muted-foreground">Total Users:</span> <span className="font-medium">{users.length}</span></div>
+              <div><span className="text-muted-foreground">Active:</span> <span className="font-medium">{activeUsers}</span></div>
+              <div><span className="text-muted-foreground">Collectibles:</span> <span className="font-medium">{collectibles.length}</span></div>
+              <div><span className="text-muted-foreground">Value:</span> <span className="font-medium">{formatCurrency(totalValue)}</span></div>
+            </div>
+          </div>
         </div>
       )}
 

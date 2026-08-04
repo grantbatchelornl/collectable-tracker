@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
-import GradeWorthinessCard from '@/components/GradeWorthinessCard';
-import ActionRecommendationCard from '@/components/ActionRecommendationCard';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,11 +32,12 @@ import {
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
+import GradeWorthinessCard from '@/components/GradeWorthinessCard';
+import ActionRecommendationCard from '@/components/ActionRecommendationCard';
 
 export default function CollectibleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [collectible, setCollectible] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [history, setHistory] = useState([]);
@@ -48,7 +46,7 @@ export default function CollectibleDetail() {
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [collection, setCollection] = useState([]);
+  const [allCollectibles, setAllCollectibles] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -65,10 +63,8 @@ export default function CollectibleDetail() {
       ]);
       setPhotos(photosData);
       setHistory(historyData);
-      try {
-        const allItems = await base44.entities.Collectible.filter({ created_by_id: user?.id || c.created_by_id }, '-created_date', 200);
-        setCollection(allItems.filter((item) => !item.is_deleted));
-      } catch (e) {}
+      const allItems = await base44.entities.Collectible.filter({ created_by_id: c.created_by_id }, '-created_date', 200);
+      setAllCollectibles(allItems.filter((item) => !item.is_deleted));
       if (!photosData.some((p) => p.photo_type === 'front') && photosData.length > 0) {
         setActivePhoto('back');
       }
@@ -241,6 +237,8 @@ export default function CollectibleDetail() {
     { icon: Tag, label: 'Item Condition', value: collectible.item_condition },
     { icon: Award, label: 'Authentication', value: collectible.authentication_company },
   ].filter((r) => r.value);
+
+  const isCardOrCoin = collectible.category_name && /card|pok|magic|lorcana|coin/i.test(collectible.category_name);
 
   return (
     <div className="pb-4">
@@ -415,6 +413,12 @@ export default function CollectibleDetail() {
           </div>
         )}
 
+        {/* Grade Worthiness & AI Recommendation */}
+        {isCardOrCoin && (
+          <GradeWorthinessCard collectible={collectible} photoUrls={photos.map((p) => p.photo_url).filter(Boolean)} />
+        )}
+        <ActionRecommendationCard collectible={collectible} collection={allCollectibles} pricingHistory={history} />
+
         {/* For Sale */}
         <div className="rounded-2xl bg-card border border-border p-4">
           <div className="flex items-center justify-between mb-2">
@@ -475,10 +479,6 @@ export default function CollectibleDetail() {
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{collectible.notes}</p>
           </div>
         )}
-
-        <GradeWorthinessCard collectible={collectible} photoUrls={photos.map((p) => p.photo_url)} />
-
-        <ActionRecommendationCard collectible={collectible} collection={collection} pricingHistory={history} />
 
         <div className="space-y-3">
           <Button
