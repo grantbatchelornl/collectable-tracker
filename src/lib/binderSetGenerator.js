@@ -1,12 +1,13 @@
 import { base44 } from '@/api/base44Client';
 import { MASTER_BINDERS } from './masterBinders';
-import { getCategoryColor } from './masterBinderIndex';
+import { getCategoryColor, SET_METADATA, DIFFICULTY_TIERS } from './masterBinderIndex';
 
 const CACHE_KEY = 'binder-set-cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
+const POKEMON_API_URL = 'https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master/sets/en.json';
+
 const CATEGORY_PROMPTS = {
-  pokemon: 'Pokémon TCG (Trading Card Game)',
   magic: 'Magic: The Gathering TCG',
   lorcana: 'Disney Lorcana TCG',
   sports: 'Sports Trading Cards (Topps, Panini, Upper Deck, Fleer)',
@@ -16,23 +17,102 @@ const CATEGORY_PROMPTS = {
 };
 
 /**
- * Fetches complete set lists with release dates from the web via LLM.
- * Merges with static data, deduplicates, and sorts chronologically.
+ * Fetches all Pokémon sets directly from the Pokémon TCG data repository.
+ * Returns real release dates, card counts, and logo images.
  */
-export async function fetchCategorySetsDynamic(categoryKey) {
+async function fetchPokemonSetsFromAPI() {
+  const response = await fetch(POKEMON_API_URL);
+  const apiSets = await response.json();
+
+  const colors = getCategoryColor('pokemon');
+  const category = MASTER_BINDERS.pokemon;
+
+  // Build a lookup of static set names for name-matching
+  const staticNames = new Set(category.sets.map(s => normalize(s)));
+
+  return apiSets.map(apiSet => {
+    const releaseDate = (apiSet.releaseDate || '').replace(/\//g, '-');
+    const year = releaseDate ? parseInt(releaseDate.substring(0, 4)) : null;
+    const totalCards = apiSet.total || apiSet.printedTotal || 100;
+    const meta = findMetadata(apiSet.name, apiSet.series);
+
+    return {
+      id: `pokemon::${apiSet.id}`,
+      apiId: apiSet.id,
+      name: apiSet.name,
+      category: 'pokemon',
+      categoryLabel: 'Pokémon',
+      icon: category.icon,
+      franchise: 'Pokémon',
+      series: apiSet.series,
+      ptcgoCode: apiSet.ptcgoCode,
+      keywords: apiSet.name.toLowerCase().split(/\s+/).concat(['pokemon', apiSet.series?.toLowerCase() || '']),
+      colors,
+      releaseDate,
+      year,
+      estimatedCollectibles: totalCards,
+      estimatedValue: meta.value || Math.round(totalCards * 15),
+      difficulty: meta.difficulty || guessDifficulty(apiSet, totalCards),
+      popularity: meta.popularity || guessPopularity(year, apiSet.series),
+      featured: meta.featured || false,
+      trending: meta.trending || isRecent(year),
+      popular: meta.popularity >= 80 || false,
+      comingSoon: false,
+      hidden: false,
+      logo: apiSet.images?.logo,
+      symbol: apiSet.images?.symbol,
+      dynamic: true,
+    };
+  }).sort((a, b) => {
+    const dateA = a.releaseDate || '9999-01-01';
+    const dateB = b.releaseDate || '9999-01-01';
+    return dateA.localeCompare(dateB);
+  });
+}
+
+function normalize(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function findMetadata(name, series) {
+  // Try exact match
+  if (SET_METADATA[name]) return SET_METADATA[name];
+  // Try without "EX" prefix etc
+  const stripped = name.replace(/^(EX|XY|SM|SWSH|SV)\s+/i, '');
+  if (SET_METADATA[stripped]) return SET_METADATA[stripped];
+  return {};
+}
+
+function guessDifficulty(apiSet, totalCards) {
+  if (totalCards > 250) return 'expert';
+  if (totalCards > 150) return 'advanced';
+  if (totalCards < 50) return 'beginner';
+  return 'moderate';
+}
+
+function guessPopularity(year, series) {
+  if (!year) return 50;
+  if (year >= 2025) return 85;
+  if (year >= 2023) return 75;
+  if (year >= 2020) return 65;
+  if (year >= 2010) return 55;
+  if (year >= 2000) return 50;
+  return 60; // older sets are collectible
+}
+
+function isRecent(year) {
+  if (!year) return false;
+  const currentYear = new Date().getFullYear();
+  return year >= currentYear - 1;
+}
+
+/**
+ * Fetches complete set lists with release dates from the web via LLM.
+ * Used for categories without a dedicated API (Magic, Lorcana, etc.).
+ */
+async function fetchCategorySetsViaLLM(categoryKey) {
   const category = MASTER_BINDERS[categoryKey];
-  if (!category) return null;
-
   const promptLabel = CATEGORY_PROMPTS[categoryKey] || category.label;
-  const cacheKey = `${CACHE_KEY}::${categoryKey}`;
-
-  // Check cache
-  try {
-    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      return mergeWithStatic(categoryKey, cached.data);
-    }
-  } catch { /* ignore */ }
 
   const prompt = `List ALL ${promptLabel} sets/releases in chronological order from oldest to newest.
 For each set, provide:
@@ -48,37 +128,69 @@ For each set, provide:
 Include EVERY set — main expansions, special sets, promo sets, mini sets, etc.
 Do not skip any sets. Return the full list as a JSON array.`;
 
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt,
-      add_context_from_internet: true,
-      model: 'gemini_3_flash',
-      response_json_schema: {
-        type: 'object',
-        properties: {
-          sets: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                name: { type: 'string' },
-                releaseDate: { type: 'string' },
-                totalCards: { type: 'number' },
-                estimatedValue: { type: 'number' },
-                difficulty: { type: 'string' },
-                popularity: { type: 'number' },
-                featured: { type: 'boolean' },
-                trending: { type: 'boolean' },
-              },
+  const result = await base44.integrations.Core.InvokeLLM({
+    prompt,
+    add_context_from_internet: true,
+    model: 'gemini_3_flash',
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        sets: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              releaseDate: { type: 'string' },
+              totalCards: { type: 'number' },
+              estimatedValue: { type: 'number' },
+              difficulty: { type: 'string' },
+              popularity: { type: 'number' },
+              featured: { type: 'boolean' },
+              trending: { type: 'boolean' },
             },
           },
         },
       },
-    });
+    },
+  });
 
-    const dynamicSets = result.sets || [];
-    localStorage.setItem(cacheKey, JSON.stringify({ data: dynamicSets, timestamp: Date.now() }));
-    return mergeWithStatic(categoryKey, dynamicSets);
+  return result.sets || [];
+}
+
+/**
+ * Main entry point: fetches dynamic set data for a category.
+ * Uses the Pokémon TCG API for Pokémon, LLM web search for other categories.
+ * Merges with static data, deduplicates, and sorts chronologically.
+ */
+export async function fetchCategorySetsDynamic(categoryKey) {
+  const category = MASTER_BINDERS[categoryKey];
+  if (!category) return null;
+
+  const cacheKey = `${CACHE_KEY}::${categoryKey}`;
+
+  // Check cache
+  try {
+    const cached = JSON.parse(localStorage.getItem(cacheKey) || 'null');
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+      return cached.data;
+    }
+  } catch { /* ignore */ }
+
+  try {
+    let result;
+
+    if (categoryKey === 'pokemon') {
+      // Use the official Pokémon TCG data API
+      result = await fetchPokemonSetsFromAPI();
+    } else {
+      // Use LLM web search for other categories
+      const dynamicSets = await fetchCategorySetsViaLLM(categoryKey);
+      result = mergeLLMWithStatic(categoryKey, dynamicSets);
+    }
+
+    localStorage.setItem(cacheKey, JSON.stringify({ data: result, timestamp: Date.now() }));
+    return result;
   } catch (e) {
     console.error('Failed to fetch dynamic sets:', e);
     return null;
@@ -86,17 +198,12 @@ Do not skip any sets. Return the full list as a JSON array.`;
 }
 
 /**
- * Merges dynamic (web-fetched) sets with static sets.
- * Deduplicates by normalized name, prefers dynamic data when available,
- * and sorts chronologically by release date.
+ * Merges LLM-fetched sets with static sets for non-Pokémon categories.
  */
-function mergeWithStatic(categoryKey, dynamicSets) {
+function mergeLLMWithStatic(categoryKey, dynamicSets) {
   const category = MASTER_BINDERS[categoryKey];
   const colors = getCategoryColor(categoryKey);
   const staticSets = category.sets;
-
-  // Normalize set name for dedup
-  const normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
   const mergedMap = new Map();
 
@@ -114,7 +221,6 @@ function mergeWithStatic(categoryKey, dynamicSets) {
       colors,
       comingSoon: false,
       hidden: false,
-      // Will be enriched with dynamic data below
     });
   }
 
@@ -125,10 +231,9 @@ function mergeWithStatic(categoryKey, dynamicSets) {
     const existing = mergedMap.get(key);
 
     if (existing) {
-      // Enrich existing with dynamic data
       mergedMap.set(key, {
         ...existing,
-        name: dyn.name, // prefer official name from web
+        name: dyn.name,
         releaseDate: dyn.releaseDate,
         estimatedCollectibles: dyn.totalCards || existing.estimatedCollectibles,
         estimatedValue: dyn.estimatedValue || existing.estimatedValue,
@@ -141,7 +246,6 @@ function mergeWithStatic(categoryKey, dynamicSets) {
         dynamic: true,
       });
     } else {
-      // New set from web — add it
       mergedMap.set(key, {
         id: `${categoryKey}::${dyn.name}`,
         name: dyn.name,
@@ -167,7 +271,7 @@ function mergeWithStatic(categoryKey, dynamicSets) {
     }
   }
 
-  // Sort chronologically by release date (oldest to newest)
+  // Sort chronologically
   const merged = Array.from(mergedMap.values());
   merged.sort((a, b) => {
     const dateA = a.releaseDate || `${a.year || '9999'}-01-01`;

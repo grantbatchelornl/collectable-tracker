@@ -19,8 +19,12 @@ export default function SetLibraryCard({ entry, isFavorite, ownership, onToggleF
       <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-soft">
         <div className={`relative aspect-[5/3] overflow-hidden bg-gradient-to-br ${colors.gradient}`}>
           <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, white 1px, transparent 1px)', backgroundSize: '14px 14px' }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl drop-shadow-lg">{entry.icon}</span>
+          <div className="absolute inset-0 flex items-center justify-center p-3">
+            {entry.logo ? (
+              <img src={entry.logo} alt={entry.name} className="max-h-full max-w-full object-contain drop-shadow-lg" />
+            ) : (
+              <span className="text-4xl drop-shadow-lg">{entry.icon}</span>
+            )}
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}

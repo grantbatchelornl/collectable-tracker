@@ -102,7 +102,7 @@ export const DIFFICULTY_TIERS = {
 };
 
 // Per-set metadata overrides
-const SET_METADATA = {
+export const SET_METADATA = {
   // Pokémon — featured & trending
   'Base Set':             { difficulty: 'legendary', value: 15000, popularity: 100, featured: true },
   '151':                  { difficulty: 'moderate', value: 3500, popularity: 95, featured: true, trending: true },

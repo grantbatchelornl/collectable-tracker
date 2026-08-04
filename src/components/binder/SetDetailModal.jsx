@@ -31,15 +31,26 @@ export default function SetDetailModal({ entry, isFavorite, ownership, isCreatin
         {/* Banner */}
         <div className={`relative aspect-[16/9] overflow-hidden rounded-t-3xl bg-gradient-to-br ${colors.gradient}`}>
           <div className="absolute inset-0 opacity-15" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px)', backgroundSize: '18px 18px' }} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.span
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: 'spring', damping: 15, delay: 0.1 }}
-              className="text-7xl drop-shadow-2xl"
-            >
-              {entry.icon}
-            </motion.span>
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            {entry.logo ? (
+              <motion.img
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 15, delay: 0.1 }}
+                src={entry.logo}
+                alt={entry.name}
+                className="max-h-full max-w-full object-contain drop-shadow-2xl"
+              />
+            ) : (
+              <motion.span
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', damping: 15, delay: 0.1 }}
+                className="text-7xl drop-shadow-2xl"
+              >
+                {entry.icon}
+              </motion.span>
+            )}
           </div>
           <button
             onClick={onClose}
