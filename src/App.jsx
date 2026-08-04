@@ -28,6 +28,10 @@ import TradeBinder from '@/pages/TradeBinder';
 import Binders from '@/pages/Binders';
 import BinderDetail from '@/pages/BinderDetail';
 import BinderLeaderboards from '@/pages/BinderLeaderboards';
+import AIReviewQueue from '@/pages/AIReviewQueue';
+import TimeMachine from '@/pages/TimeMachine';
+import HallOfFame from '@/pages/HallOfFame';
+import RoomScanner from '@/pages/RoomScanner';
 import Settings from '@/pages/Settings';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
@@ -88,6 +92,10 @@ const AuthenticatedApp = () => {
           <Route path="/binders" element={<Binders />} />
           <Route path="/binder/:id" element={<BinderDetail />} />
           <Route path="/binder-leaderboards" element={<BinderLeaderboards />} />
+          <Route path="/review-queue" element={<AIReviewQueue />} />
+          <Route path="/time-machine" element={<TimeMachine />} />
+          <Route path="/hall-of-fame" element={<HallOfFame />} />
+          <Route path="/room-scanner" element={<RoomScanner />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />

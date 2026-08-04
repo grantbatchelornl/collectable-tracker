@@ -17,6 +17,12 @@
         "obverse",
         "reverse",
         "edge",
+        "edges",
+        "corners",
+        "surface",
+        "centering",
+        "scratches",
+        "damage",
         "certificate",
         "autograph",
         "additional"

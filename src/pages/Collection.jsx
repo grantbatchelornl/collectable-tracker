@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
-import { Search, Loader2, Package, Plus, FileText } from 'lucide-react';
+import SmartSearchBar from '@/components/SmartSearchBar';
+import { Search, Loader2, Package, Plus, FileText, Store } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
 
 export default function Collection() {
@@ -13,11 +14,13 @@ export default function Collection() {
   const [pricingHistory, setPricingHistory] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [smartFilterIds, setSmartFilterIds] = useState(null);
+  const [smartExplanation, setSmartExplanation] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [showForSale, setShowForSale] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [acquisitionSource, setAcquisitionSource] = useState('all');
   const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
@@ -76,18 +79,14 @@ export default function Collection() {
 
   const filtered = useMemo(() => {
     let result = [...collectibles];
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.item_name?.toLowerCase().includes(q) ||
-          c.category_name?.toLowerCase().includes(q) ||
-          c.character_athlete_name?.toLowerCase().includes(q) ||
-          c.brand?.toLowerCase().includes(q)
-      );
+    if (smartFilterIds) {
+      result = result.filter((c) => smartFilterIds.includes(c.id));
     }
     if (activeCategory !== 'all') {
       result = result.filter((c) => c.category_id === activeCategory);
+    }
+    if (acquisitionSource !== 'all') {
+      result = result.filter((c) => c.acquisition_source === acquisitionSource);
     }
     if (showForSale) {
       result = result.filter((c) => c.for_sale);
@@ -109,7 +108,7 @@ export default function Collection() {
         result.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     }
     return result;
-  }, [collectibles, search, activeCategory, sortBy, showForSale, showFavorites]);
+  }, [collectibles, smartFilterIds, activeCategory, sortBy, showForSale, showFavorites, acquisitionSource]);
 
   if (loading) {
     return (
@@ -153,16 +152,19 @@ export default function Collection() {
         </button>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          type="text"
-          placeholder="Search your collection..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full h-11 pl-10 pr-4 rounded-xl bg-card border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-        />
-      </div>
+      <SmartSearchBar
+        collectibles={collectibles}
+        onFilterChange={(ids, explanation) => {
+          setSmartFilterIds(ids);
+          setSmartExplanation(explanation);
+        }}
+        placeholder="Search or ask AI... (e.g. 'Cards worth over $100')"
+      />
+      {smartExplanation && (
+        <div className="rounded-lg bg-primary/5 border border-primary/10 p-2">
+          <p className="text-[11px] text-primary">{smartExplanation}</p>
+        </div>
+      )}
 
       <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
         <button
@@ -180,6 +182,14 @@ export default function Collection() {
           }`}
         >
           ★ Favorites
+        </button>
+        <button
+          onClick={() => setAcquisitionSource(acquisitionSource === 'all' ? 'purchase' : 'all')}
+          className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
+            acquisitionSource !== 'all' ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+          }`}
+        >
+          <Store className="w-3 h-3 inline mr-0.5" /> Acquired
         </button>
         <button
           onClick={() => setActiveCategory('all')}

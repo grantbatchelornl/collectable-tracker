@@ -18,12 +18,20 @@ import {
   Compass,
   Repeat,
   LayoutGrid,
+  AlertTriangle,
+  History,
+  Award,
+  ScanLine,
 } from 'lucide-react';
 
 const QUICK_ACTIONS = [
   { to: '/binders', icon: BookOpen, label: 'Binders', color: 'text-primary' },
   { to: '/goals', icon: Target, label: 'Goals', color: 'text-primary' },
   { to: '/timeline', icon: Clock, label: 'Timeline', color: 'text-primary' },
+  { to: '/time-machine', icon: History, label: 'Time Machine', color: 'text-primary' },
+  { to: '/hall-of-fame', icon: Award, label: 'Hall of Fame', color: 'text-gold' },
+  { to: '/review-queue', icon: AlertTriangle, label: 'Review Queue', color: 'text-gold' },
+  { to: '/room-scanner', icon: ScanLine, label: 'Room Scanner', color: 'text-primary' },
   { to: '/conventions', icon: MapPin, label: 'Shows', color: 'text-primary' },
   { to: '/leaderboards', icon: Trophy, label: 'Leaderboards', color: 'text-gold' },
   { to: '/community', icon: Users, label: 'Community', color: 'text-primary' },

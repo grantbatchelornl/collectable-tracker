@@ -1,0 +1,56 @@
+{
+  "name": "AIReviewQueue",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "photo_urls_json": {
+      "type": "string"
+    },
+    "ai_suggestions_json": {
+      "type": "string"
+    },
+    "low_confidence_reason": {
+      "type": "string"
+    },
+    "category_id": {
+      "type": "string"
+    },
+    "category_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "discarded"
+      ],
+      "default": "pending"
+    },
+    "selected_match_json": {
+      "type": "string"
+    },
+    "form_data_json": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

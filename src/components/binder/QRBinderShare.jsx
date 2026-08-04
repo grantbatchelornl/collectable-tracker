@@ -1,23 +1,16 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { QrCode, Copy, Check, Loader2, Sparkles } from 'lucide-react';
-import { subscribeToMasterBinder } from '@/lib/binderChecklist';
+import { QrCode, Copy, Check } from 'lucide-react';
 
 export default function QRBinderShare({ binder }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const navigate = useNavigate();
 
   const shareUrl = `${window.location.origin}/binder/${binder.id}`;
   const isPublic = binder.privacy_status === 'public';

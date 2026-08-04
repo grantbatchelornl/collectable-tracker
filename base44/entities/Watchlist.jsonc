@@ -63,6 +63,16 @@
         "abandoned"
       ],
       "default": "active"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "above",
+        "below",
+        "sell_target",
+        "buy_target"
+      ],
+      "default": "below"
     }
   },
   "required": [

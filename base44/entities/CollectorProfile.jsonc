@@ -134,6 +134,18 @@
     "total_completed_trades": {
       "type": "number",
       "default": 0
+    },
+    "xp": {
+      "type": "number",
+      "default": 0
+    },
+    "level": {
+      "type": "number",
+      "default": 1
+    },
+    "xp_to_next_level": {
+      "type": "number",
+      "default": 100
     }
   },
   "required": [

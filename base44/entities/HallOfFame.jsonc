@@ -1,0 +1,72 @@
+{
+  "name": "HallOfFame",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "completed_binder",
+        "custom_binder_100",
+        "milestone",
+        "achievement"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "binder_id": {
+      "type": "string"
+    },
+    "achievement_id": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "completion_date": {
+      "type": "string"
+    },
+    "metric_value": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "user_id",
+    "entry_type",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": false,
+    "delete": {
+      "user_condition": {
+        "role": "super_admin"
+      }
+    }
+  }
+}

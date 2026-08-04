@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import AIConfidenceBanner from '@/components/AIConfidenceBanner';
+import AcquisitionFields from '@/components/AcquisitionFields';
 import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
 import { getPhotoTypes } from '@/lib/categoryFields';
 import { checkAndAwardBadges } from '@/lib/achievements';
+import { awardXP, XP_REWARDS } from '@/lib/xpSystem';
 import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles, AlertTriangle } from 'lucide-react';
 
 const EMPTY = {
@@ -68,10 +70,14 @@ const EMPTY = {
   item_type: '',
   is_game_used: false,
   notes: '',
+  acquisition_source: 'purchase',
+  seller_name: '',
+  purchase_date: '',
 };
 
 export default function AddCollectible() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState([]);
@@ -87,6 +93,16 @@ export default function AddCollectible() {
     base44.entities.CollectibleCategory.list('sort_order', 50)
       .then((cats) => setCategories(cats.filter((c) => c.active)))
       .catch((err) => console.error('Failed to load categories', err));
+
+    // Handle prefill from review queue
+    if (location.state?.prefill) {
+      const prefill = location.state.prefill;
+      setData((d) => ({ ...d, ...prefill }));
+      if (prefill.item_name) {
+        setAiIdentified(true);
+        setStep(3);
+      }
+    }
   }, []);
 
   const update = (field, value) => setData((d) => ({ ...d, [field]: value }));
@@ -104,6 +120,23 @@ export default function AddCollectible() {
     setVerified(false);
     try {
       const result = await identifyAndPrice(photoUrls, data.category_name);
+
+      // Low confidence → send to AI Review Queue instead of auto-saving
+      if (result.identification_confidence === 'low' || result.confidence === 'low') {
+        await base44.entities.AIReviewQueue.create({
+          user_id: user.id,
+          photo_urls_json: JSON.stringify(data.photos || {}),
+          ai_suggestions_json: JSON.stringify([{ ...result, confidence: result.confidence || 'low' }]),
+          low_confidence_reason: result.identification_notes || 'Low confidence — multiple possible matches detected.',
+          category_id: data.category_id,
+          category_name: data.category_name,
+          form_data_json: JSON.stringify(data),
+          status: 'pending',
+        });
+        navigate('/review-queue');
+        return;
+      }
+
       setData((d) => ({
         ...d,
         item_name: result.item_name || d.item_name,
@@ -213,7 +246,18 @@ export default function AddCollectible() {
         item_type: data.item_type || undefined,
         is_game_used: data.is_game_used || false,
         notes: data.notes || undefined,
+        acquisition_source: data.acquisition_source || 'purchase',
+        seller_name: data.seller_name || undefined,
+        purchase_date: data.purchase_date || undefined,
       });
+
+      // Mark review queue item as confirmed if applicable
+      if (location.state?.reviewQueueItem) {
+        await base44.entities.AIReviewQueue.update(location.state.reviewQueueItem, {
+          status: 'confirmed',
+          selected_match_json: JSON.stringify(data),
+        });
+      }
 
       const promises = [];
       Object.entries(data.photos || {}).forEach(([type, url]) => {
@@ -249,6 +293,7 @@ export default function AddCollectible() {
 
       await Promise.all(promises);
       await checkAndAwardBadges(user);
+      await awardXP(user, XP_REWARDS.ADD_COLLECTIBLE, 'Added collectible');
       setShowAnimation(true);
       setTimeout(() => navigate('/'), 1400);
     } catch (err) {
@@ -388,6 +433,7 @@ export default function AddCollectible() {
             </div>
           )}
           <CollectibleFormFields data={data} update={update} />
+          <AcquisitionFields data={data} update={update} />
           <button
             onClick={handleConfirm}
             disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified)}

@@ -246,6 +246,46 @@
     "version": {
       "type": "number",
       "default": 1
+    },
+    "acquisition_source": {
+      "type": "string",
+      "enum": [
+        "purchase",
+        "trade",
+        "gift",
+        "pulled",
+        "inherited",
+        "convention",
+        "card_shop",
+        "marketplace",
+        "other"
+      ],
+      "default": "purchase"
+    },
+    "seller_name": {
+      "type": "string"
+    },
+    "purchase_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "memory": {
+      "type": "string"
+    },
+    "why_special": {
+      "type": "string"
+    },
+    "memory_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "memory_shared": {
+      "type": "boolean",
+      "default": false
+    },
+    "showcase_order": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [
