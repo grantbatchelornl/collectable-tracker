@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import AIConfidenceBanner from '@/components/AIConfidenceBanner';
+import FraudWarningBanner from '@/components/FraudWarningBanner';
 import AcquisitionFields from '@/components/AcquisitionFields';
 import MemoryFields from '@/components/MemoryFields';
 import SaveAnimation from '@/components/SaveAnimation';
@@ -93,6 +94,7 @@ export default function AddCollectible() {
   const [aiResult, setAiResult] = useState(null);
   const [data, setData] = useState(EMPTY);
   const [verified, setVerified] = useState(false);
+  const [fraudAcknowledged, setFraudAcknowledged] = useState(false);
 
   useEffect(() => {
     base44.entities.CollectibleCategory.list('sort_order', 50)
@@ -418,6 +420,9 @@ export default function AddCollectible() {
             <Tag className="w-3 h-3" /> {data.category_name}
           </div>
           {aiResult && <AIConfidenceBanner result={aiResult} />}
+          {aiResult && aiResult.fraud_warning && (
+            <FraudWarningBanner result={aiResult} acknowledged={fraudAcknowledged} onAcknowledge={setFraudAcknowledged} />
+          )}
           {aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && (
             <div className="rounded-2xl bg-gold/5 border border-gold/20 p-4 space-y-3">
               <div className="flex items-start gap-2">
@@ -446,7 +451,7 @@ export default function AddCollectible() {
           <MemoryFields data={data} update={update} />
           <button
             onClick={handleConfirm}
-            disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified)}
+            disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified) || (aiResult && aiResult.fraud_warning && !fraudAcknowledged)}
             className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-40 sticky bottom-24 shadow-lg shadow-primary/20"
           >
             {saving ? (

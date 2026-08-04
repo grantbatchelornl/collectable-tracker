@@ -49,6 +49,10 @@ const IDENTIFY_SCHEMA = {
     pricing_source: { type: 'string' },
     valuation_notes: { type: 'string' },
     value_type: { type: 'string', enum: ['verified_sold', 'insufficient'] },
+    fraud_warning: { type: 'boolean' },
+    fraud_type: { type: 'string', enum: ['none', 'counterfeit', 'fake_slab', 'altered', 'reproduction', 'suspicious'] },
+    fraud_details: { type: 'string' },
+    fraud_confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
   },
 };
 
@@ -142,7 +146,18 @@ Set identification_confidence based on how certain you are of the identification
 
 If you cannot identify the item, return null for all identification fields, set identification_confidence to "low", and explain in identification_notes.
 
-If you cannot determine a field from the image, use null. Do not guess.`;
+If you cannot determine a field from the image, use null. Do not guess.
+
+FRAUD & COUNTERFEIT DETECTION: Carefully examine the photos for signs of fraud, counterfeiting, or tampering. Check for:
+- Fake or tampered grading slabs (PSA, BGS, CGC, etc.) — look for incorrect fonts, misaligned labels, missing holograms, fake barcodes, incorrect slab dimensions or textures
+- Counterfeit trading cards — wrong cardstock, incorrect holographic patterns, missing set symbols, font irregularities, color mismatches, wrong back design
+- Counterfeit Funko Pop! figures — wrong materials, missing licensing info, incorrect paint applications, fake boxes or stickers
+- Altered cards — trimmed edges, re-backed cards, fake autographs, added holo foil, surface manipulation
+- Counterfeit coins — wrong weight/appearance, fake mint marks, casting seams, incorrect metal composition
+- Reproductions or reprints being sold as originals
+- Any suspicious elements that don't match known authentic versions
+
+Set fraud_warning to true if you detect ANY signs of counterfeiting or tampering. Set fraud_type to the most likely category, fraud_details to a specific explanation of what you observed, and fraud_confidence to how certain you are. If the item appears authentic, set fraud_warning to false and fraud_type to "none".`;
 
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
