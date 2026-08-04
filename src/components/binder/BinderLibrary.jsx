@@ -7,8 +7,10 @@ import {
   getBinderIndex, searchBinders, getSmartSuggestions,
   getFavorites, toggleFavorite, getRecentlyViewed, addRecentlyViewed,
   getRecommendations, estimateOwnership, getCategoryColor,
+  setPokemonDynamicSets,
 } from '@/lib/masterBinderIndex';
 import { MASTER_BINDERS } from '@/lib/masterBinders';
+import { fetchCategorySetsDynamic } from '@/lib/binderSetGenerator';
 import { Loader2, Sparkles, Star, BookOpen, Search, ArrowLeft, ChevronRight } from 'lucide-react';
 import BinderSearchBar from './BinderSearchBar';
 import SetLibraryCard from './SetLibraryCard';
@@ -33,6 +35,8 @@ export default function BinderLibrary() {
   const [binders, setBinders] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [pokemonLoaded, setPokemonLoaded] = useState(false);
+
   useEffect(() => {
     setFavorites(getFavorites());
     setRecentlyViewed(getRecentlyViewed());
@@ -53,6 +57,15 @@ export default function BinderLibrary() {
     } finally {
       setLoading(false);
     }
+    // Fetch live Pokémon set data from the API in parallel (non-blocking)
+    fetchCategorySetsDynamic('pokemon')
+      .then((sets) => {
+        if (sets) {
+          setPokemonDynamicSets(sets);
+          setPokemonLoaded(true);
+        }
+      })
+      .catch(() => {});
   };
 
   const existingBinderSets = useMemo(() => {
@@ -64,7 +77,7 @@ export default function BinderLibrary() {
     return set;
   }, [binders]);
 
-  const index = getBinderIndex();
+  const index = useMemo(() => getBinderIndex(), [pokemonLoaded]);
 
   const favoriteEntries = useMemo(
     () => favorites.map(id => index.find(e => e.id === id)).filter(Boolean),

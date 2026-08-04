@@ -60,7 +60,7 @@ const KNOWN_YEARS = {
   'Paldean Fates': 2024, 'Temporal Forces': 2024, 'Twilight Masquerade': 2024, 'Shrouded Fable': 2024,
   'Stellar Crown': 2024, 'Surging Sparks': 2024, 'Prismatic Evolutions': 2025, 'Journey Together': 2025, 'Destined Rivals': 2025,
   'Black Bolt': 2025, 'White Flare': 2025, 'Mega Evolution': 2025,
-  'Mega Evolution—Phantasmal Flames': 2025, 'Mega Evolution—Chaos Rising': 2026,
+
   // Magic (recent)
   'Foundations': 2024, 'Modern Horizons': 2019, 'Modern Horizons 2': 2021, 'Modern Horizons 3': 2024,
   'Bloomburrow': 2024, 'Duskmourn': 2024, 'The Lost Caverns of Ixalan': 2023, 'Wilds of Eldraine': 2023,
@@ -113,7 +113,7 @@ export const SET_METADATA = {
   'Destined Rivals':      { difficulty: 'moderate', value: 2500, popularity: 88, trending: true },
   'Black Bolt':           { difficulty: 'moderate', value: 2200, popularity: 86, trending: true },
   'White Flare':          { difficulty: 'moderate', value: 2200, popularity: 85, trending: true },
-  'Mega Evolution':       { difficulty: 'advanced', value: 3000, popularity: 89, trending: true },
+  'Mega Evolution':       { difficulty: 'advanced', value: 3000, popularity: 87 },
   'Journey Together':     { difficulty: 'moderate', value: 1800, popularity: 84, trending: true },
   'Hidden Fates':         { difficulty: 'moderate', value: 1800, popularity: 82 },
   'Shining Fates':        { difficulty: 'beginner', value: 1200, popularity: 80 },
@@ -159,10 +159,7 @@ export const SET_METADATA = {
 };
 
 // Coming soon sets (not yet released or just announced)
-const COMING_SOON_SETS = [
-  { name: 'Mega Evolution 2', category: 'pokemon', categoryLabel: 'Pokémon', icon: '⚡', releaseDate: '2025-11-14', difficulty: 'advanced', estimatedCollectibles: 120, popularity: 82 },
-  { name: 'Prismatic Evolutions Premium', category: 'pokemon', categoryLabel: 'Pokémon', icon: '🌈', releaseDate: '2025-09-26', difficulty: 'advanced', estimatedCollectibles: 80, popularity: 80 },
-];
+const COMING_SOON_SETS = [];
 
 // Hidden / secret sets
 const HIDDEN_SETS = [
@@ -207,6 +204,7 @@ function getDifficulty(catKey, setName) {
 let _index = null;
 let _comingSoonIndex = null;
 let _hiddenIndex = null;
+let _pokemonDynamic = null;
 
 export function getBinderIndex() {
   if (_index) return _index;
@@ -236,7 +234,23 @@ export function getBinderIndex() {
       });
     }
   }
+  // Merge in dynamically-fetched Pokémon sets (from the live API)
+  if (_pokemonDynamic) {
+    const existingIds = new Set(_index.map(e => e.id));
+    for (const entry of _pokemonDynamic) {
+      if (!existingIds.has(entry.id)) _index.push(entry);
+    }
+  }
   return _index;
+}
+
+/**
+ * Injects dynamically-fetched Pokémon sets (from the Pokémon TCG API)
+ * into the static index so search and recommendations work with real data.
+ */
+export function setPokemonDynamicSets(sets) {
+  _pokemonDynamic = sets;
+  _index = null; // invalidate cache so next getBinderIndex() call rebuilds
 }
 
 export function getComingSoonSets() {

@@ -34,7 +34,6 @@ export const MASTER_BINDERS = {
       'Paldean Fates', 'Temporal Forces', 'Twilight Masquerade', 'Shrouded Fable',
       'Stellar Crown', 'Surging Sparks', 'Prismatic Evolutions', 'Journey Together',
       'Destined Rivals', 'Black Bolt', 'White Flare', 'Mega Evolution',
-      'Mega Evolution—Phantasmal Flames', 'Mega Evolution—Chaos Rising',
     ],
   },
   magic: {
