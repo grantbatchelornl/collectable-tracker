@@ -17,17 +17,27 @@ export default function Messages() {
   const [blockedIds, setBlockedIds] = useState(new Set());
 
   useEffect(() => {
-    loadData();
+    loadData(true);
+    const unsubMessages = base44.entities.Message.subscribe(() => loadData());
+    const unsubTrades = base44.entities.Trade.subscribe(() => loadData());
+    return () => {
+      unsubMessages();
+      unsubTrades();
+    };
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (showSpinner = false) => {
     if (!user?.id) return;
-    setLoading(true);
+    if (showSpinner) setLoading(true);
     try {
-      const [messages, trades] = await Promise.all([
+      const [messages, trades, blocks] = await Promise.all([
         base44.entities.Message.list('-created_date', 500),
         base44.entities.Trade.list('-created_date', 200),
+        base44.entities.UserBlock.filter({ blocker_id: user.id }),
       ]);
+
+      const blockedSet = new Set(blocks.map((b) => b.blocked_id));
+      setBlockedIds(blockedSet);
 
       const convMap = new Map();
       messages.forEach((msg) => {
@@ -56,16 +66,10 @@ export default function Messages() {
         }
       });
 
-      const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id });
-      const blockedSet = new Set(blocks.map((b) => b.blocked_id));
-      setBlockedIds(blockedSet);
-
       setConversations(
         Array.from(convMap.values())
           .filter((conv) => !blockedSet.has(conv.otherUserId))
-          .sort(
-          (a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate)
-        )
+          .sort((a, b) => new Date(b.lastMessageDate) - new Date(a.lastMessageDate))
       );
       setIncomingTrades(trades.filter((t) => t.recipient_id === user.id && !blockedSet.has(t.proposer_id)));
       setOutgoingTrades(trades.filter((t) => t.proposer_id === user.id && !blockedSet.has(t.recipient_id)));
