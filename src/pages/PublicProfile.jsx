@@ -9,7 +9,8 @@ import TradeOfferModal from '@/components/social/TradeOfferModal';
 import { formatCurrency } from '@/lib/format';
 import { getInitials } from '@/lib/social';
 import AchievementBadges from '@/components/AchievementBadges';
-import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X } from 'lucide-react';
+import ReputationBadge from '@/components/trade/ReputationBadge';
+import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X, BadgeCheck } from 'lucide-react';
 
 export default function PublicProfile() {
   const { userId } = useParams();
@@ -100,7 +101,14 @@ export default function PublicProfile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-xl font-bold truncate">{displayName}</h2>
+            <h2 className="font-display text-xl font-bold truncate flex items-center gap-1.5">
+              {displayName}
+              {profile?.is_verified_trader && (
+                <span className="inline-flex items-center gap-0.5 bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-bold">
+                  <BadgeCheck className="w-3 h-3" /> Verified
+                </span>
+              )}
+            </h2>
             <p className="text-sm text-muted-foreground truncate">
               @{profile?.username || 'collector'}
             </p>
@@ -125,6 +133,8 @@ export default function PublicProfile() {
           <p className="text-xs text-muted-foreground">Collection Value</p>
         </div>
       </div>
+
+      <ReputationBadge profile={profile} />
 
       <AchievementBadges userId={userId} earnedOnly />
 

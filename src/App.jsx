@@ -23,6 +23,8 @@ import CommunityRankings from '@/pages/CommunityRankings';
 import LeagueDetail from '@/pages/LeagueDetail';
 import CollectionGoals from '@/pages/CollectionGoals';
 import CollectionTimeline from '@/pages/CollectionTimeline';
+import ConventionMode from '@/pages/ConventionMode';
+import TradeBinder from '@/pages/TradeBinder';
 import Settings from '@/pages/Settings';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
@@ -78,6 +80,8 @@ const AuthenticatedApp = () => {
           <Route path="/league/:id" element={<LeagueDetail />} />
           <Route path="/goals" element={<CollectionGoals />} />
           <Route path="/timeline" element={<CollectionTimeline />} />
+          <Route path="/conventions" element={<ConventionMode />} />
+          <Route path="/trade-binder/:userId" element={<TradeBinder />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />

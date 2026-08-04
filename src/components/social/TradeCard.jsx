@@ -5,7 +5,9 @@ import { Image } from '@/components/ui/image';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { parseTradeItems } from '@/lib/social';
 import FairnessIndicator from './FairnessIndicator';
-import { ArrowLeftRight, Check, X, Loader2 } from 'lucide-react';
+import TradeReviewModal from '@/components/trade/TradeReviewModal';
+import { useAuth } from '@/lib/AuthContext';
+import { ArrowLeftRight, Check, X, Loader2, Star } from 'lucide-react';
 
 const STATUS_STYLES = {
   pending: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
@@ -17,7 +19,9 @@ const STATUS_STYLES = {
 
 export default function TradeCard({ trade, isIncoming, onAction }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const offeredItems = parseTradeItems(trade.offered_items_json);
   const requestedItems = parseTradeItems(trade.requested_items_json);
   const status = trade.status || 'pending';
@@ -127,6 +131,33 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cancel Offer'}
         </button>
+      )}
+      {status === 'accepted' && (
+        <button
+          onClick={() => handleUpdate('completed')}
+          disabled={loading}
+          className="w-full h-9 rounded-lg bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5 transition-colors"
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><Check className="w-4 h-4" /> Mark Complete</>)}
+        </button>
+      )}
+      {status === 'completed' && (
+        <button
+          onClick={() => setShowReview(true)}
+          className="w-full h-9 rounded-lg border border-primary/30 text-primary text-sm font-medium hover:bg-primary/10 flex items-center justify-center gap-1.5 transition-colors"
+        >
+          <Star className="w-4 h-4" /> Leave Review
+        </button>
+      )}
+      {showReview && (
+        <TradeReviewModal
+          open={showReview}
+          onClose={() => setShowReview(false)}
+          trade={trade}
+          reviewerId={user?.id}
+          reviewedId={isIncoming ? trade.proposer_id : trade.recipient_id}
+          reviewedName={isIncoming ? trade.proposer_name : trade.recipient_name}
+        />
       )}
     </div>
   );

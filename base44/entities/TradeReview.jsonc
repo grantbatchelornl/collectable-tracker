@@ -1,0 +1,54 @@
+{
+  "name": "TradeReview",
+  "type": "object",
+  "properties": {
+    "trade_id": {
+      "type": "string"
+    },
+    "reviewer_id": {
+      "type": "string"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "reviewed_id": {
+      "type": "string"
+    },
+    "rating_accuracy": {
+      "type": "number"
+    },
+    "rating_communication": {
+      "type": "number"
+    },
+    "rating_shipping": {
+      "type": "number"
+    },
+    "rating_packaging": {
+      "type": "number"
+    },
+    "would_trade_again": {
+      "type": "boolean",
+      "default": true
+    },
+    "comment": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "trade_id",
+    "reviewer_id",
+    "reviewed_id"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

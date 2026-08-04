@@ -105,6 +105,35 @@
     "vacation_mode": {
       "type": "boolean",
       "default": false
+    },
+    "is_verified_trader": {
+      "type": "boolean",
+      "default": false
+    },
+    "convention_mode_active": {
+      "type": "boolean",
+      "default": false
+    },
+    "convention_lat": {
+      "type": "number"
+    },
+    "convention_lng": {
+      "type": "number"
+    },
+    "convention_name": {
+      "type": "string"
+    },
+    "trade_reputation_score": {
+      "type": "number",
+      "default": 0
+    },
+    "trade_review_count": {
+      "type": "number",
+      "default": 0
+    },
+    "total_completed_trades": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [

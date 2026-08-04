@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { formatCurrency } from '@/lib/format';
 import { calculateFairness, calculateCashAdjustment, sendTradeOffer, getAISuggestedTrades } from '@/lib/tradeCenter';
+import AITradeAssistant from '@/components/trade/AITradeAssistant';
 import { X, Loader2, Sparkles, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function TradeWindow({ user, match, onClose, onSent }) {
@@ -136,6 +137,8 @@ export default function TradeWindow({ user, match, onClose, onSent }) {
         >
           {aiLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> AI is matching...</> : <><Sparkles className="w-4 h-4" /> AI Suggest Best Trade</>}
         </button>
+
+        <AITradeAssistant myItems={selectedMine} theirItems={selectedTheirs} />
 
         <div>
           <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Your Trade Binder</p>
