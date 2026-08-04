@@ -1,0 +1,60 @@
+{
+  "name": "PriceAlert",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "collectible_id": {
+      "type": "string"
+    },
+    "collectible_name": {
+      "type": "string"
+    },
+    "target_value": {
+      "type": "number"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "above",
+        "below"
+      ],
+      "default": "above"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "triggered",
+        "dismissed"
+      ],
+      "default": "active"
+    },
+    "triggered_date": {
+      "type": "string"
+    },
+    "triggered_value": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "user_id",
+    "collectible_id",
+    "target_value"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

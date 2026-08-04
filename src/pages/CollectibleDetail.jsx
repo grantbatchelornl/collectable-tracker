@@ -39,6 +39,7 @@ import { estimatePrice } from '@/lib/collectibleAI';
 import GradeWorthinessCard from '@/components/GradeWorthinessCard';
 import ActionRecommendationCard from '@/components/ActionRecommendationCard';
 import MarketplaceSearch from '@/components/MarketplaceSearch';
+import PriceAlertManager from '@/components/PriceAlertManager';
 
 export default function CollectibleDetail() {
   const { id } = useParams();
@@ -519,6 +520,11 @@ export default function CollectibleDetail() {
         )}
 
         <MarketplaceSearch collectible={collectible} />
+
+        {/* Price Alert */}
+        {isOwner && (
+          <PriceAlertManager collectible={collectible} user={user} />
+        )}
 
         {isOwner && (
         <div className="space-y-3">

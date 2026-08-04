@@ -1,0 +1,44 @@
+{
+  "description": "Checks all active price alerts hourly and sends notifications when targets are met",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "price_alert_checker",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "check_alerts": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkPriceAlerts"
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Check price alerts",
+            "description": "Scans active alerts and notifies users when targets are hit"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "America/New_York",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Price Alert Checker"
+}
