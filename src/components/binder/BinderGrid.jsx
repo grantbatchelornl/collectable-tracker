@@ -11,6 +11,33 @@ const GRID_CONFIGS = {
   small: 'grid-cols-4 sm:grid-cols-6 md:grid-cols-8',
 };
 
+// Maps rarity strings to numeric ranks — higher = rarer.
+// Covers TCG (Pokémon, Magic, Lorcana), sports cards, Funko, and coins.
+const RARITY_RANKS = {
+  'common': 1, 'uncommon': 2, 'rare': 3, 'rare holo': 4, 'holo rare': 4,
+  'holo': 4, 'reverse holo': 4, 'super rare': 5, 'ultra rare': 6,
+  'secret rare': 7, 'hyper rare': 8, 'rainbow rare': 8, 'gold rare': 8,
+  'golden rare': 8, 'full art': 7, 'alternate art': 7, 'short print': 3,
+  'sp': 3, 'super short print': 4, 'ssp': 4, 'insert': 3, 'parallel': 4,
+  'rookie': 4, 'autograph': 6, 'auto': 6, 'patch': 6, 'relic': 5,
+  'auto patch': 7, 'superfractor': 8, '1/1': 9, 'one of one': 9,
+  'very rare': 5, 'legendary': 7, 'chase': 6, 'exclusive': 5,
+  'limited': 5, 'limited edition': 6, 'grail': 9, 'variant': 4,
+  'promo': 4, 'special': 4, 'mythic': 8, 'masterpiece': 9,
+};
+
+function getRarityRank(rarity) {
+  if (!rarity) return 0;
+  const normalized = rarity.toLowerCase().trim();
+  if (normalized in RARITY_RANKS) return RARITY_RANKS[normalized];
+  let bestRank = 0;
+  for (const [key, rank] of Object.entries(RARITY_RANKS)) {
+    if (normalized.includes(key) && rank > bestRank) bestRank = rank;
+  }
+  if (bestRank === 0 && normalized.includes('rare')) return 3;
+  return bestRank;
+}
+
 export default function BinderGrid({ checklist, viewMode, sorting, onSlotClick }) {
   const sorted = useMemo(() => {
     const arr = [...checklist];
@@ -24,7 +51,11 @@ export default function BinderGrid({ checklist, viewMode, sorting, onSlotClick }
       case 'name':
         return arr.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       case 'rarity':
-        return arr.sort((a, b) => (a.rarity || '').localeCompare(b.rarity || ''));
+        return arr.sort((a, b) => {
+          const rankDiff = getRarityRank(b.rarity) - getRarityRank(a.rarity);
+          if (rankDiff !== 0) return rankDiff;
+          return (a.number || '').localeCompare(b.number || '', undefined, { numeric: true });
+        });
       default:
         return arr.sort((a, b) =>
           (a.number || '').localeCompare(b.number || '', undefined, { numeric: true })
