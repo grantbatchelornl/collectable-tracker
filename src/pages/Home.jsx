@@ -144,16 +144,6 @@ export default function Home() {
 
   return (
     <div className="px-4 py-4 space-y-6">
-      <PortfolioSummary
-        totalValue={stats.totalValue}
-        verifiedValue={verifiedManual.verified}
-        manualValue={verifiedManual.manual}
-        purchaseCost={purchaseStats.totalCost}
-        changes={stats.changes}
-        count={stats.count}
-        staleCount={staleCount}
-      />
-
       {collectibles.length > 0 && (
         <div className="grid grid-cols-3 gap-3">
           <button
@@ -221,6 +211,16 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      <PortfolioSummary
+        totalValue={stats.totalValue}
+        verifiedValue={verifiedManual.verified}
+        manualValue={verifiedManual.manual}
+        purchaseCost={purchaseStats.totalCost}
+        changes={stats.changes}
+        count={stats.count}
+        staleCount={staleCount}
+      />
 
       {collectibles.length > 0 && (
         <CollectionBriefing collectibles={collectibles} pricingHistory={pricingHistory} stats={stats} watchlistItems={watchlistItems} achievements={achievements} />
