@@ -268,6 +268,78 @@ export async function updateBinderStats(binder, completion) {
   }
 }
 
+/**
+ * Handles 100% binder completion:
+ * - Records the completion date
+ * - Takes a snapshot of the completed binder state
+ * - Awards a completion achievement badge (via backend function)
+ * - Creates a Hall of Fame entry (binder stays in My Binders)
+ * Returns { newlyCompleted, snapshot } if this is a newly detected completion.
+ */
+export async function handleBinderCompletion(binder, completion, user, matchedChecklist) {
+  if (completion.percent !== 100) return { newlyCompleted: false };
+
+  // Already completed before — don't re-celebrate
+  if (binder.completion_date) return { newlyCompleted: false };
+
+  // Build a snapshot of the completed binder
+  const ownedItems = matchedChecklist.filter((i) => i.status === 'owned' && i.collectible);
+  const collectionValue = ownedItems.reduce((sum, i) => sum + (i.collectible?.estimated_value || 0), 0);
+
+  const snapshot = {
+    binder_name: binder.name,
+    franchise: binder.franchise,
+    set_name: binder.set_name,
+    category: binder.category,
+    completion_date: new Date().toISOString().split('T')[0],
+    total_items: completion.total,
+    owned_items: completion.owned,
+    graded_items: completion.graded,
+    collection_value: collectionValue,
+    items: ownedItems.map((i) => ({
+      name: i.name,
+      number: i.number,
+      rarity: i.rarity,
+      item_name: i.collectible?.item_name,
+      estimated_value: i.collectible?.estimated_value || 0,
+      grading_company: i.collectible?.grading_company,
+      grade: i.collectible?.grade,
+      primary_photo_url: i.collectible?.primary_photo_url,
+      purchase_cost: i.collectible?.purchase_cost || 0,
+    })),
+  };
+
+  try {
+    // Call the backend function to handle secure operations:
+    // - Record completion date + snapshot
+    // - Award achievement badge (requires service role)
+    // - Create Hall of Fame entry
+    // - Send notification
+    const response = await base44.functions.invoke('completeBinder', {
+      binder_id: binder.id,
+      snapshot,
+      collection_value: collectionValue,
+      total_items: completion.total,
+      graded_items: completion.graded,
+    });
+
+    if (response.data?.already_completed) {
+      return { newlyCompleted: false };
+    }
+
+    return {
+      newlyCompleted: true,
+      snapshot: {
+        completion_date: response.data?.completion_date || snapshot.completion_date,
+        collection_value: collectionValue,
+      },
+    };
+  } catch (e) {
+    console.error('Failed to handle binder completion:', e);
+    return { newlyCompleted: false };
+  }
+}
+
 export async function checkBinderMatch(collectibleName, user) {
   const binders = await base44.entities.CollectionBinder.filter({ user_id: user.id });
   for (const binder of binders) {

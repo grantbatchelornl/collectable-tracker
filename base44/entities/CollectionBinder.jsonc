@@ -60,6 +60,13 @@
       "type": "number",
       "default": 0
     },
+    "completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completion_snapshot": {
+      "type": "string"
+    },
     "binder_type": {
       "type": "string",
       "enum": [

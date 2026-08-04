@@ -12,6 +12,7 @@ import {
   getDuplicateSuggestions,
   checkAndNotifyMilestones,
   updateBinderStats,
+  handleBinderCompletion,
 } from '@/lib/binderChecklist';
 import BinderSlot from '@/components/binder/BinderSlot';
 import BinderGrid from '@/components/binder/BinderGrid';
@@ -21,6 +22,8 @@ import QRBinderShare from '@/components/binder/QRBinderShare';
 import CompletionCost from '@/components/binder/CompletionCost';
 import MissingList from '@/components/binder/MissingList';
 import DuplicateSuggestions from '@/components/binder/DuplicateSuggestions';
+import CompletionCelebration from '@/components/binder/CompletionCelebration';
+import CompletedBinderBanner from '@/components/binder/CompletedBinderBanner';
 import { Button } from '@/components/ui/button';
 import {
   ArrowLeft,
@@ -39,6 +42,7 @@ import {
   Square,
   Grid3x3,
   BookOpen,
+  Share2,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { Image as UIImage } from '@/components/ui/image';
@@ -76,6 +80,8 @@ export default function BinderDetail() {
   const [milestoneMsg, setMilestoneMsg] = useState(null);
   const [viewMode, setViewMode] = useState('grid');
   const [sorting, setSorting] = useState('number');
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [completionSnapshot, setCompletionSnapshot] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -135,13 +141,25 @@ export default function BinderDetail() {
     [matchedChecklist]
   );
 
-  // Update binder stats + check milestones after data loads
+  // Update binder stats + check milestones + handle 100% completion
   useEffect(() => {
     if (!binder || !user || completion.total === 0) return;
     const runAsync = async () => {
       await updateBinderStats(binder, completion);
       const milestone = await checkAndNotifyMilestones(binder, completion, user);
       if (milestone) setMilestoneMsg(milestone);
+
+      // Handle 100% completion — celebration, badge, snapshot, Hall of Fame
+      if (completion.percent === 100) {
+        const result = await handleBinderCompletion(binder, completion, user, matchedChecklist);
+        if (result.newlyCompleted) {
+          setCompletionSnapshot(result.snapshot);
+          setShowCelebration(true);
+          // Refresh binder to get the completion_date field
+          const updated = await base44.entities.CollectionBinder.get(binder.id);
+          setBinder(updated);
+        }
+      }
     };
     runAsync();
   }, [completion.owned, completion.percent]);
@@ -193,6 +211,21 @@ export default function BinderDetail() {
       setCollectibles(updated);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleShareBinder = async () => {
+    const shareData = {
+      title: `${binder.name} — COLLECTABLE Tracker`,
+      text: `Check out my ${binder.name} binder${binder.completion_date ? ' (100% Complete!)' : ` (${completion.percent}% complete)`} on COLLECTABLE Tracker!`,
+      url: `${window.location.origin}/binder/${binder.id}`,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); } catch { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+      } catch { /* ignore */ }
     }
   };
 
@@ -332,6 +365,14 @@ export default function BinderDetail() {
             </p>
           </div>
         )}
+
+        {/* Completed Binder Banner */}
+        <CompletedBinderBanner
+          binder={binder}
+          completionDate={binder.completion_date}
+          onViewHallOfFame={() => navigate('/hall-of-fame')}
+          onShare={handleShareBinder}
+        />
 
         {/* Privacy / Showcase toggle */}
         <button
@@ -503,6 +544,19 @@ export default function BinderDetail() {
           💡 Items auto-populate when you add matching collectibles — no manual linking needed.
         </p>
       </div>
+
+      {/* 100% Completion Celebration */}
+      <CompletionCelebration
+        trigger={showCelebration}
+        binder={binder}
+        completion={completion}
+        snapshot={completionSnapshot}
+        onClose={() => setShowCelebration(false)}
+        onViewHallOfFame={() => {
+          setShowCelebration(false);
+          navigate('/hall-of-fame');
+        }}
+      />
     </div>
   );
 }
