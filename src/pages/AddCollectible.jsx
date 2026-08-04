@@ -6,6 +6,7 @@ import PhotoUploader from '@/components/PhotoUploader';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import AIConfidenceBanner from '@/components/AIConfidenceBanner';
 import AcquisitionFields from '@/components/AcquisitionFields';
+import MemoryFields from '@/components/MemoryFields';
 import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
 import { getPhotoTypes } from '@/lib/categoryFields';
@@ -73,6 +74,10 @@ const EMPTY = {
   acquisition_source: 'purchase',
   seller_name: '',
   purchase_date: '',
+  memory: '',
+  why_special: '',
+  memory_date: '',
+  memory_shared: false,
 };
 
 export default function AddCollectible() {
@@ -249,6 +254,10 @@ export default function AddCollectible() {
         acquisition_source: data.acquisition_source || 'purchase',
         seller_name: data.seller_name || undefined,
         purchase_date: data.purchase_date || undefined,
+        memory: data.memory || undefined,
+        why_special: data.why_special || undefined,
+        memory_date: data.memory_date || undefined,
+        memory_shared: data.memory_shared || false,
       });
 
       // Mark review queue item as confirmed if applicable
@@ -434,6 +443,7 @@ export default function AddCollectible() {
           )}
           <CollectibleFormFields data={data} update={update} />
           <AcquisitionFields data={data} update={update} />
+          <MemoryFields data={data} update={update} />
           <button
             onClick={handleConfirm}
             disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified)}
