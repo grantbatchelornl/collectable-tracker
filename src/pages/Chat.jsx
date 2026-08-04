@@ -41,23 +41,18 @@ export default function Chat() {
     if (!user?.id) return;
     setLoading(true);
     try {
-      const [profiles, sentMsgs, receivedMsgs] = await Promise.all([
-        base44.entities.CollectorProfile.filter({ user_id: userId }),
+      const [profileRes, sentMsgs, receivedMsgs] = await Promise.all([
+        base44.functions.invoke('getPublicProfile', { targetUserId: userId }),
         base44.entities.Message.filter({ sender_id: user.id, recipient_id: userId }, '-created_date', 500),
         base44.entities.Message.filter({ sender_id: userId, recipient_id: user.id }, '-created_date', 500),
       ]);
-      setOtherProfile(profiles[0] || null);
+      const profileData = profileRes.data || profileRes;
+      setOtherProfile(profileData.profile || null);
+      setBlockStatus({
+        iBlockedThem: profileData.iBlockedThem || false,
+        theyBlockedMe: profileData.theyBlockedMe || false,
+      });
       await processMessages([...sentMsgs, ...receivedMsgs]);
-
-      try {
-        const [myBlock, theirBlock] = await Promise.all([
-          base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId }),
-          base44.entities.UserBlock.filter({ blocker_id: userId, blocked_id: user.id }),
-        ]);
-        setBlockStatus({ iBlockedThem: myBlock.length > 0, theyBlockedMe: theirBlock.length > 0 });
-      } catch (e) {
-        // non-critical
-      }
     } catch (err) {
       console.error(err);
     } finally {

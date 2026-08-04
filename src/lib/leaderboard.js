@@ -131,7 +131,8 @@ function getTimeframeCutoff(timeframe) {
 }
 
 export async function getLeaderboard(sectionKey, metricKey, scope, eligibleIds, currentUserId, timeframe = 'all_time') {
-  const allProfiles = await base44.entities.CollectorProfile.filter({});
+  const profileRes = await base44.functions.invoke('getPublicProfiles', {});
+  const allProfiles = profileRes.data?.profiles || profileRes.profiles || [];
   const profileMap = {};
   allProfiles.forEach((p) => { profileMap[p.user_id] = p; });
 

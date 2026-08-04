@@ -19,10 +19,11 @@ export default function Discover() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [allProfiles, publicItems] = await Promise.all([
-        base44.entities.CollectorProfile.list('-created_date', 50),
+      const [profileRes, publicItems] = await Promise.all([
+        base44.functions.invoke('getPublicProfiles', {}),
         base44.entities.Collectible.filter({ privacy_status: 'public', is_deleted: false }, '-estimated_value', 12),
       ]);
+      const allProfiles = profileRes.data?.profiles || profileRes.profiles || [];
       setProfiles(allProfiles.filter((p) => p.user_id !== user?.id));
       setFeaturedItems(publicItems);
     } catch (err) {

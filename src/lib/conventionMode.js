@@ -38,7 +38,9 @@ export async function toggleConventionMode(userId, active, location, conventionN
 }
 
 export async function getNearbyCollectors(userId, maxMiles = 50) {
-  const profiles = await base44.entities.CollectorProfile.filter({ convention_mode_active: true });
+  const profileRes = await base44.functions.invoke('getPublicProfiles', {});
+  const allProfiles = profileRes.data?.profiles || profileRes.profiles || [];
+  const profiles = allProfiles.filter((p) => p.convention_mode_active);
   const myProfile = profiles.find((p) => p.user_id === userId);
   if (!myProfile || !myProfile.convention_lat) return [];
 

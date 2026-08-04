@@ -27,11 +27,12 @@ export default function TradeBinder() {
   const loadData = async () => {
     if (!userId) return;
     try {
-      const [profiles, items] = await Promise.all([
-        base44.entities.CollectorProfile.filter({ user_id: userId }),
+      const [profileRes, items] = await Promise.all([
+        base44.functions.invoke('getPublicProfile', { targetUserId: userId }),
         base44.entities.Collectible.filter({ created_by_id: userId, is_deleted: false }, '-estimated_value', 500),
       ]);
-      setProfile(profiles[0] || null);
+      const profileData = profileRes.data || profileRes;
+      setProfile(profileData.profile || null);
       setTradeItems(items.filter((c) => c.trade_status === 'trade' || c.trade_status === 'sell'));
 
       const wishlists = await base44.entities.Watchlist.filter({ user_id: userId, status: 'active' });

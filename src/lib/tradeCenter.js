@@ -24,9 +24,9 @@ export async function getPublicTradeBinders(currentUserId) {
 
   const userIds = Object.keys(byUser);
   if (userIds.length === 0) return [];
-  const profiles = await base44.entities.CollectorProfile.filter({
-    user_id: { $in: userIds },
-  });
+  const profileRes = await base44.functions.invoke('getPublicProfiles', {});
+  const allProfiles = profileRes.data?.profiles || profileRes.profiles || [];
+  const profiles = allProfiles.filter((p) => userIds.includes(p.user_id));
   const profileMap = {};
   profiles.forEach((p) => { profileMap[p.user_id] = p; });
 
