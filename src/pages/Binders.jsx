@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import { getCategoryConfig } from '@/lib/binderCategories';
 import { matchChecklist, calculateCompletion } from '@/lib/binderChecklist';
 import CreateBinderModal from '@/components/binder/CreateBinderModal';
-import { ArrowLeft, Plus, BookOpen, Loader2 } from 'lucide-react';
+import { ArrowLeft, Plus, BookOpen, Loader2, Trophy } from 'lucide-react';
 
 export default function Binders() {
   const navigate = useNavigate();
@@ -58,12 +58,20 @@ export default function Binders() {
         </div>
       </div>
 
-      <button
-        onClick={() => setShowCreate(true)}
-        className="w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5"
-      >
-        <Plus className="w-4 h-4" /> Create Binder
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium flex items-center justify-center gap-1.5"
+        >
+          <Plus className="w-4 h-4" /> Create Binder
+        </button>
+        <button
+          onClick={() => navigate('/binder-leaderboards')}
+          className="h-11 px-4 rounded-xl bg-card border border-border text-sm font-medium flex items-center justify-center gap-1.5"
+        >
+          <Trophy className="w-4 h-4 text-gold" /> Leaderboards
+        </button>
+      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

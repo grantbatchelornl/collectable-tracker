@@ -68,7 +68,7 @@ export function matchChecklist(checklist, collectibles, watchlist) {
       status = 'wishlisted';
     }
 
-    return { ...item, status, collectible: owned, isGraded, duplicateCount };
+    return { ...item, status, collectible: owned, isGraded, duplicateCount, ownedMatches };
   });
 }
 
@@ -100,3 +100,197 @@ export async function wishlistAllMissing(binder, user, matchedChecklist) {
   await base44.entities.Watchlist.bulkCreate(items);
   return missing.length;
 }
+
+export async function wishlistSingleItem(binder, user, item) {
+  await base44.entities.Watchlist.create({
+    user_id: user.id,
+    item_name: item.name,
+    category_name: binder.category,
+    status: 'active',
+    priority: 'medium',
+    visibility: 'private',
+  });
+}
+
+export async function estimateMissingItemsCost(missingItems, binder) {
+  if (missingItems.length === 0) {
+    return { items: [], total_estimated_cost: 0, total_median_cost: 0, lowest_market_price: 0 };
+  }
+
+  const itemList = missingItems
+    .map((i) => `${i.number || '?'} ${i.name} (${i.rarity || 'Unknown rarity'})`)
+    .join('\n');
+
+  const response = await base44.integrations.Core.InvokeLLM({
+    prompt: `Estimate the market value of each missing collectible in this set:
+
+${itemList}
+
+Set: ${binder.franchise} ${binder.set_name}
+
+For each item, provide:
+- name: The item name (must match the input)
+- number: The item number (must match the input)
+- estimated_price: Current market value based on recent sold listings (in USD)
+- median_price: Median sold price (in USD)
+- difficulty: How hard to find (one of: "easy", "moderate", "hard", "very_hard", "grail")
+
+Also provide totals:
+- total_estimated_cost: Sum of all estimated_price values
+- total_median_cost: Sum of all median_price values
+- lowest_market_price: The single lowest item price found`,
+    model: 'gemini_3_flash',
+    add_context_from_internet: true,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              number: { type: 'string' },
+              estimated_price: { type: 'number' },
+              median_price: { type: 'number' },
+              difficulty: { type: 'string' },
+            },
+          },
+        },
+        total_estimated_cost: { type: 'number' },
+        total_median_cost: { type: 'number' },
+        lowest_market_price: { type: 'number' },
+      },
+    },
+  });
+
+  return response;
+}
+
+export function mergeCostEstimates(matchedChecklist, costEstimates) {
+  if (!costEstimates?.items) return matchedChecklist;
+  const estimateMap = {};
+  costEstimates.items.forEach((e) => {
+    const key = (e.name || '').toLowerCase();
+    estimateMap[key] = e;
+  });
+
+  return matchedChecklist.map((item) => {
+    const key = (item.name || '').toLowerCase();
+    const estimate = estimateMap[key];
+    if (estimate) {
+      return {
+        ...item,
+        estimated_price: estimate.estimated_price || 0,
+        median_price: estimate.median_price || 0,
+        difficulty: estimate.difficulty || 'moderate',
+      };
+    }
+    return item;
+  });
+}
+
+export function getDuplicateSuggestions(matchedChecklist) {
+  return matchedChecklist.filter((i) => i.duplicateCount > 1).map((item) => {
+    const tradeCount = Math.max(0, item.duplicateCount - 2);
+    const keepCount = item.duplicateCount - tradeCount;
+    return {
+      ...item,
+      owned: item.duplicateCount,
+      trade: tradeCount,
+      keep: keepCount,
+      tradeableIds: (item.ownedMatches || []).slice(keepCount).map((c) => c.id),
+    };
+  });
+}
+
+const MILESTONES = [10, 25, 50, 75, 90, 95, 100];
+
+export async function checkAndNotifyMilestones(binder, completion, user) {
+  const percent = completion.percent;
+  const lastNotified = binder.last_milestone_notified || 0;
+
+  const crossed = MILESTONES.filter((m) => percent >= m).pop();
+  if (!crossed || crossed <= lastNotified) return null;
+
+  try {
+    await base44.entities.CollectionBinder.update(binder.id, {
+      last_milestone_notified: crossed,
+      owned_count: completion.owned,
+      completion_percent: percent,
+    });
+  } catch (e) {
+    // non-critical
+  }
+
+  let title, body;
+  if (crossed === 100) {
+    title = `Binder Complete! ${binder.name}`;
+    body = `You've completed your ${binder.name} binder! 🎉`;
+  } else {
+    title = `${binder.name} — ${crossed}% Complete!`;
+    body = completion.missing > 0 && completion.missing <= 10
+      ? `You are ${completion.missing} cards away from completion.`
+      : `Great progress on your ${binder.name} binder!`;
+  }
+
+  try {
+    await base44.entities.Notification.create({
+      recipient_id: user.id,
+      type: 'binder_milestone',
+      title,
+      body,
+      destination_route: `/binder/${binder.id}`,
+      destination_id: binder.id,
+      icon: '🎉',
+    });
+  } catch (e) {
+    // non-critical
+  }
+
+  return { milestone: crossed, title, body };
+}
+
+export async function updateBinderStats(binder, completion) {
+  if (
+    binder.owned_count === completion.owned &&
+    binder.completion_percent === completion.percent
+  ) {
+    return;
+  }
+  try {
+    await base44.entities.CollectionBinder.update(binder.id, {
+      owned_count: completion.owned,
+      completion_percent: completion.percent,
+    });
+  } catch (e) {
+    // non-critical
+  }
+}
+
+export async function checkBinderMatch(collectibleName, user) {
+  const binders = await base44.entities.CollectionBinder.filter({ user_id: user.id });
+  for (const binder of binders) {
+    if (!binder.checklist_json) continue;
+    try {
+      const checklist = JSON.parse(binder.checklist_json);
+      const match = checklist.find((item) => {
+        const iName = (item.name || '').toLowerCase();
+        const cName = (collectibleName || '').toLowerCase();
+        return cName.includes(iName) || iName.includes(cName);
+      });
+      if (match) return binder;
+    } catch (e) {
+      continue;
+    }
+  }
+  return null;
+}
+
+export const DIFFICULTY_LABELS = {
+  easy: { label: 'Easy', class: 'bg-gain/10 text-gain' },
+  moderate: { label: 'Moderate', class: 'bg-blue-500/10 text-blue-500' },
+  hard: { label: 'Hard', class: 'bg-gold/10 text-gold' },
+  very_hard: { label: 'Very Hard', class: 'bg-orange-500/10 text-orange-500' },
+  grail: { label: 'Grail', class: 'bg-loss/10 text-loss' },
+};
