@@ -14,6 +14,7 @@ import {
   updateBinderStats,
 } from '@/lib/binderChecklist';
 import BinderSlot from '@/components/binder/BinderSlot';
+import BinderGrid from '@/components/binder/BinderGrid';
 import CompletionCost from '@/components/binder/CompletionCost';
 import MissingList from '@/components/binder/MissingList';
 import DuplicateSuggestions from '@/components/binder/DuplicateSuggestions';
@@ -29,8 +30,14 @@ import {
   Globe,
   Trophy,
   Sparkles,
+  LayoutGrid,
+  List,
+  Images,
+  Square,
+  Grid3x3,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
+import { Image as UIImage } from '@/components/ui/image';
 
 const FILTERS = [
   { key: 'all', label: 'All', icon: null },
@@ -40,6 +47,14 @@ const FILTERS = [
 ];
 
 const PRIVACY_ORDER = ['private', 'friends', 'public'];
+
+const VIEW_MODES = [
+  { key: 'grid', icon: LayoutGrid },
+  { key: 'list', icon: List },
+  { key: 'gallery', icon: Images },
+  { key: 'large', icon: Square },
+  { key: 'small', icon: Grid3x3 },
+];
 
 export default function BinderDetail() {
   const { id } = useParams();
@@ -54,6 +69,8 @@ export default function BinderDetail() {
   const [wishlistedCount, setWishlistedCount] = useState(0);
   const [estimating, setEstimating] = useState(false);
   const [milestoneMsg, setMilestoneMsg] = useState(null);
+  const [viewMode, setViewMode] = useState('grid');
+  const [sorting, setSorting] = useState('number');
 
   useEffect(() => {
     loadData();
@@ -64,6 +81,8 @@ export default function BinderDetail() {
     try {
       const b = await base44.entities.CollectionBinder.get(id);
       setBinder(b);
+      setViewMode(b.view_mode || 'grid');
+      setSorting(b.sorting || 'number');
       const [collectibleData, watchlistData] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-estimated_value', 500),
         base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }),
@@ -186,23 +205,48 @@ export default function BinderDetail() {
 
   const catConfig = getCategoryConfig(binder.category);
   const privacyIcon = binder.privacy_status === 'public' ? Globe : binder.privacy_status === 'friends' ? Users : Lock;
+  const accentColor = binder.color;
 
   return (
     <div className="pb-4">
-      <div className="px-4 py-4 space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent">
+      {binder.cover_photo_url && (
+        <div className="relative h-32 overflow-hidden">
+          <UIImage src={binder.cover_photo_url} fittingType="fill" className="w-full h-full" alt={binder.name} />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-background/70 backdrop-blur flex items-center justify-center"
+          >
             <ArrowLeft className="w-5 h-5" />
           </button>
         </div>
+      )}
+      <div className="px-4 py-4 space-y-4">
+        {!binder.cover_photo_url && (
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl border flex items-center justify-center text-2xl flex-shrink-0 ${catConfig.color}`}>
+          <div
+            className={`w-12 h-12 rounded-xl border flex items-center justify-center text-2xl flex-shrink-0 ${!accentColor ? catConfig.color : ''}`}
+            style={accentColor ? { backgroundColor: `${accentColor}15`, borderColor: `${accentColor}40` } : undefined}
+          >
             {binder.icon || catConfig.icon}
           </div>
           <div className="flex-1">
-            <h1 className="font-display text-lg font-bold">{binder.name}</h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="font-display text-lg font-bold">{binder.name}</h1>
+              {binder.binder_type === 'master' && (
+                <span className="text-[8px] bg-primary/10 text-primary rounded-full px-1.5 py-0.5 font-bold">MASTER</span>
+              )}
+              {binder.ai_prompt && (
+                <span className="text-[8px] bg-purple-500/10 text-purple-500 rounded-full px-1.5 py-0.5 font-bold">AI</span>
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">{binder.franchise} · {binder.set_name}</p>
           </div>
           {binder.privacy_status === 'public' && (
@@ -221,10 +265,10 @@ export default function BinderDetail() {
                 {completion.owned} <span className="text-muted-foreground text-base">/ {completion.total}</span>
               </p>
             </div>
-            <p className="font-display text-3xl font-bold text-primary">{completion.percent}%</p>
+            <p className="font-display text-3xl font-bold" style={{ color: accentColor || 'hsl(var(--primary))' }}>{completion.percent}%</p>
           </div>
           <div className="h-3 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary transition-all relative" style={{ width: `${completion.percent}%` }}>
+            <div className="h-full transition-all relative" style={{ width: `${completion.percent}%`, backgroundColor: accentColor || 'hsl(var(--primary))' }}>
               <div className="absolute inset-0 holo-shimmer" />
             </div>
           </div>
@@ -367,26 +411,47 @@ export default function BinderDetail() {
           ))}
         </div>
 
-        {/* Binder grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-          {filteredChecklist.map((item, idx) => (
-            <BinderSlot
-              key={item.number || item.name || idx}
-              item={item}
-              onClick={() => {
-                if (item.collectible) {
-                  navigate(`/collectible/${item.collectible.id}`);
-                }
-              }}
-            />
-          ))}
+        {/* View mode & sorting */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-1">
+            {VIEW_MODES.map((vm) => {
+              const Icon = vm.icon;
+              return (
+                <button
+                  key={vm.key}
+                  onClick={() => setViewMode(vm.key)}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                    viewMode === vm.key ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                </button>
+              );
+            })}
+          </div>
+          <select
+            value={sorting}
+            onChange={(e) => setSorting(e.target.value)}
+            className="text-xs bg-card border border-border rounded-lg px-2 py-1.5"
+          >
+            <option value="number">Sort: Number</option>
+            <option value="value">Sort: Value</option>
+            <option value="name">Sort: Name</option>
+            <option value="rarity">Sort: Rarity</option>
+          </select>
         </div>
 
-        {filteredChecklist.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-xs text-muted-foreground">No items match this filter</p>
-          </div>
-        )}
+        {/* Binder grid */}
+        <BinderGrid
+          checklist={filteredChecklist}
+          viewMode={viewMode}
+          sorting={sorting}
+          onSlotClick={(item) => {
+            if (item.collectible) {
+              navigate(`/collectible/${item.collectible.id}`);
+            }
+          }}
+        />
 
         {/* Auto-populate note */}
         <p className="text-[10px] text-muted-foreground text-center pt-2">

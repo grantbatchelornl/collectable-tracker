@@ -287,6 +287,64 @@ export async function checkBinderMatch(collectibleName, user) {
   return null;
 }
 
+export async function subscribeToMasterBinder(user, category, franchise, setName, icon) {
+  const checklistResponse = await generateChecklist(category, setName, franchise);
+  const binder = await base44.entities.CollectionBinder.create({
+    user_id: user.id,
+    name: `${franchise} ${setName}`,
+    category,
+    franchise,
+    set_name: setName,
+    target_count: checklistResponse.total_count || (checklistResponse.items || []).length,
+    checklist_json: JSON.stringify(checklistResponse.items || []),
+    icon,
+    binder_type: 'master',
+  });
+  return binder;
+}
+
+export async function buildBinderFromPrompt(prompt) {
+  const response = await base44.integrations.Core.InvokeLLM({
+    prompt: `Find every collectible that matches this description: "${prompt}"
+
+List every matching item. Include:
+- name: Full name of the item (including set/series if applicable)
+- number: Card/item number if known, or sequential number
+- rarity: Rarity level
+
+Be comprehensive. If the prompt is "Every Charizard", find every Charizard card across all Pokémon sets.
+If "Every Eeveelution", find all Vaporeon, Jolteon, Flareon, Espeon, Umbreon, Leafeon, Glaceon, Sylveon cards.
+If "PSA 10 Collection", list notable cards commonly found in PSA 10 grade.
+If "Convention Binder", list popular convention exclusives and promos.
+
+Also suggest:
+- suggested_name: A short, catchy name for this binder
+- category: The best category (pokemon, magic, lorcana, sports, funko, coins, memorabilia, or custom)`,
+    model: 'gemini_3_flash',
+    add_context_from_internet: true,
+    response_json_schema: {
+      type: 'object',
+      properties: {
+        items: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              name: { type: 'string' },
+              number: { type: 'string' },
+              rarity: { type: 'string' },
+            },
+          },
+        },
+        total_count: { type: 'number' },
+        suggested_name: { type: 'string' },
+        category: { type: 'string' },
+      },
+    },
+  });
+  return response;
+}
+
 export const DIFFICULTY_LABELS = {
   easy: { label: 'Easy', class: 'bg-gain/10 text-gain' },
   moderate: { label: 'Moderate', class: 'bg-blue-500/10 text-blue-500' },

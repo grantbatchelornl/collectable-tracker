@@ -59,6 +59,44 @@
     "last_milestone_notified": {
       "type": "number",
       "default": 0
+    },
+    "binder_type": {
+      "type": "string",
+      "enum": [
+        "master",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "cover_photo_url": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string"
+    },
+    "sorting": {
+      "type": "string",
+      "enum": [
+        "number",
+        "value",
+        "name",
+        "rarity"
+      ],
+      "default": "number"
+    },
+    "view_mode": {
+      "type": "string",
+      "enum": [
+        "grid",
+        "list",
+        "gallery",
+        "large",
+        "small"
+      ],
+      "default": "grid"
+    },
+    "ai_prompt": {
+      "type": "string"
     }
   },
   "required": [
