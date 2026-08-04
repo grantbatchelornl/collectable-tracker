@@ -25,6 +25,8 @@ import CollectionGoals from '@/pages/CollectionGoals';
 import CollectionTimeline from '@/pages/CollectionTimeline';
 import ConventionMode from '@/pages/ConventionMode';
 import TradeBinder from '@/pages/TradeBinder';
+import Binders from '@/pages/Binders';
+import BinderDetail from '@/pages/BinderDetail';
 import Settings from '@/pages/Settings';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
@@ -82,6 +84,8 @@ const AuthenticatedApp = () => {
           <Route path="/timeline" element={<CollectionTimeline />} />
           <Route path="/conventions" element={<ConventionMode />} />
           <Route path="/trade-binder/:userId" element={<TradeBinder />} />
+          <Route path="/binders" element={<Binders />} />
+          <Route path="/binder/:id" element={<BinderDetail />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />
