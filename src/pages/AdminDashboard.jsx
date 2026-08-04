@@ -49,6 +49,12 @@ const TABS = [
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [tab, setTab] = useState('overview');
+  const [adminUnlocked, setAdminUnlocked] = useState(() => {
+    try { return sessionStorage.getItem('admin_unlocked') === 'true'; } catch { return false; }
+  });
+  const [adminPassword, setAdminPassword] = useState('');
+  const [verifying, setVerifying] = useState(false);
+  const [pwError, setPwError] = useState('');
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [collectibles, setCollectibles] = useState([]);
@@ -208,6 +214,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleUnlock = async () => {
+    setVerifying(true);
+    setPwError('');
+    try {
+      const response = await base44.functions.invoke('verifyAdminAccess', { password: adminPassword });
+      if (response.data?.authorized) {
+        try { sessionStorage.setItem('admin_unlocked', 'true'); } catch {}
+        setAdminUnlocked(true);
+      } else {
+        setPwError('Incorrect password.');
+      }
+    } catch (err) {
+      setPwError('Incorrect password.');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -227,6 +251,36 @@ export default function AdminDashboard() {
         <p className="text-sm text-muted-foreground max-w-xs mx-auto">
           You don't have permission to access the admin dashboard.
         </p>
+      </div>
+    );
+  }
+
+  // Password gate
+  if (!adminUnlocked) {
+    return (
+      <div className="px-4 py-8 text-center max-w-sm mx-auto">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
+          <Shield className="w-8 h-8 text-primary" />
+        </div>
+        <h2 className="font-display text-xl font-bold mb-2">Admin Access</h2>
+        <p className="text-sm text-muted-foreground mb-6">
+          Enter the admin password to unlock the dashboard.
+        </p>
+        <div className="space-y-3">
+          <Input
+            type="password"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !verifying && handleUnlock()}
+            placeholder="Admin password"
+            className="h-12 text-center"
+            autoFocus
+          />
+          {pwError && <p className="text-sm text-destructive">{pwError}</p>}
+          <Button onClick={handleUnlock} disabled={verifying || !adminPassword} className="w-full h-12">
+            {verifying ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Unlock'}
+          </Button>
+        </div>
       </div>
     );
   }
