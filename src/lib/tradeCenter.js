@@ -22,7 +22,11 @@ export async function getPublicTradeBinders(currentUserId) {
     byUser[c.created_by_id].push(c);
   });
 
-  const profiles = await base44.entities.CollectorProfile.filter({});
+  const userIds = Object.keys(byUser);
+  if (userIds.length === 0) return [];
+  const profiles = await base44.entities.CollectorProfile.filter({
+    user_id: { $in: userIds },
+  });
   const profileMap = {};
   profiles.forEach((p) => { profileMap[p.user_id] = p; });
 
@@ -209,7 +213,7 @@ export async function sendTradeOffer(user, partnerId, partnerName, offeredItems,
     offered_value: offeredValue,
     requested_value: requestedValue,
     cash_adjustment: cash.amount,
-    cash_direction: cash.direction === 'a_to_b' ? 'proposer_to_recipient' : 'recipient_to_proposer',
+    cash_direction: cash.amount === 0 ? 'proposer_to_recipient' : (cash.direction === 'a_to_b' ? 'proposer_to_recipient' : 'recipient_to_proposer'),
   });
 
   await base44.entities.Notification.create({

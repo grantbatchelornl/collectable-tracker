@@ -48,21 +48,23 @@ export async function checkPriceChangeNotifications(user, collectibles, pricingH
   const increaseThreshold = thresholds?.price_increase_threshold || 10;
   const decreaseThreshold = thresholds?.price_decrease_threshold || 10;
 
-  const latestByCollectible = {};
+  // Group by collectible_id — single pass instead of O(n²) filter per entry
+  const historyByCollectible = {};
   (pricingHistory || []).forEach((h) => {
-    const existing = latestByCollectible[h.collectible_id];
-    if (!existing || new Date(h.created_date) > new Date(existing.created_date)) {
-      latestByCollectible[h.collectible_id] = h;
+    if (!historyByCollectible[h.collectible_id]) {
+      historyByCollectible[h.collectible_id] = [];
     }
+    historyByCollectible[h.collectible_id].push(h);
   });
 
+  const latestByCollectible = {};
   const secondLatest = {};
-  (pricingHistory || []).forEach((h) => {
-    const all = (pricingHistory || []).filter((p) => p.collectible_id === h.collectible_id)
-      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    if (all.length >= 2 && all[1].id === h.id) {
-      secondLatest[h.collectible_id] = h;
-    }
+  Object.entries(historyByCollectible).forEach(([id, history]) => {
+    const sorted = [...history].sort(
+      (a, b) => new Date(b.created_date) - new Date(a.created_date)
+    );
+    if (sorted[0]) latestByCollectible[id] = sorted[0];
+    if (sorted[1]) secondLatest[id] = sorted[1];
   });
 
   for (const c of collectibles) {

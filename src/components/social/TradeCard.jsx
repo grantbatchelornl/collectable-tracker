@@ -27,6 +27,15 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
   const status = trade.status || 'pending';
 
   const handleUpdate = async (newStatus) => {
+    // Client-side authorization guard — RLS allows both parties to update,
+    // but only the recipient should accept/reject/complete, and only the
+    // proposer should cancel.
+    const isRecipient = trade.recipient_id === user?.id;
+    const isProposer = trade.proposer_id === user?.id;
+    if ((newStatus === 'accepted' || newStatus === 'rejected') && !isRecipient) return;
+    if (newStatus === 'cancelled' && !isProposer) return;
+    if (newStatus === 'completed' && !isRecipient) return;
+
     setLoading(true);
     try {
       await base44.entities.Trade.update(trade.id, { status: newStatus });
@@ -132,7 +141,7 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Cancel Offer'}
         </button>
       )}
-      {status === 'accepted' && (
+      {isIncoming && status === 'accepted' && (
         <button
           onClick={() => handleUpdate('completed')}
           disabled={loading}
