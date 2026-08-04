@@ -101,6 +101,10 @@
     },
     "dashboard_widgets": {
       "type": "string"
+    },
+    "vacation_mode": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

@@ -23,7 +23,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid } from 'lucide-react';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -182,6 +182,24 @@ export default function Home() {
               <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
             <span className="text-xs font-medium">Data Quality</span>
+          </button>
+          <button
+            onClick={() => navigate('/goals')}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Target className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium">Goals</span>
+          </button>
+          <button
+            onClick={() => navigate('/timeline')}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium">Timeline</span>
           </button>
         </div>
       )}

@@ -18,12 +18,14 @@ import {
   Loader2,
   Moon,
   Sun,
+  Plane,
 } from 'lucide-react';
 
 const SECTIONS = [
   { key: 'account', label: 'Account', icon: User },
   { key: 'profile', label: 'Profile', icon: User, link: '/profile' },
   { key: 'collection', label: 'Collection', icon: Package },
+  { key: 'vacation', label: 'Vacation Mode', icon: Plane },
   { key: 'pricing', label: 'Pricing', icon: DollarSign },
   { key: 'ai', label: 'AI', icon: Sparkles },
   { key: 'notifications', label: 'Notifications', icon: Bell },
@@ -181,6 +183,15 @@ export default function Settings() {
                       onChange={(v) => updateProfile('health_reminder_enabled', v)}
                     />
                   </>
+                )}
+
+                {section.key === 'vacation' && (
+                  <SettingToggle
+                    label="Vacation Mode"
+                    description="Hide trade requests, messages, and notifications while you're away"
+                    checked={profile?.vacation_mode || false}
+                    onChange={(v) => updateProfile('vacation_mode', v)}
+                  />
                 )}
 
                 {section.key === 'privacy' && (

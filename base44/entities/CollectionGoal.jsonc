@@ -1,0 +1,92 @@
+{
+  "name": "CollectionGoal",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "set_completion",
+        "player_collection",
+        "category_milestone",
+        "custom"
+      ],
+      "default": "custom"
+    },
+    "category_name": {
+      "type": "string"
+    },
+    "set_name": {
+      "type": "string"
+    },
+    "character_athlete_name": {
+      "type": "string"
+    },
+    "product_line": {
+      "type": "string"
+    },
+    "year": {
+      "type": "number"
+    },
+    "target_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "abandoned"
+      ],
+      "default": "active"
+    },
+    "estimated_cost_to_finish": {
+      "type": "number",
+      "default": 0
+    },
+    "ai_recommendation": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

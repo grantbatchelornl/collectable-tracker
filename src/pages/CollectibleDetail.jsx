@@ -34,6 +34,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 import { estimatePrice } from '@/lib/collectibleAI';
 import GradeWorthinessCard from '@/components/GradeWorthinessCard';
 import ActionRecommendationCard from '@/components/ActionRecommendationCard';
+import MarketplaceSearch from '@/components/MarketplaceSearch';
 
 export default function CollectibleDetail() {
   const { id } = useParams();
@@ -479,6 +480,8 @@ export default function CollectibleDetail() {
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{collectible.notes}</p>
           </div>
         )}
+
+        <MarketplaceSearch collectible={collectible} />
 
         <div className="space-y-3">
           <Button

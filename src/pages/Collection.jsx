@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
-import { Search, Loader2, Package, Plus } from 'lucide-react';
+import { Search, Loader2, Package, Plus, FileText } from 'lucide-react';
+import { generateInsuranceReport } from '@/lib/insuranceReport';
 
 export default function Collection() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function Collection() {
   const [sortBy, setSortBy] = useState('recent');
   const [showForSale, setShowForSale] = useState(false);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -38,6 +40,18 @@ export default function Collection() {
       console.error('Failed to load data', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInsuranceReport = async () => {
+    setReportLoading(true);
+    try {
+      const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
+      await generateInsuranceReport(collectibles, user, profiles[0]);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -127,7 +141,17 @@ export default function Collection() {
 
   return (
     <div className="px-4 py-4 space-y-3">
-      <h1 className="font-display text-xl font-bold">Collection</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="font-display text-xl font-bold">Collection</h1>
+        <button
+          onClick={handleInsuranceReport}
+          disabled={reportLoading}
+          className="flex items-center gap-1.5 text-xs font-medium text-primary border border-primary/20 rounded-full px-3 py-1.5 disabled:opacity-40"
+        >
+          {reportLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+          Insurance Report
+        </button>
+      </div>
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
