@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Camera, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import { Image } from '@/components/ui/image';
 import { syncCollectorProfile } from '@/lib/social';
+import WelcomeTutorial from '@/components/WelcomeTutorial';
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [showTutorial, setShowTutorial] = useState(true);
   const [displayName, setDisplayName] = useState(user?.display_name || user?.full_name || '');
   const [username, setUsername] = useState(user?.username || '');
   const [bio, setBio] = useState(user?.bio || '');
@@ -66,6 +68,10 @@ export default function Onboarding() {
       setSaving(false);
     }
   };
+
+  if (showTutorial) {
+    return <WelcomeTutorial onComplete={() => setShowTutorial(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
