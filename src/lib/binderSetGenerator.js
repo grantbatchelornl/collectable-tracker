@@ -5,7 +5,7 @@ import { getCategoryColor, SET_METADATA, DIFFICULTY_TIERS } from './masterBinder
 const CACHE_KEY = 'binder-set-cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
-const POKEMON_API_URL = 'https://raw.githubusercontent.com/PokemonTCG/pokemon-tcg-data/master/sets/en.json';
+const POKEMON_API_URL = 'https://api.pokemontcg.io/v2/sets?pageSize=500&orderBy=releaseDate';
 
 const CATEGORY_PROMPTS = {
   magic: 'Magic: The Gathering TCG',
@@ -22,7 +22,8 @@ const CATEGORY_PROMPTS = {
  */
 async function fetchPokemonSetsFromAPI() {
   const response = await fetch(POKEMON_API_URL);
-  const apiSets = await response.json();
+  const json = await response.json();
+  const apiSets = json.data || json;
 
   const colors = getCategoryColor('pokemon');
   const category = MASTER_BINDERS.pokemon;

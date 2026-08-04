@@ -118,7 +118,7 @@ export default function BinderLibrary() {
   const handleCreate = async (entry) => {
     setSubscribing(entry.id);
     try {
-      const binder = await subscribeToMasterBinder(user, entry.category, entry.franchise, entry.name, entry.icon);
+      const binder = await subscribeToMasterBinder(user, entry.category, entry.franchise, entry.name, entry.icon, entry.apiId);
       navigate(`/binder/${binder.id}`);
     } catch (e) {
       console.error(e);

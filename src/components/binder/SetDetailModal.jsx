@@ -166,7 +166,7 @@ export default function SetDetailModal({ entry, isFavorite, ownership, isCreatin
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Generating Checklist...
+                Fetching Master Set Data...
               </>
             ) : isComingSoon && daysLeft != null && daysLeft > 0 ? (
               <>

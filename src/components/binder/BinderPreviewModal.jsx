@@ -105,7 +105,7 @@ export default function BinderPreviewModal({ entry, isFavorite, ownership, isCre
             {isCreating ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Generating Checklist...
+                Fetching Master Set Data...
               </>
             ) : (
               <>

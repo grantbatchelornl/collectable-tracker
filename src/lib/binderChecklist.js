@@ -1,6 +1,74 @@
 import { base44 } from '@/api/base44Client';
 
-export async function generateChecklist(category, setName, franchise, series) {
+const POKEMON_CARDS_API = 'https://api.pokemontcg.io/v2/cards';
+
+/**
+ * Fetches the real card-level checklist for a Pokémon set from the official
+ * Pokémon TCG API v2 (the same data source used by mytcgcollection.com).
+ * Returns accurate card names, numbers, rarities, images, and market prices.
+ */
+async function fetchPokemonChecklistFromAPI(apiId, setName) {
+  try {
+    const query = apiId
+      ? `set.id:${apiId}`
+      : `set.name:"${setName.replace(/"/g, '\\"')}"`;
+    let page = 1;
+    let allCards = [];
+    let hasMore = true;
+
+    while (hasMore) {
+      // The Pokémon TCG API's Lucene parser requires raw colons in the q
+      // parameter — encodeURIComponent turns ":" into "%3A" which the API
+      // rejects with a 500, so we restore them after encoding.
+      const encodedQuery = encodeURIComponent(query).replace(/%3A/g, ':');
+      const url = `${POKEMON_CARDS_API}?q=${encodedQuery}&pageSize=250&page=${page}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Pokémon TCG API error: ${res.status}`);
+      const json = await res.json();
+      const cards = json.data || [];
+      allCards = allCards.concat(cards);
+      hasMore = json.pageCount ? page < json.pageCount : cards.length === 250;
+      page++;
+    }
+
+    if (allCards.length === 0) return null;
+
+    const items = allCards.map((card) => ({
+      number: String(card.number || ''),
+      name: card.name || '',
+      rarity: card.rarity || 'Common',
+      image: card.images?.small || '',
+      image_large: card.images?.large || '',
+      card_id: card.id,
+      subtype: card.subtypes?.[0] || '',
+      market_price:
+        card.tcgplayer?.prices?.holofoil?.market ||
+        card.tcgplayer?.prices?.normal?.market ||
+        card.tcgplayer?.prices?.reverseHolofoil?.market ||
+        0,
+    }));
+
+    return {
+      items,
+      total_count: items.length,
+    };
+  } catch (e) {
+    console.error('Pokémon TCG API checklist fetch failed:', e);
+    return null;
+  }
+}
+
+export async function generateChecklist(category, setName, franchise, series, apiId) {
+  // For Pokémon sets, pull the real card checklist from the official
+  // Pokémon TCG API v2 — same data source as mytcgcollection.com.
+  if (category === 'pokemon' || franchise === 'Pokémon') {
+    const apiResult = await fetchPokemonChecklistFromAPI(apiId, setName);
+    if (apiResult && apiResult.items.length > 0) {
+      return apiResult;
+    }
+    // Fall through to AI if the API returned nothing
+  }
+
   const context = series
     ? `${franchise} ${series} (every ${franchise} Pop released in ${series})`
     : `${franchise} ${setName}`;
@@ -359,8 +427,8 @@ export async function checkBinderMatch(collectibleName, user) {
   return null;
 }
 
-export async function subscribeToMasterBinder(user, category, franchise, setName, icon) {
-  const checklistResponse = await generateChecklist(category, setName, franchise);
+export async function subscribeToMasterBinder(user, category, franchise, setName, icon, apiId) {
+  const checklistResponse = await generateChecklist(category, setName, franchise, undefined, apiId);
   const binder = await base44.entities.CollectionBinder.create({
     user_id: user.id,
     name: `${franchise} ${setName}`,
