@@ -18,7 +18,7 @@ This review reduces known risk but does **not** replace an independent professio
 | Entity | Ownership | Public Read? | RLS Status |
 |--------|-----------|-------------|------------|
 | Collectible | Per-user | Public records only | ✅ Enforced |
-| CollectorProfile | Per-user | Yes (all) | ⚠️ See Finding #6 |
+| CollectorProfile | Per-user | Owner+admin only | ✅ Fixed (Finding #6) |
 | CollectionBinder | Per-user | Public records only | ✅ Enforced |
 | Watchlist | Per-user | Public records only | ✅ Enforced |
 | CollectiblePhoto | Per-user | Owner+admin only | ✅ Enforced |
@@ -32,7 +32,7 @@ This review reduces known risk but does **not** replace an independent professio
 | Message | Participant | Participant+admin | ✅ Enforced |
 | Follow | Participant | Participant+admin | ✅ Enforced |
 | Notification | Per-user | Recipient+admin | ✅ Enforced |
-| Achievement | Per-user | Yes (all) | ⚠️ See Finding #5 |
+| Achievement | Per-user | Yes (all) | ✅ Fixed (Finding #5) |
 | AchievementTemplate | Admin | Yes (all) | ✅ Admin-only writes |
 | CollectionGoal | Per-user | Owner+admin only | ✅ Enforced |
 | CollectionFolder | Per-user | Owner only | ✅ Enforced |
@@ -78,9 +78,9 @@ No external API connectors authorized yet. No backend functions with secrets.
 ### Finding #3 — MEDIUM: Chat did not enforce blocks before sending
 **Severity:** Medium  
 **Root Cause:** Chat.jsx's `sendMessage()` did not check if either party had blocked the other. A blocked user could still send messages. The `UserBlock` entity RLS has no cross-entity enforcement on `Message.create`.  
-**Fix Applied:** Added bidirectional block status loading in `loadChat()`. `sendMessage()` now returns early if blocked. The message input UI is hidden and replaced with a "blocked" notice when either party has blocked the other.  
-**Remaining Risk:** This is a client-side check. A determined attacker could call `Message.create()` directly via the SDK, bypassing the UI. True enforcement requires a backend function that checks `UserBlock` before allowing `Message.create`. This should be implemented before public launch.  
-**Test:** Verified block status is loaded and UI responds accordingly.
+**Fix Applied:** Created the `sendMessage` backend function that enforces blocks bidirectionally, rate limits (30 msgs/hour), checks suspended status, and creates the message via service role. Changed Message entity RLS `create` to `system_only` — direct client-side `Message.create()` is now blocked by RLS. Chat.jsx now routes all sends through the backend function. Block status is loaded via the `getPublicProfile` backend function (service role, reliable).  
+**Status:** **FIXED** — server-side enforcement via backend function + RLS lock-down.  
+**Test:** Verified the backend function rejects messages to/from blocked users and that direct SDK Message.create is blocked by RLS.
 
 ### Finding #4 — LOW: Chat loaded all messages instead of filtering
 **Severity:** Low (performance/data minimization)  
@@ -90,23 +90,25 @@ No external API connectors authorized yet. No backend functions with secrets.
 
 ### Finding #5 — MEDIUM: Achievement self-awarding
 **Severity:** Medium  
-**Root Cause:** The `Achievement` entity's RLS allows any user to `create` achievement records for themselves (`created_by_id: {{user.id}}`). The `user_id` field is client-supplied. A malicious user could create fake achievements with any `badge_type`, since the `checkAndAwardBadges` function runs client-side.  
-**Status:** Not fixed — would require moving achievement awarding to a backend function with server-side validation. Changing the RLS to admin-only create would break the existing client-side awarding flow.  
-**Recommendation:** Create a backend function `awardAchievement` that validates achievement criteria server-side before creating the record. Change Achievement RLS `create` to `false` (admin-only via backend function).
+**Root Cause:** The `Achievement` entity's RLS allowed any user to `create` achievement records for themselves. The `user_id` field was client-supplied, enabling fake achievements.  
+**Fix Applied:** Created the `awardAchievements` backend function that fetches the user's data (collectibles, follows, trades) via service role, evaluates all badge conditions server-side, and creates Achievement records via service role. Changed Achievement entity RLS `create` to `system_only` — direct client-side `Achievement.create()` is now blocked. Created `manualAchievement` backend function for super_admin overrides. The frontend `checkAndAwardBadges()` now calls the backend function instead of creating records directly.  
+**Status:** **FIXED** — server-side validation via backend function + RLS lock-down.  
+**Test:** Verified direct SDK Achievement.create is blocked by RLS and the backend function correctly awards badges.
 
 ### Finding #6 — MEDIUM: CollectorProfile exposes all fields publicly
 **Severity:** Medium  
-**Root Cause:** `CollectorProfile` has `read: true`, exposing ALL fields to any authenticated user. While display name, bio, and photo are intentionally public, fields like `budget`, `goals`, `risk_tolerance`, `dashboard_widgets` may be considered sensitive. Base44 RLS is per-record, not per-field, so restricting individual fields requires a separate entity.  
-**Status:** Not fixed — would require splitting sensitive fields into a separate owner-only entity or removing them from CollectorProfile.  
-**Recommendation:** Move `budget`, `goals`, `risk_tolerance` to a new `CollectorPreferences` entity with owner-only RLS. Keep public-facing fields (display_name, username, bio, profile_photo, privacy toggles) in CollectorProfile.
+**Root Cause:** `CollectorProfile` had `read: true`, exposing ALL fields to any authenticated user — including `budget`, `goals`, `risk_tolerance`, AI settings, convention location, and other private preferences.  
+**Fix Applied:** Changed CollectorProfile RLS `read` from `true` to owner+admin only (`created_by_id: {{user.id}}` + admin/super_admin). Created the `getPublicProfile` backend function (single user) and `getPublicProfiles` backend function (bulk) — both use service role to read profiles and strip private fields via `filterPublicProfile()`. Only public-safe fields (display_name, username, bio, profile_photo, reputation, XP, leaderboard opt-in, privacy toggles) are returned. Convention-mode location data is only included when the user has explicitly opted in (`convention_mode_active: true`). Updated all 6 frontend files that read other users' profiles (Chat, TradeBinder, Discover, leaderboard, convention mode, trade center) to route through these backend functions.  
+**Status:** **FIXED** — RLS lock-down + server-side field filtering via backend functions.  
+**Test:** Verified `getPublicProfiles` returns only public fields; private fields (budget, goals, risk_tolerance, AI settings) are stripped.
 
 ### Finding #7 — LOW: Admins can promote to super_admin via SDK
 **Severity:** Low (requires admin access first)  
-**Root Cause:** The `setRole()` function in AdminDashboard calls `User.update(u.id, { role })` directly. While the UI only offers 'admin' and 'user' roles, and only shows the button to super_admins, a regular admin could call the SDK from the browser console to set any role including 'super_admin'. This is a platform-level limitation — the Base44 built-in User security allows admins to update user records without field-level restrictions.  
-**Fix Applied:** Added a programmatic guard in `setRole()`: returns early if caller is not super_admin, if role is not 'admin' or 'user', or if target is self.  
-**Remaining Risk:** The SDK call itself is not blocked at the platform level. A regular admin could still call `base44.entities.User.update(targetId, { role: 'super_admin' })` from the console. True enforcement requires a backend function.  
-**Recommendation:** Create a backend function `changeUserRole` that verifies the caller is super_admin before updating the role.  
-**Test:** Verified the guard prevents invalid calls from the UI.
+**Root Cause:** The `setRole()` function in AdminDashboard called `User.update(u.id, { role })` directly via the client SDK. A regular admin could call the SDK from the browser console to set any role including 'super_admin'. This is a platform-level limitation — the Base44 built-in User security allows admins to update user records without field-level restrictions.  
+**Fix Applied:** Created the `updateUserRole` backend function that verifies the caller is an admin, enforces role hierarchy (admins can only set 'admin' or 'user', cannot target super_admins, cannot modify self), and performs the update via service role. AdminDashboard now routes all role changes through this function.  
+**Remaining Risk:** Platform-level — the built-in User entity allows admins to call `User.update()` directly from the SDK. This cannot be blocked from the app side; it requires platform-level field restrictions on the User entity.  
+**Status:** **FIXED (app-level)** — backend function enforces authorization server-side. Platform-level SDK bypass remains a known limitation.  
+**Test:** Verified the backend function rejects unauthorized role changes and self-promotion attempts.
 
 ### Finding #8 — LOW: AppSetting public read could expose secrets if misused
 **Severity:** Low  
@@ -177,13 +179,16 @@ No external API connectors authorized yet. No backend functions with secrets.
 - ❌ Cross-origin resource sharing (CORS) configuration
 - ❌ Backup encryption and access controls
 
-### Requires Backend Functions (Not yet implemented)
-- ❌ Server-side achievement validation (Finding #5)
-- ❌ Server-side block enforcement for messages (Finding #3)
-- ❌ Server-side role change authorization (Finding #7)
-- ❌ Server-side trade value calculation
-- ❌ Server-side leaderboard calculation verification
-- ❌ Server-side rate limiting for AI/scanner operations
+### Backend Functions (Implemented)
+- ✅ `sendMessage` — server-side block enforcement + rate limiting (Finding #3)
+- ✅ `awardAchievements` — server-side achievement validation (Finding #5)
+- ✅ `manualAchievement` — super_admin achievement overrides (Finding #5)
+- ✅ `updateUserRole` — server-side role change authorization (Finding #7)
+- ✅ `getPublicProfile` — single-user public profile with field filtering (Finding #6)
+- ✅ `getPublicProfiles` — bulk public profiles with field filtering (Finding #6)
+- ❌ Server-side trade value calculation (deferred)
+- ❌ Server-side leaderboard calculation verification (deferred)
+- ❌ Server-side rate limiting for AI/scanner operations (deferred)
 
 ### Requires External Configuration
 - ❌ Domain HTTPS certificate
@@ -203,12 +208,12 @@ No external API connectors authorized yet. No backend functions with secrets.
 |----------|---------|--------|
 | ✅ Critical | #1: Self-promotion to super_admin | **FIXED** |
 | ✅ High | #2: Edit controls exposed to non-owners | **FIXED** |
-| ⚠️ Medium | #3: Block enforcement (client-side only) | **PARTIAL** — needs backend function |
+| ✅ Medium | #3: Block enforcement | **FIXED** — backend function + RLS lock-down |
 | ✅ Low | #4: Chat message over-fetching | **FIXED** |
-| ⚠️ Medium | #5: Achievement self-awarding | **DOCUMENTED** — needs backend function |
-| ⚠️ Medium | #6: CollectorProfile field exposure | **DOCUMENTED** — needs entity split |
-| ⚠️ Low | #7: Admin role escalation via SDK | **PARTIAL** — needs backend function |
-| ⚠️ Low | #8: AppSetting secret exposure risk | **DOCUMENTED** — policy recommendation |
+| ✅ Medium | #5: Achievement self-awarding | **FIXED** — backend function + RLS lock-down |
+| ✅ Medium | #6: CollectorProfile field exposure | **FIXED** — RLS lock-down + server-side filtering |
+| ✅ Low | #7: Admin role escalation via SDK | **FIXED (app-level)** — backend function (platform SDK bypass remains) |
+| ⚠️ Low | #8: AppSetting secret exposure risk | **DOCUMENTED** — policy: never store secrets |
 
 ---
 
@@ -255,7 +260,7 @@ No external API connectors authorized yet. No backend functions with secrets.
 
 ---
 
-**Recommended Next Security Review:** After backend functions are implemented for findings #3, #5, and #7, and before enabling any payment integration or opening to public registration.
+**Recommended Next Security Review:** Before enabling any payment integration or opening to public registration. Findings #1–#7 are now fixed at the app level; remaining items are platform-level limitations (#7 SDK bypass), policy recommendations (#8), deferred server-side validation (trade values, leaderboard), and external configuration (HTTPS, DNSSEC, pen test).
 
 **Review completed by:** Base44 AI  
 **Date:** 2026-08-04
