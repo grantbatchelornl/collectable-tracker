@@ -1,0 +1,53 @@
+{
+  "name": "LeagueActivity",
+  "type": "object",
+  "properties": {
+    "league_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "user_photo": {
+      "type": "string"
+    },
+    "activity_type": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "collectible_id": {
+      "type": "string"
+    },
+    "collectible_name": {
+      "type": "string"
+    },
+    "collectible_photo": {
+      "type": "string"
+    },
+    "value": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "league_id",
+    "user_id",
+    "activity_type",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": false,
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

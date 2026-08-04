@@ -1,0 +1,62 @@
+{
+  "name": "LeagueChallenge",
+  "type": "object",
+  "properties": {
+    "league_id": {
+      "type": "string"
+    },
+    "league_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string"
+    },
+    "prize": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "league_id",
+    "title",
+    "created_by"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "name": "League",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "invite_code": {
+      "type": "string"
+    },
+    "is_private": {
+      "type": "boolean",
+      "default": false
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "owner_id",
+    "invite_code"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}

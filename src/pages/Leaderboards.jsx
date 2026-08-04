@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
-import { getLeaderboard, getFriends, LEADERBOARD_SECTIONS } from '@/lib/leaderboard';
+import { getLeaderboard, getFriends, LEADERBOARD_SECTIONS, LEADERBOARD_TIMEFRAMES } from '@/lib/leaderboard';
 import LeaderboardEntry from '@/components/leaderboard/LeaderboardEntry';
 import LeaderboardPrivacyPanel from '@/components/leaderboard/LeaderboardPrivacyPanel';
 import { ArrowLeft, Loader2, Trophy, Globe, Users, Lock, ChevronDown, ChevronUp } from 'lucide-react';
@@ -18,6 +18,7 @@ export default function Leaderboards() {
   const [metricKey, setMetricKey] = useState('total_value');
   const [entries, setEntries] = useState([]);
   const [showSettings, setShowSettings] = useState(false);
+  const [timeframe, setTimeframe] = useState('all_time');
 
   const currentSection = LEADERBOARD_SECTIONS.find((s) => s.key === sectionKey);
   const currentMetric = currentSection?.metrics.find((m) => m.key === metricKey);
@@ -28,7 +29,7 @@ export default function Leaderboards() {
 
   useEffect(() => {
     loadLeaderboard();
-  }, [sectionKey, metricKey, scope, friendIds, profile]);
+  }, [sectionKey, metricKey, scope, friendIds, profile, timeframe]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -49,7 +50,7 @@ export default function Leaderboards() {
   const loadLeaderboard = async () => {
     setLoading(true);
     try {
-      const data = await getLeaderboard(sectionKey, metricKey, scope, friendIds, user?.id);
+      const data = await getLeaderboard(sectionKey, metricKey, scope, friendIds, user?.id, timeframe);
       setEntries(data);
     } catch (err) {
       console.error(err);
@@ -127,6 +128,23 @@ export default function Leaderboards() {
           >
             <Users className="w-4 h-4" /> Friends ({friendIds.length})
           </button>
+        </div>
+      )}
+
+      {/* Timeframe selector */}
+      {isParticipating && (
+        <div className="flex gap-1 overflow-x-auto no-scrollbar -mx-4 px-4">
+          {LEADERBOARD_TIMEFRAMES.map((tf) => (
+            <button
+              key={tf.key}
+              onClick={() => setTimeframe(tf.key)}
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium whitespace-nowrap transition-colors ${
+                timeframe === tf.key ? 'bg-accent text-accent-foreground border border-primary/30' : 'bg-muted/50 text-muted-foreground'
+              }`}
+            >
+              {tf.icon} {tf.label}
+            </button>
+          ))}
         </div>
       )}
 

@@ -267,7 +267,7 @@ export default function Profile() {
       {/* Leaderboards, AI & Settings */}
       <div className="space-y-2">
         <button
-          onClick={() => navigate('/leaderboards')}
+          onClick={() => navigate('/community')}
           className="w-full rounded-2xl bg-card border border-border p-4 flex items-center gap-3 text-left hover:bg-accent transition-colors"
         >
           <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center">

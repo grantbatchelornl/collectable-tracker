@@ -10,8 +10,8 @@ export const LEADERBOARD_SECTIONS = [
       { key: 'total_value', label: 'Collection Value', icon: '💰', type: 'currency' },
       { key: 'collector_score', label: 'Collector Score', icon: '⭐', type: 'score' },
       { key: 'largest_collection', label: 'Largest Collection', icon: '📦', type: 'count' },
+      { key: 'biggest_growth', label: 'Collection Growth', icon: '📈', type: 'currency' },
       { key: 'most_valuable_single', label: 'Most Valuable Item', icon: '💎', type: 'currency' },
-      { key: 'biggest_growth', label: 'Biggest Growth', icon: '📈', type: 'currency' },
     ],
   },
   {
@@ -21,7 +21,7 @@ export const LEADERBOARD_SECTIONS = [
     metrics: [
       { key: 'value', label: 'Collection Value', icon: '💰', type: 'currency' },
       { key: 'count', label: 'Largest Collection', icon: '📦', type: 'count' },
-      { key: 'set_completion', label: 'Set Completion', icon: '🎯', type: 'count' },
+      { key: 'set_completion', label: 'Master Set Progress', icon: '🎯', type: 'count' },
     ],
   },
   {
@@ -48,8 +48,13 @@ export const LEADERBOARD_SECTIONS = [
     label: 'Sports Cards',
     icon: '⚾',
     metrics: [
-      { key: 'value', label: 'Collection Value', icon: '💰', type: 'currency' },
-      { key: 'count', label: 'Largest Collection', icon: '📦', type: 'count' },
+      { key: 'overall_value', label: 'Overall Value', icon: '💰', type: 'currency' },
+      { key: 'overall_count', label: 'Largest Collection', icon: '📦', type: 'count' },
+      { key: 'baseball_value', label: 'Baseball', icon: '⚾', type: 'currency' },
+      { key: 'football_value', label: 'Football', icon: '🏈', type: 'currency' },
+      { key: 'basketball_value', label: 'Basketball', icon: '🏀', type: 'currency' },
+      { key: 'hockey_value', label: 'Hockey', icon: '🏒', type: 'currency' },
+      { key: 'soccer_value', label: 'Soccer', icon: '⚽', type: 'currency' },
     ],
   },
   {
@@ -60,6 +65,7 @@ export const LEADERBOARD_SECTIONS = [
       { key: 'value', label: 'Collection Value', icon: '💰', type: 'currency' },
       { key: 'count', label: 'Largest Collection', icon: '📦', type: 'count' },
       { key: 'chase_count', label: 'Chase Collection', icon: '🔥', type: 'count' },
+      { key: 'exclusive_count', label: 'Exclusive Collection', icon: '⭐', type: 'count' },
     ],
   },
   {
@@ -69,6 +75,8 @@ export const LEADERBOARD_SECTIONS = [
     metrics: [
       { key: 'value', label: 'Collection Value', icon: '💰', type: 'currency' },
       { key: 'count', label: 'Largest Collection', icon: '📦', type: 'count' },
+      { key: 'gold_value', label: 'Gold Collection', icon: '🥇', type: 'currency' },
+      { key: 'silver_value', label: 'Silver Collection', icon: '🥈', type: 'currency' },
     ],
   },
   {
@@ -80,6 +88,13 @@ export const LEADERBOARD_SECTIONS = [
       { key: 'count', label: 'Largest Collection', icon: '📦', type: 'count' },
     ],
   },
+];
+
+export const LEADERBOARD_TIMEFRAMES = [
+  { key: 'all_time', label: 'All Time', icon: '∞' },
+  { key: 'yearly', label: 'Yearly', icon: '📅' },
+  { key: 'monthly', label: 'Monthly', icon: '🗓️' },
+  { key: 'weekly', label: 'Weekly', icon: '📊' },
 ];
 
 export const REACTIONS = [
@@ -104,24 +119,35 @@ function getEffectiveScope(profile) {
   return profile.leaderboard_opt_in ? 'global_friends' : 'hidden';
 }
 
-export async function getLeaderboard(sectionKey, metricKey, scope, friendIds, currentUserId) {
+function getTimeframeCutoff(timeframe) {
+  if (timeframe === 'all_time') return 0;
+  const now = Date.now();
+  const durations = {
+    weekly: 7 * 24 * 60 * 60 * 1000,
+    monthly: 30 * 24 * 60 * 60 * 1000,
+    yearly: 365 * 24 * 60 * 60 * 1000,
+  };
+  return now - (durations[timeframe] || 0);
+}
+
+export async function getLeaderboard(sectionKey, metricKey, scope, eligibleIds, currentUserId, timeframe = 'all_time') {
   const allProfiles = await base44.entities.CollectorProfile.filter({});
   const profileMap = {};
-  allProfiles.forEach((p) => {
-    profileMap[p.user_id] = p;
-  });
+  allProfiles.forEach((p) => { profileMap[p.user_id] = p; });
 
-  let eligibleIds;
-  if (scope === 'friends') {
-    const friendSet = new Set(friendIds);
-    friendSet.add(currentUserId);
-    eligibleIds = new Set(
-      allProfiles
-        .filter((p) => friendSet.has(p.user_id) && getEffectiveScope(p) !== 'hidden')
-        .map((p) => p.user_id)
-    );
+  let finalEligibleIds;
+  if (scope === 'friends' || scope === 'league') {
+    finalEligibleIds = new Set(eligibleIds || []);
+    if (scope === 'friends') finalEligibleIds.add(currentUserId);
+    if (scope === 'friends') {
+      finalEligibleIds = new Set(
+        allProfiles
+          .filter((p) => finalEligibleIds.has(p.user_id) && getEffectiveScope(p) !== 'hidden')
+          .map((p) => p.user_id)
+      );
+    }
   } else {
-    eligibleIds = new Set(
+    finalEligibleIds = new Set(
       allProfiles
         .filter((p) => getEffectiveScope(p) === 'global_friends')
         .map((p) => p.user_id)
@@ -134,28 +160,25 @@ export async function getLeaderboard(sectionKey, metricKey, scope, friendIds, cu
     2000
   );
   const verifiedOnly = collectibles.filter((c) => c.value_type === 'verified_sold');
+  const cutoff = getTimeframeCutoff(timeframe);
 
-  const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
   const userMap = {};
-
   const ensureUser = (userId) => {
     if (!userMap[userId]) {
       userMap[userId] = {
-        userId,
-        totalValue: 0,
-        itemCount: 0,
-        gradedCount: 0,
-        maxValue: 0,
-        weeklyGrowth: 0,
-        chaseCount: 0,
-        categories: {},
+        userId, totalValue: 0, itemCount: 0, gradedCount: 0, maxValue: 0,
+        weeklyGrowth: 0, chaseCount: 0, categories: {},
       };
     }
     return userMap[userId];
   };
 
   verifiedOnly.forEach((c) => {
-    if (!eligibleIds.has(c.created_by_id)) return;
+    if (!finalEligibleIds.has(c.created_by_id)) return;
+    if (cutoff > 0) {
+      const itemDate = c.created_date ? new Date(c.created_date).getTime() : 0;
+      if (itemDate < cutoff) return;
+    }
     const u = ensureUser(c.created_by_id);
     u.totalValue += c.estimated_value || 0;
     u.itemCount++;
@@ -165,27 +188,35 @@ export async function getLeaderboard(sectionKey, metricKey, scope, friendIds, cu
 
     const cat = c.category_name || 'Unknown';
     if (!u.categories[cat]) {
-      u.categories[cat] = { value: 0, count: 0, sets: new Set(), chaseCount: 0 };
+      u.categories[cat] = { value: 0, count: 0, sets: new Set(), chaseCount: 0, exclusiveCount: 0, goldValue: 0, silverValue: 0, sports: {} };
     }
-    u.categories[cat].value += c.estimated_value || 0;
-    u.categories[cat].count++;
-    if (c.set_name) u.categories[cat].sets.add(c.set_name);
-    if (c.is_chase) u.categories[cat].chaseCount++;
+    const catData = u.categories[cat];
+    catData.value += c.estimated_value || 0;
+    catData.count++;
+    if (c.set_name) catData.sets.add(c.set_name);
+    if (c.is_chase) catData.chaseCount++;
+    if (c.is_exclusive) catData.exclusiveCount++;
 
-    if (c.created_date && new Date(c.created_date).getTime() > weekAgo) {
+    const comp = (c.composition || '').toLowerCase();
+    if (comp.includes('gold')) catData.goldValue += c.estimated_value || 0;
+    if (comp.includes('silver')) catData.silverValue += c.estimated_value || 0;
+
+    const sport = c.sport || 'Unknown';
+    if (!catData.sports[sport]) catData.sports[sport] = { value: 0, count: 0 };
+    catData.sports[sport].value += c.estimated_value || 0;
+    catData.sports[sport].count++;
+
+    if (c.created_date && new Date(c.created_date).getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000) {
       u.weeklyGrowth += c.estimated_value || 0;
     }
   });
 
-  let entries = Object.values(userMap).filter((e) => eligibleIds.has(e.userId));
+  let entries = Object.values(userMap).filter((e) => finalEligibleIds.has(e.userId));
 
   if (sectionKey === 'overall' && metricKey === 'collector_score') {
     entries = entries.map((e) => {
       const score = computeCollectorScore(
-        verifiedOnly.filter((c) => c.created_by_id === e.userId),
-        [],
-        [],
-        []
+        verifiedOnly.filter((c) => c.created_by_id === e.userId), [], [], []
       );
       return { ...e, scoreValue: score.score };
     });
@@ -194,32 +225,30 @@ export async function getLeaderboard(sectionKey, metricKey, scope, friendIds, cu
   const getMetricValue = (entry) => {
     if (sectionKey === 'overall') {
       switch (metricKey) {
-        case 'total_value':
-          return entry.totalValue;
-        case 'collector_score':
-          return entry.scoreValue || 0;
-        case 'largest_collection':
-          return entry.itemCount;
-        case 'most_valuable_single':
-          return entry.maxValue;
-        case 'biggest_growth':
-          return entry.weeklyGrowth;
-        default:
-          return entry.totalValue;
+        case 'total_value': return entry.totalValue;
+        case 'collector_score': return entry.scoreValue || 0;
+        case 'largest_collection': return entry.itemCount;
+        case 'most_valuable_single': return entry.maxValue;
+        case 'biggest_growth': return entry.weeklyGrowth;
+        default: return entry.totalValue;
       }
     }
     const cat = entry.categories[sectionKey];
     if (!cat) return 0;
     switch (metricKey) {
-      case 'value':
-        return cat.value;
-      case 'count':
-        return cat.count;
-      case 'set_completion':
-        return cat.sets.size;
-      case 'chase_count':
-        return cat.chaseCount;
+      case 'value': case 'overall_value': return cat.value;
+      case 'count': case 'overall_count': return cat.count;
+      case 'set_completion': return cat.sets.size;
+      case 'chase_count': return cat.chaseCount;
+      case 'exclusive_count': return cat.exclusiveCount;
+      case 'gold_value': return cat.goldValue;
+      case 'silver_value': return cat.silverValue;
       default:
+        if (metricKey.endsWith('_value')) {
+          const sportName = metricKey.replace('_value', '');
+          const sportKey = sportName.charAt(0).toUpperCase() + sportName.slice(1);
+          return cat.sports[sportKey]?.value || cat.sports[sportName]?.value || 0;
+        }
         return cat.value;
     }
   };
@@ -232,8 +261,7 @@ export async function getLeaderboard(sectionKey, metricKey, scope, friendIds, cu
     const profile = profileMap[e.userId];
     const lastRank = profile?.last_week_rank;
     return {
-      ...e,
-      rank: i + 1,
+      ...e, rank: i + 1,
       displayName: profile?.display_name || 'Collector',
       username: profile?.username || '',
       profilePhoto: profile?.profile_photo || '',
