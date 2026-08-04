@@ -1,12 +1,12 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, LayoutGrid, ScanLine, Heart, Users, User } from 'lucide-react';
+import { Home, LayoutGrid, ScanLine, Heart, Compass, User } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/collection', icon: LayoutGrid, label: 'Collection' },
   { to: '/add', icon: ScanLine, label: 'Scan', isCenter: true },
   { to: '/watchlist', icon: Heart, label: 'Wishlist' },
-  { to: '/messages', icon: Users, label: 'Community' },
+  { to: '/discover', icon: Compass, label: 'Discover' },
   { to: '/profile', icon: User, label: 'Profile' },
 ];
 

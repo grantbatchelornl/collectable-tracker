@@ -1,8 +1,11 @@
-import { Bell, Moon, Sun, Sparkles } from 'lucide-react';
+import { Moon, Sun, Sparkles, MessageCircle } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
+import { useNavigate } from 'react-router-dom';
+import NotificationBell from './NotificationBell';
 
 export default function TopBar() {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 h-16 bg-background/80 backdrop-blur-lg border-b border-border">
@@ -25,12 +28,13 @@ export default function TopBar() {
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
           </button>
           <button
-            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent transition-colors relative"
-            aria-label="Notifications"
+            onClick={() => navigate('/messages')}
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent transition-colors"
+            aria-label="Messages"
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full" />
+            <MessageCircle className="w-5 h-5" />
           </button>
+          <NotificationBell />
         </div>
       </div>
     </header>
