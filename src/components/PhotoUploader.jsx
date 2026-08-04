@@ -3,7 +3,7 @@ import { Camera, Upload, X, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 
-function PhotoSlot({ label, photo, onPhotoChange }) {
+function PhotoSlot({ label, photo, required, onPhotoChange }) {
   const [uploading, setUploading] = useState(false);
   const cameraRef = useRef(null);
   const galleryRef = useRef(null);
@@ -22,8 +22,10 @@ function PhotoSlot({ label, photo, onPhotoChange }) {
   };
 
   return (
-    <div className="flex-1">
-      <p className="text-xs font-medium text-muted-foreground mb-2">{label}</p>
+    <div>
+      <p className="text-xs font-medium text-muted-foreground mb-1.5">
+        {label} {required && <span className="text-primary">*</span>}
+      </p>
       <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-dashed border-border bg-muted/50">
         {uploading ? (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -35,35 +37,35 @@ function PhotoSlot({ label, photo, onPhotoChange }) {
             <div className="absolute top-2 right-2 flex gap-1">
               <button
                 onClick={() => cameraRef.current?.click()}
-                className="w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
+                className="w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
               >
-                <Camera className="w-4 h-4" />
+                <Camera className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => onPhotoChange(null)}
-                className="w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
+                className="w-7 h-7 rounded-full bg-background/80 backdrop-blur flex items-center justify-center"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-            <div className="flex gap-3">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3">
+            <div className="flex gap-2">
               <button
                 onClick={() => cameraRef.current?.click()}
-                className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
+                className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
               >
-                <Camera className="w-6 h-6 text-primary-foreground" />
+                <Camera className="w-5 h-5 text-primary-foreground" />
               </button>
               <button
                 onClick={() => galleryRef.current?.click()}
-                className="w-14 h-14 rounded-full bg-secondary flex items-center justify-center"
+                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center"
               >
-                <Upload className="w-6 h-6" />
+                <Upload className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-muted-foreground text-center">Camera or upload</p>
+            <p className="text-[10px] text-muted-foreground text-center">Camera or upload</p>
           </div>
         )}
       </div>
@@ -86,19 +88,23 @@ function PhotoSlot({ label, photo, onPhotoChange }) {
   );
 }
 
-export default function PhotoUploader({ photos, onChange }) {
+export default function PhotoUploader({ photoTypes, photos, onChange }) {
+  const types = photoTypes || [
+    { key: 'front', label: 'Front', required: true },
+    { key: 'back', label: 'Back', required: true },
+  ];
+
   return (
-    <div className="flex gap-3">
-      <PhotoSlot
-        label="Front"
-        photo={photos.front}
-        onPhotoChange={(url) => onChange({ ...photos, front: url })}
-      />
-      <PhotoSlot
-        label="Back"
-        photo={photos.back}
-        onPhotoChange={(url) => onChange({ ...photos, back: url })}
-      />
+    <div className="grid grid-cols-2 gap-3">
+      {types.map((type) => (
+        <PhotoSlot
+          key={type.key}
+          label={type.label}
+          required={type.required}
+          photo={photos?.[type.key]}
+          onPhotoChange={(url) => onChange({ ...photos, [type.key]: url })}
+        />
+      ))}
     </div>
   );
 }

@@ -47,6 +47,9 @@
     "serial_number": {
       "type": "string"
     },
+    "language": {
+      "type": "string"
+    },
     "has_autograph": {
       "type": "boolean",
       "default": false
@@ -65,6 +68,61 @@
     },
     "authentication_company": {
       "type": "string"
+    },
+    "franchise": {
+      "type": "string"
+    },
+    "box_number": {
+      "type": "string"
+    },
+    "series": {
+      "type": "string"
+    },
+    "is_exclusive": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_sticker": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_chase": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_boxed": {
+      "type": "boolean",
+      "default": false
+    },
+    "country": {
+      "type": "string"
+    },
+    "denomination": {
+      "type": "string"
+    },
+    "mint_mark": {
+      "type": "string"
+    },
+    "composition": {
+      "type": "string"
+    },
+    "sport": {
+      "type": "string"
+    },
+    "is_rookie": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_patch": {
+      "type": "boolean",
+      "default": false
+    },
+    "item_type": {
+      "type": "string"
+    },
+    "is_game_used": {
+      "type": "boolean",
+      "default": false
     },
     "estimated_value": {
       "type": "number",
@@ -157,6 +215,24 @@
     },
     "notes": {
       "type": "string"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "deleted_date": {
+      "type": "string"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false
+    },
+    "folder_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
     }
   },
   "required": [

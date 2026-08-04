@@ -7,14 +7,14 @@ import CollectibleFormFields from '@/components/CollectibleFormFields';
 import AIConfidenceBanner from '@/components/AIConfidenceBanner';
 import SaveAnimation from '@/components/SaveAnimation';
 import { identifyAndPrice } from '@/lib/collectibleAI';
+import { getPhotoTypes } from '@/lib/categoryFields';
 import { checkAndAwardBadges } from '@/lib/achievements';
 import { ArrowLeft, ArrowRight, Check, Loader2, Tag, Sparkles } from 'lucide-react';
 
 const EMPTY = {
   category_id: '',
   category_name: '',
-  frontPhoto: null,
-  backPhoto: null,
+  photos: {},
   item_name: '',
   character_athlete_name: '',
   brand: '',
@@ -50,6 +50,23 @@ const EMPTY = {
   matching_criteria: '',
   includes_shipping: false,
   valuation_notes: '',
+  language: '',
+  franchise: '',
+  box_number: '',
+  series: '',
+  is_exclusive: false,
+  has_sticker: false,
+  is_chase: false,
+  is_boxed: false,
+  country: '',
+  denomination: '',
+  mint_mark: '',
+  composition: '',
+  sport: '',
+  is_rookie: false,
+  has_patch: false,
+  item_type: '',
+  is_game_used: false,
   notes: '',
 };
 
@@ -80,7 +97,7 @@ export default function AddCollectible() {
   };
 
   const handleAutoIdentify = async () => {
-    const photo = data.frontPhoto || data.backPhoto;
+    const photo = Object.values(data.photos || {}).find(Boolean);
     if (!photo) return;
     setIdentifying(true);
     try {
@@ -127,7 +144,7 @@ export default function AddCollectible() {
 
   const canProceed = () => {
     if (step === 1) return !!data.category_id;
-    if (step === 2) return !!data.frontPhoto || !!data.backPhoto;
+    if (step === 2) return Object.values(data.photos || {}).some(Boolean);
     if (step === 3) return !!data.item_name && data.estimated_value !== '';
     return false;
   };
@@ -175,29 +192,39 @@ export default function AddCollectible() {
         asking_price: parseFloat(data.asking_price) || 0,
         purchase_cost: parseFloat(data.purchase_cost) || 0,
         privacy_status: data.privacy_status,
-        primary_photo_url: data.frontPhoto || data.backPhoto || '',
+        primary_photo_url: Object.values(data.photos || {}).find(Boolean) || '',
+        language: data.language || undefined,
+        franchise: data.franchise || undefined,
+        box_number: data.box_number || undefined,
+        series: data.series || undefined,
+        is_exclusive: data.is_exclusive || false,
+        has_sticker: data.has_sticker || false,
+        is_chase: data.is_chase || false,
+        is_boxed: data.is_boxed || false,
+        country: data.country || undefined,
+        denomination: data.denomination || undefined,
+        mint_mark: data.mint_mark || undefined,
+        composition: data.composition || undefined,
+        sport: data.sport || undefined,
+        is_rookie: data.is_rookie || false,
+        has_patch: data.has_patch || false,
+        item_type: data.item_type || undefined,
+        is_game_used: data.is_game_used || false,
         notes: data.notes || undefined,
       });
 
       const promises = [];
-      if (data.frontPhoto) {
-        promises.push(
-          base44.entities.CollectiblePhoto.create({
-            collectible_id: collectible.id,
-            photo_type: 'front',
-            photo_url: data.frontPhoto,
-          })
-        );
-      }
-      if (data.backPhoto) {
-        promises.push(
-          base44.entities.CollectiblePhoto.create({
-            collectible_id: collectible.id,
-            photo_type: 'back',
-            photo_url: data.backPhoto,
-          })
-        );
-      }
+      Object.entries(data.photos || {}).forEach(([type, url]) => {
+        if (url) {
+          promises.push(
+            base44.entities.CollectiblePhoto.create({
+              collectible_id: collectible.id,
+              photo_type: type,
+              photo_url: url,
+            })
+          );
+        }
+      });
       promises.push(
         base44.entities.PricingHistory.create({
           collectible_id: collectible.id,
@@ -287,16 +314,15 @@ export default function AddCollectible() {
           <div>
             <h2 className="font-display text-xl font-bold mb-1">Add Photos</h2>
             <p className="text-sm text-muted-foreground">
-              Capture or upload a front and back photo of your collectible.
+              Capture or upload photos of your collectible. Required angles are marked with *.
             </p>
           </div>
           <PhotoUploader
-            photos={{ front: data.frontPhoto, back: data.backPhoto }}
-            onChange={(p) =>
-              setData((d) => ({ ...d, frontPhoto: p.front, backPhoto: p.back }))
-            }
+            photoTypes={getPhotoTypes(data.category_name)}
+            photos={data.photos}
+            onChange={(p) => setData((d) => ({ ...d, photos: p }))}
           />
-          {(data.frontPhoto || data.backPhoto) && (
+          {Object.values(data.photos || {}).some(Boolean) && (
             <button
               onClick={handleAutoIdentify}
               disabled={identifying}

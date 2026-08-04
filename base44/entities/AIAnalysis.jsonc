@@ -1,36 +1,32 @@
 {
-  "name": "CollectiblePhoto",
+  "name": "AIAnalysis",
   "type": "object",
   "properties": {
     "collectible_id": {
       "type": "string"
     },
-    "photo_type": {
-      "type": "string",
-      "enum": [
-        "front",
-        "back",
-        "left",
-        "right",
-        "top",
-        "bottom",
-        "obverse",
-        "reverse",
-        "edge",
-        "certificate",
-        "autograph",
-        "additional"
-      ],
-      "default": "front"
+    "analysis_type": {
+      "type": "string"
     },
-    "photo_url": {
+    "result": {
+      "type": "string"
+    },
+    "model": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string"
+    },
+    "identification_data": {
+      "type": "string"
+    },
+    "pricing_data": {
       "type": "string"
     }
   },
   "required": [
     "collectible_id",
-    "photo_type",
-    "photo_url"
+    "analysis_type"
   ],
   "rls": {
     "create": {

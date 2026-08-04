@@ -1,0 +1,82 @@
+{
+  "name": "SoldComparable",
+  "type": "object",
+  "properties": {
+    "collectible_id": {
+      "type": "string"
+    },
+    "collectible_name": {
+      "type": "string"
+    },
+    "sale_price": {
+      "type": "number"
+    },
+    "sale_date": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "marketplace": {
+      "type": "string"
+    },
+    "condition": {
+      "type": "string"
+    },
+    "is_auction": {
+      "type": "boolean",
+      "default": false
+    },
+    "includes_shipping": {
+      "type": "boolean",
+      "default": false
+    },
+    "matching_criteria": {
+      "type": "string"
+    },
+    "is_excluded": {
+      "type": "boolean",
+      "default": false
+    },
+    "exclusion_reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "collectible_id",
+    "sale_price",
+    "sale_date",
+    "source"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

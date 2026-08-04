@@ -41,7 +41,7 @@ export default function Home() {
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectibleCategory.list('sort_order', 50),
       ]);
-      setCollectibles(items);
+      setCollectibles(items.filter((c) => !c.is_deleted));
       setPricingHistory(history);
       setCategories(cats.filter((c) => c.active));
     } catch (err) {

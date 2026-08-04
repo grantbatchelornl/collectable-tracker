@@ -73,9 +73,10 @@ export default function CollectibleDetail() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      await base44.entities.CollectiblePhoto.deleteMany({ collectible_id: id });
-      await base44.entities.PricingHistory.deleteMany({ collectible_id: id });
-      await base44.entities.Collectible.delete(id);
+      await base44.entities.Collectible.update(id, {
+        is_deleted: true,
+        deleted_date: new Date().toISOString(),
+      });
       navigate('/');
     } catch (err) {
       console.error(err);

@@ -1,0 +1,50 @@
+{
+  "name": "CollectionHealth",
+  "type": "object",
+  "properties": {
+    "overall_score": {
+      "type": "number"
+    },
+    "completion_score": {
+      "type": "number"
+    },
+    "accuracy_score": {
+      "type": "number"
+    },
+    "freshness_score": {
+      "type": "number"
+    },
+    "issues": {
+      "type": "string"
+    },
+    "total_items": {
+      "type": "number"
+    },
+    "items_missing_photos": {
+      "type": "number"
+    },
+    "items_missing_values": {
+      "type": "number"
+    },
+    "items_stale": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "overall_score"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

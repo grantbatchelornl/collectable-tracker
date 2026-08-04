@@ -16,6 +16,7 @@ export default function Collection() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortBy, setSortBy] = useState('recent');
   const [showForSale, setShowForSale] = useState(false);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -30,7 +31,7 @@ export default function Collection() {
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectibleCategory.list('sort_order', 50),
       ]);
-      setCollectibles(items);
+      setCollectibles(items.filter((c) => !c.is_deleted));
       setPricingHistory(history);
       setCategories(cats.filter((c) => c.active));
     } catch (err) {
@@ -77,6 +78,9 @@ export default function Collection() {
     if (showForSale) {
       result = result.filter((c) => c.for_sale);
     }
+    if (showFavorites) {
+      result = result.filter((c) => c.is_favorite);
+    }
     switch (sortBy) {
       case 'value_desc':
         result.sort((a, b) => (b.estimated_value || 0) - (a.estimated_value || 0));
@@ -91,7 +95,7 @@ export default function Collection() {
         result.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     }
     return result;
-  }, [collectibles, search, activeCategory, sortBy, showForSale]);
+  }, [collectibles, search, activeCategory, sortBy, showForSale, showFavorites]);
 
   if (loading) {
     return (
@@ -144,6 +148,14 @@ export default function Collection() {
           }`}
         >
           For Sale
+        </button>
+        <button
+          onClick={() => setShowFavorites(!showFavorites)}
+          className={`px-4 py-1.5 rounded-full text-xs font-medium whitespace-nowrap ${
+            showFavorites ? 'bg-primary text-primary-foreground' : 'bg-card border border-border text-muted-foreground'
+          }`}
+        >
+          ★ Favorites
         </button>
         <button
           onClick={() => setActiveCategory('all')}
