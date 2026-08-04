@@ -32,6 +32,33 @@
     },
     "icon": {
       "type": "string"
+    },
+    "privacy_status": {
+      "type": "string",
+      "enum": [
+        "private",
+        "friends",
+        "public"
+      ],
+      "default": "private"
+    },
+    "cost_estimates_json": {
+      "type": "string"
+    },
+    "cost_estimates_date": {
+      "type": "string"
+    },
+    "owned_count": {
+      "type": "number",
+      "default": 0
+    },
+    "completion_percent": {
+      "type": "number",
+      "default": 0
+    },
+    "last_milestone_notified": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [
@@ -43,7 +70,14 @@
       "created_by_id": "{{user.id}}"
     },
     "read": {
-      "created_by_id": "{{user.id}}"
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.privacy_status": "public"
+        }
+      ]
     },
     "update": {
       "created_by_id": "{{user.id}}"
