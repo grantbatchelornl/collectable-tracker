@@ -135,8 +135,15 @@ export default function AdminDashboard() {
   const setRole = async (u, role) => {
     if (!isSuperAdmin || !['admin', 'user'].includes(role) || u.id === user.id) return;
     try {
-      await base44.entities.User.update(u.id, { role });
-      await logAction('change_role', 'user', u.id, u.email, `Set role to ${role}`);
+      const response = await base44.functions.invoke('updateUserRole', {
+        targetUserId: u.id,
+        newRole: role,
+        reason: 'Role change via Admin Dashboard',
+      });
+      if (response.data?.error) {
+        alert(response.data.error);
+        return;
+      }
       loadData();
     } catch (err) {
       alert('Failed to update role: ' + (err.message || ''));

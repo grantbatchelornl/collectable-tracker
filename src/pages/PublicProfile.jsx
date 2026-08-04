@@ -24,6 +24,7 @@ export default function PublicProfile() {
   const [showTrade, setShowTrade] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
+  const [theyBlockedMe, setTheyBlockedMe] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('spam');
   const [foundingBadge, setFoundingBadge] = useState(null);
@@ -36,15 +37,18 @@ export default function PublicProfile() {
     if (!userId) return;
     setLoading(true);
     try {
-      const [profiles, items] = await Promise.all([
-        base44.entities.CollectorProfile.filter({ user_id: userId }),
-        base44.entities.Collectible.filter(
-          { created_by_id: userId, privacy_status: 'public' },
-          '-created_date',
-          200
-        ),
-      ]);
-      setProfile(profiles[0] || null);
+      const response = await base44.functions.invoke('getPublicProfile', { targetUserId: userId });
+      const data = response.data || response;
+      setProfile(data.profile || null);
+      setIsFriend(data.isFriend || false);
+      setIsBlocked(data.iBlockedThem || false);
+      setTheyBlockedMe(data.theyBlockedMe || false);
+
+      const items = await base44.entities.Collectible.filter(
+        { created_by_id: userId, privacy_status: 'public' },
+        '-created_date',
+        200
+      );
       setCollectibles(items.filter((c) => !c.is_deleted));
 
       try {
@@ -52,25 +56,6 @@ export default function PublicProfile() {
         setFoundingBadge(founding[0] || null);
       } catch (e) {
         // non-critical
-      }
-
-      if (user?.id && userId !== user.id) {
-        const [myFollow, theirFollow] = await Promise.all([
-          base44.entities.Follow.filter({
-            follower_id: user.id,
-            following_id: userId,
-            status: 'active',
-          }),
-          base44.entities.Follow.filter({
-            follower_id: userId,
-            following_id: user.id,
-            status: 'active',
-          }),
-        ]);
-        setIsFriend(myFollow.length > 0 && theirFollow.length > 0);
-
-        const blocks = await base44.entities.UserBlock.filter({ blocker_id: user.id, blocked_id: userId });
-        setIsBlocked(blocks.length > 0);
       }
     } catch (err) {
       console.error(err);
@@ -162,7 +147,7 @@ export default function PublicProfile() {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => navigate(`/chat/${userId}`)}
-              disabled={!isFriend}
+              disabled={!isFriend || theyBlockedMe}
               className="h-11 rounded-xl border border-border flex items-center justify-center gap-2 text-sm font-medium hover:bg-accent disabled:opacity-50 transition-colors"
             >
               <MessageCircle className="w-4 h-4" /> Message
@@ -177,6 +162,11 @@ export default function PublicProfile() {
           {!isFriend && (
             <p className="text-xs text-muted-foreground text-center">
               Messaging unlocks once you're mutual friends.
+            </p>
+          )}
+          {theyBlockedMe && (
+            <p className="text-xs text-destructive text-center">
+              This user has blocked you. You cannot send them messages.
             </p>
           )}
         </div>
