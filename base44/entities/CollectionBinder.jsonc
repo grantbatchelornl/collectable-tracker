@@ -42,6 +42,10 @@
       ],
       "default": "private"
     },
+    "is_showcased": {
+      "type": "boolean",
+      "default": false
+    },
     "cost_estimates_json": {
       "type": "string"
     },
@@ -122,6 +126,9 @@
         },
         {
           "data.privacy_status": "public"
+        },
+        {
+          "data.is_showcased": true
         }
       ]
     },
