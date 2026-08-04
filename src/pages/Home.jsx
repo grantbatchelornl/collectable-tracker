@@ -24,7 +24,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass } from 'lucide-react';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -218,6 +218,15 @@ export default function Home() {
               <Compass className="w-5 h-5 text-primary" />
             </div>
             <span className="text-xs font-medium">Discover</span>
+          </button>
+          <button
+            onClick={() => navigate('/founding-collectors')}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-primary/10 to-amber-500/10 border border-primary/20 p-4 hover:bg-accent transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-amber-500/20 flex items-center justify-center">
+              <Star className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium">Founders</span>
           </button>
         </div>
       )}

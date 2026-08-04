@@ -29,6 +29,7 @@ import { syncCollectorProfile } from '@/lib/social';
 import { checkAndAwardBadges } from '@/lib/achievements';
 import AchievementBadges from '@/components/AchievementBadges';
 import ShowcaseCollection from '@/components/ShowcaseCollection';
+import FoundingBadge from '@/components/FoundingBadge';
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -41,6 +42,7 @@ export default function Profile() {
   const [editData, setEditData] = useState({});
   const [friendRequests, setFriendRequests] = useState([]);
   const [collectorProfile, setCollectorProfile] = useState(null);
+  const [foundingBadge, setFoundingBadge] = useState(null);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -59,6 +61,12 @@ export default function Profile() {
       setCollectibles(items.filter((c) => !c.is_deleted));
       setCollectorProfile(profiles[0] || null);
       setFriendRequests(requests);
+      try {
+        const founding = await base44.entities.FoundingCollector.filter({ user_id: user?.id });
+        setFoundingBadge(founding[0] || null);
+      } catch (e) {
+        // non-critical
+      }
       checkAndAwardBadges(user).catch(() => {});
     } catch (err) {
       console.error(err);
@@ -189,7 +197,10 @@ export default function Profile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-xl font-bold truncate">{displayName}</h2>
+            <h2 className="font-display text-xl font-bold truncate flex items-center gap-1.5 flex-wrap">
+              {displayName}
+              {foundingBadge && <FoundingBadge badgeType={foundingBadge.badge_type} />}
+            </h2>
             <p className="text-sm text-muted-foreground truncate">
               @{user?.username || 'username'}
             </p>

@@ -32,6 +32,7 @@ import AIReviewQueue from '@/pages/AIReviewQueue';
 import TimeMachine from '@/pages/TimeMachine';
 import HallOfFame from '@/pages/HallOfFame';
 import RoomScanner from '@/pages/RoomScanner';
+import FoundingCollectors from '@/pages/FoundingCollectors';
 import Settings from '@/pages/Settings';
 import CollectibleDetail from '@/pages/CollectibleDetail';
 import EditCollectible from '@/pages/EditCollectible';
@@ -96,6 +97,7 @@ const AuthenticatedApp = () => {
           <Route path="/time-machine" element={<TimeMachine />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />
           <Route path="/room-scanner" element={<RoomScanner />} />
+          <Route path="/founding-collectors" element={<FoundingCollectors />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/collectible/:id" element={<CollectibleDetail />} />
           <Route path="/collectible/:id/edit" element={<EditCollectible />} />

@@ -1,0 +1,50 @@
+{
+  "name": "FoundingCollector",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "profile_photo": {
+      "type": "string"
+    },
+    "badge_type": {
+      "type": "string",
+      "enum": [
+        "founding_collector",
+        "founding_creator"
+      ],
+      "default": "founding_collector"
+    },
+    "message": {
+      "type": "string"
+    },
+    "joined_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "user_id",
+    "display_name",
+    "badge_type"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": true,
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

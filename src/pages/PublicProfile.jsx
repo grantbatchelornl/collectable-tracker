@@ -11,6 +11,7 @@ import { getInitials } from '@/lib/social';
 import AchievementBadges from '@/components/AchievementBadges';
 import ReputationBadge from '@/components/trade/ReputationBadge';
 import ShowcaseCollection from '@/components/ShowcaseCollection';
+import FoundingBadge from '@/components/FoundingBadge';
 import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X, BadgeCheck } from 'lucide-react';
 
 export default function PublicProfile() {
@@ -25,6 +26,7 @@ export default function PublicProfile() {
   const [isBlocked, setIsBlocked] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const [reportReason, setReportReason] = useState('spam');
+  const [foundingBadge, setFoundingBadge] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -44,6 +46,13 @@ export default function PublicProfile() {
       ]);
       setProfile(profiles[0] || null);
       setCollectibles(items.filter((c) => !c.is_deleted));
+
+      try {
+        const founding = await base44.entities.FoundingCollector.filter({ user_id: userId });
+        setFoundingBadge(founding[0] || null);
+      } catch (e) {
+        // non-critical
+      }
 
       if (user?.id && userId !== user.id) {
         const [myFollow, theirFollow] = await Promise.all([
@@ -102,8 +111,9 @@ export default function PublicProfile() {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-xl font-bold truncate flex items-center gap-1.5">
+            <h2 className="font-display text-xl font-bold truncate flex items-center gap-1.5 flex-wrap">
               {displayName}
+              {foundingBadge && <FoundingBadge badgeType={foundingBadge.badge_type} />}
               {profile?.is_verified_trader && (
                 <span className="inline-flex items-center gap-0.5 bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[10px] font-bold">
                   <BadgeCheck className="w-3 h-3" /> Verified
