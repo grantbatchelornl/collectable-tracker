@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
+import GradeWorthinessCard from '@/components/GradeWorthinessCard';
+import ActionRecommendationCard from '@/components/ActionRecommendationCard';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -36,6 +39,7 @@ import { estimatePrice } from '@/lib/collectibleAI';
 export default function CollectibleDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [collectible, setCollectible] = useState(null);
   const [photos, setPhotos] = useState([]);
   const [history, setHistory] = useState([]);
@@ -44,6 +48,7 @@ export default function CollectibleDetail() {
   const [showDelete, setShowDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [collection, setCollection] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -60,6 +65,10 @@ export default function CollectibleDetail() {
       ]);
       setPhotos(photosData);
       setHistory(historyData);
+      try {
+        const allItems = await base44.entities.Collectible.filter({ created_by_id: user?.id || c.created_by_id }, '-created_date', 200);
+        setCollection(allItems.filter((item) => !item.is_deleted));
+      } catch (e) {}
       if (!photosData.some((p) => p.photo_type === 'front') && photosData.length > 0) {
         setActivePhoto('back');
       }
@@ -466,6 +475,10 @@ export default function CollectibleDetail() {
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">{collectible.notes}</p>
           </div>
         )}
+
+        <GradeWorthinessCard collectible={collectible} photoUrls={photos.map((p) => p.photo_url)} />
+
+        <ActionRecommendationCard collectible={collectible} collection={collection} pricingHistory={history} />
 
         <div className="space-y-3">
           <Button

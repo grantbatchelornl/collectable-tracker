@@ -37,6 +37,7 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [editData, setEditData] = useState({});
   const [friendRequests, setFriendRequests] = useState([]);
+  const [collectorProfile, setCollectorProfile] = useState(null);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -47,12 +48,14 @@ export default function Profile() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [items, requests] = await Promise.all([
+      const [items, requests, profiles] = await Promise.all([
         base44.entities.Collectible.list('-created_date', 200),
         base44.entities.Follow.filter({ following_id: user?.id, status: 'pending' }, '-created_date', 50),
+        base44.entities.CollectorProfile.filter({ user_id: user?.id }),
       ]);
       setCollectibles(items);
       setFriendRequests(requests);
+      setCollectorProfile(profiles[0] || null);
       checkAndAwardBadges(user).catch(() => {});
     } catch (err) {
       console.error(err);
@@ -87,6 +90,15 @@ export default function Profile() {
       profile_photo: user?.profile_photo || '',
       privacy_show_public_value: user?.privacy_show_public_value || false,
       notification_in_app_enabled: user?.notification_in_app_enabled ?? true,
+      favorite_categories: collectorProfile?.favorite_categories || '',
+      favorite_sets: collectorProfile?.favorite_sets || '',
+      favorite_franchises: collectorProfile?.favorite_franchises || '',
+      favorite_athletes: collectorProfile?.favorite_athletes || '',
+      favorite_teams: collectorProfile?.favorite_teams || '',
+      favorite_characters: collectorProfile?.favorite_characters || '',
+      budget: collectorProfile?.budget || '',
+      goals: collectorProfile?.goals || '',
+      risk_tolerance: collectorProfile?.risk_tolerance || 'moderate',
     });
     setEditing(true);
   };
@@ -123,6 +135,19 @@ export default function Profile() {
         profile_photo: editData.profile_photo,
         privacy_show_public_value: editData.privacy_show_public_value,
       });
+      if (collectorProfile) {
+        await base44.entities.CollectorProfile.update(collectorProfile.id, {
+          favorite_categories: editData.favorite_categories || undefined,
+          favorite_sets: editData.favorite_sets || undefined,
+          favorite_franchises: editData.favorite_franchises || undefined,
+          favorite_athletes: editData.favorite_athletes || undefined,
+          favorite_teams: editData.favorite_teams || undefined,
+          favorite_characters: editData.favorite_characters || undefined,
+          budget: parseFloat(editData.budget) || 0,
+          goals: editData.goals || undefined,
+          risk_tolerance: editData.risk_tolerance || 'moderate',
+        });
+      }
       setEditing(false);
       window.location.reload();
     } catch (err) {
@@ -360,6 +385,67 @@ export default function Profile() {
               checked={editData.notification_in_app_enabled}
               onChange={(v) => setEditData((d) => ({ ...d, notification_in_app_enabled: v }))}
             />
+
+            <div className="pt-2 border-t border-border">
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Collector Preferences</h4>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Favorite Categories</Label>
+                  <Input value={editData.favorite_categories || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_categories: e.target.value }))} placeholder="Pokémon, Sports Cards..." className="h-11" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Favorite Sets</Label>
+                    <Input value={editData.favorite_sets || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_sets: e.target.value }))} className="h-11" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Favorite Franchises</Label>
+                    <Input value={editData.favorite_franchises || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_franchises: e.target.value }))} className="h-11" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Favorite Athletes</Label>
+                    <Input value={editData.favorite_athletes || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_athletes: e.target.value }))} className="h-11" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Favorite Teams</Label>
+                    <Input value={editData.favorite_teams || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_teams: e.target.value }))} className="h-11" />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Favorite Characters</Label>
+                  <Input value={editData.favorite_characters || ''} onChange={(e) => setEditData((d) => ({ ...d, favorite_characters: e.target.value }))} className="h-11" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label>Budget</Label>
+                    <Input type="number" value={editData.budget || ''} onChange={(e) => setEditData((d) => ({ ...d, budget: e.target.value }))} placeholder="0.00" className="h-11" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label>Risk Tolerance</Label>
+                    <select
+                      value={editData.risk_tolerance || 'moderate'}
+                      onChange={(e) => setEditData((d) => ({ ...d, risk_tolerance: e.target.value }))}
+                      className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="conservative">Conservative</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Goals</Label>
+                  <textarea
+                    value={editData.goals || ''}
+                    onChange={(e) => setEditData((d) => ({ ...d, goals: e.target.value }))}
+                    placeholder="What are you collecting for?"
+                    className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+            </div>
 
             <div className="flex gap-3 pt-2">
               <Button variant="outline" onClick={() => setEditing(false)} className="flex-1 h-11" disabled={saving}>

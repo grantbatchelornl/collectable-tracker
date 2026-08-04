@@ -14,6 +14,8 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
   const [selectedMine, setSelectedMine] = useState(new Set());
   const [selectedTheirs, setSelectedTheirs] = useState(new Set());
   const [message, setMessage] = useState('');
+  const [cashAdjustment, setCashAdjustment] = useState('');
+  const [cashDirection, setCashDirection] = useState('proposer_to_recipient');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,6 +70,8 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
         requested_items_json: serializeTradeItems(requestedItems),
         offered_value: offeredValue,
         requested_value: requestedValue,
+        cash_adjustment: parseFloat(cashAdjustment) || 0,
+        cash_direction: cashDirection,
       });
       onSubmitted?.();
       onClose?.();
@@ -118,6 +122,28 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
           <p className="text-xs text-muted-foreground text-center">
             Tip: Select multiple items to balance the value of a higher-priced collectible.
           </p>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Cash Adjustment (optional)</label>
+            <p className="text-[10px] text-muted-foreground">Add cash to balance the trade value difference.</p>
+            <div className="flex gap-2">
+              <select
+                value={cashDirection}
+                onChange={(e) => setCashDirection(e.target.value)}
+                className="w-32 h-10 rounded-lg border border-input bg-transparent px-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="proposer_to_recipient">I pay</option>
+                <option value="recipient_to_proposer">They pay</option>
+              </select>
+              <input
+                type="number"
+                step="0.01"
+                value={cashAdjustment}
+                onChange={(e) => setCashAdjustment(e.target.value)}
+                placeholder="0.00"
+                className="flex-1 h-10 rounded-lg border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
           {(offeredValue > 0 || requestedValue > 0) && (
             <div className="space-y-2 py-2">
               <div className="flex items-center justify-center gap-3 text-sm">

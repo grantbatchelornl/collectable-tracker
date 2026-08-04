@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import { formatCurrency, formatRelativeDate } from '@/lib/format';
 import { parseTradeItems } from '@/lib/social';
 import FairnessIndicator from './FairnessIndicator';
-import { ArrowLeftRight, Check, X, Loader2 } from 'lucide-react';
+import { ArrowLeftRight, Check, X, Loader2, DollarSign } from 'lucide-react';
 
 const STATUS_STYLES = {
   pending: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
@@ -15,6 +16,7 @@ const STATUS_STYLES = {
 };
 
 export default function TradeCard({ trade, isIncoming, onAction }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const offeredItems = parseTradeItems(trade.offered_items_json);
   const requestedItems = parseTradeItems(trade.requested_items_json);
@@ -84,6 +86,15 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
             <FairnessIndicator offered={trade.offered_value} requested={trade.requested_value} />
           )}
         </div>
+        {trade.cash_adjustment > 0 && (
+          <div className="flex items-center gap-1.5 text-xs">
+            <DollarSign className="w-3 h-3 text-gold" />
+            <span className="text-muted-foreground">
+              {trade.cash_direction === 'recipient_to_proposer' ? 'They pay' : 'You pay'}:
+            </span>
+            <span className="font-semibold text-gold">{formatCurrency(trade.cash_adjustment)}</span>
+          </div>
+        )}
       </div>
 
       {isIncoming && status === 'pending' && (
@@ -94,6 +105,13 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
             className="flex-1 h-9 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center justify-center gap-1.5 transition-colors"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (<><X className="w-4 h-4" /> Decline</>)}
+          </button>
+          <button
+            onClick={() => navigate(`/collector/${trade.proposer_id}`)}
+            disabled={loading}
+            className="flex-1 h-9 rounded-lg border border-border text-sm font-medium hover:bg-accent flex items-center justify-center gap-1.5 transition-colors"
+          >
+            Counter
           </button>
           <button
             onClick={() => handleUpdate('accepted')}

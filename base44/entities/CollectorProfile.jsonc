@@ -54,6 +54,29 @@
         "aggressive"
       ],
       "default": "moderate"
+    },
+    "leaderboard_opt_in": {
+      "type": "boolean",
+      "default": false
+    },
+    "price_increase_threshold": {
+      "type": "number",
+      "default": 10
+    },
+    "price_decrease_threshold": {
+      "type": "number",
+      "default": 10
+    },
+    "health_reminder_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "binder_scan_count": {
+      "type": "number",
+      "default": 0
+    },
+    "dashboard_widgets": {
+      "type": "string"
     }
   },
   "required": [

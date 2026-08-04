@@ -27,6 +27,10 @@ export default function Watchlist() {
     category_id: '',
     target_price: '',
     notes: '',
+    priority: 'medium',
+    visibility: 'private',
+    raw_or_graded: 'any',
+    alerts_enabled: true,
   });
 
   useEffect(() => {
@@ -65,9 +69,13 @@ export default function Watchlist() {
         category_name: cat?.name || undefined,
         target_price: parseFloat(form.target_price) || 0,
         notes: form.notes || undefined,
+        priority: form.priority || 'medium',
+        visibility: form.visibility || 'private',
+        raw_or_graded: form.raw_or_graded || 'any',
+        alerts_enabled: form.alerts_enabled ?? true,
         status: 'active',
       });
-      setForm({ item_name: '', category_id: '', target_price: '', notes: '' });
+      setForm({ item_name: '', category_id: '', target_price: '', notes: '', priority: 'medium', visibility: 'private', raw_or_graded: 'any', alerts_enabled: true });
       setShowAdd(false);
       loadData();
     } catch (err) {
@@ -170,6 +178,44 @@ export default function Watchlist() {
               className="w-full h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
             />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Priority</label>
+              <select
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value })}
+                className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">Raw / Graded</label>
+              <select
+                value={form.raw_or_graded}
+                onChange={(e) => setForm({ ...form, raw_or_graded: e.target.value })}
+                className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                <option value="any">Any</option>
+                <option value="raw">Raw</option>
+                <option value="graded">Graded</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">Visibility</label>
+            <select
+              value={form.visibility}
+              onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+              className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="private">Private</option>
+              <option value="friends">Friends</option>
+              <option value="public">Public</option>
+            </select>
+          </div>
           <button
             onClick={handleAdd}
             disabled={saving || !form.item_name}
@@ -226,6 +272,22 @@ export default function Watchlist() {
                       </span>
                     </div>
                   )}
+                  {(item.priority && item.priority !== 'medium') || (item.raw_or_graded && item.raw_or_graded !== 'any') ? (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {item.priority && item.priority !== 'medium' && (
+                        <span className={`inline-flex text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                          item.priority === 'high' ? 'bg-loss/10 text-loss' : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {item.priority} priority
+                        </span>
+                      )}
+                      {item.raw_or_graded && item.raw_or_graded !== 'any' && (
+                        <span className="inline-flex text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-primary/10 text-primary">
+                          {item.raw_or_graded}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
                   {item.notes && (
                     <p className="text-xs text-muted-foreground mt-2">{item.notes}</p>
                   )}

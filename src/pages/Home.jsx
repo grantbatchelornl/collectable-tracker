@@ -11,6 +11,9 @@ import CategoryBreakdown from '@/components/CategoryBreakdown';
 import TopMovers from '@/components/TopMovers';
 import WishlistActivity from '@/components/WishlistActivity';
 import AchievementProgress from '@/components/AchievementProgress';
+import CollectionBriefing from '@/components/CollectionBriefing';
+import CollectorScoreCard from '@/components/CollectorScoreCard';
+import { computeCollectorScore } from '@/lib/collectorScore';
 import {
   buildPortfolioTimeSeries,
   getCategoryBreakdown,
@@ -20,7 +23,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid } from 'lucide-react';
+import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Sparkles } from 'lucide-react';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -105,6 +108,7 @@ export default function Home() {
     return { totalValue, count: collectibles.length, changes };
   }, [collectibles, pricingHistory]);
 
+  const collectorScore = useMemo(() => computeCollectorScore(collectibles, pricingHistory, achievements, []), [collectibles, pricingHistory, achievements]);
   const verifiedManual = useMemo(() => getVerifiedManualSplit(collectibles), [collectibles]);
   const rawGraded = useMemo(() => getRawGradedBreakdown(collectibles), [collectibles]);
   const recentChanges = useMemo(() => getRecentPriceChanges(pricingHistory, collectibles), [pricingHistory, collectibles]);
@@ -147,8 +151,18 @@ export default function Home() {
         staleCount={staleCount}
       />
 
+      <CollectionBriefing
+        collectibles={collectibles}
+        pricingHistory={pricingHistory}
+        stats={stats}
+        watchlistItems={watchlistItems}
+        achievements={achievements}
+      />
+
+      <CollectorScoreCard scoreData={collectorScore} />
+
       {collectibles.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <button
             onClick={() => navigate('/collection')}
             className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
@@ -175,6 +189,15 @@ export default function Home() {
               <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
             <span className="text-xs font-medium">Data Quality</span>
+          </button>
+          <button
+            onClick={() => navigate('/collector-ai')}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <span className="text-xs font-medium">Collector AI</span>
           </button>
         </div>
       )}

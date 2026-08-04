@@ -1,0 +1,91 @@
+{
+  "name": "AchievementTemplate",
+  "type": "object",
+  "properties": {
+    "badge_type": {
+      "type": "string"
+    },
+    "badge_name": {
+      "type": "string"
+    },
+    "badge_icon": {
+      "type": "string"
+    },
+    "badge_description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "collection",
+        "category",
+        "value",
+        "set_completion",
+        "trades",
+        "grading",
+        "scanner",
+        "community"
+      ]
+    },
+    "threshold": {
+      "type": "number"
+    },
+    "threshold_unit": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "badge_type",
+    "badge_name",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "read": true,
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "super_admin"
+          }
+        }
+      ]
+    }
+  }
+}
