@@ -16,6 +16,8 @@ import Onboarding from '@/pages/Onboarding';
 import Home from '@/pages/Home';
 import Discover from '@/pages/Discover';
 import AddCollectible from '@/pages/AddCollectible';
+import Scan from '@/pages/Scan';
+import BulkScanner from '@/pages/BulkScanner';
 import BinderScanner from '@/pages/BinderScanner';
 import CollectorAI from '@/pages/CollectorAI';
 import Leaderboards from '@/pages/Leaderboards';
@@ -81,6 +83,8 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Home />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/add" element={<AddCollectible />} />
+          <Route path="/scan" element={<Scan />} />
+          <Route path="/bulk-scan" element={<BulkScanner />} />
           <Route path="/binder-scan" element={<BinderScanner />} />
           <Route path="/collector-ai" element={<CollectorAI />} />
           <Route path="/leaderboards" element={<Leaderboards />} />

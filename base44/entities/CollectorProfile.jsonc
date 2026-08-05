@@ -227,6 +227,10 @@
     "ai_save_history": {
       "type": "boolean",
       "default": true
+    },
+    "ai_auto_confirm_routine": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

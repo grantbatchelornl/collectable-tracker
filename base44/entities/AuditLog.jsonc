@@ -2,7 +2,16 @@
   "name": "AuditLog",
   "type": "object",
   "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
     "action": {
+      "type": "string"
+    },
+    "action_requested": {
       "type": "string"
     },
     "target_type": {
@@ -13,6 +22,25 @@
     },
     "target_name": {
       "type": "string"
+    },
+    "previous_value": {
+      "type": "string"
+    },
+    "new_value": {
+      "type": "string"
+    },
+    "confirmation_status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "auto_confirmed",
+        "pending",
+        "denied"
+      ]
+    },
+    "success": {
+      "type": "boolean",
+      "default": true
     },
     "details": {
       "type": "string"

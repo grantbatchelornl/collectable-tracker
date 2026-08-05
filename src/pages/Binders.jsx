@@ -38,7 +38,7 @@ export default function Binders() {
         base44.entities.CollectionBinder.filter({ user_id: user.id }, '-created_date', 50),
         base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-estimated_value', 500),
       ]);
-      setBinders(binderData);
+      setBinders(binderData.filter((b) => !b.is_deleted));
       setCollectibles(collectibleData);
     } catch (e) {
       console.error(e);

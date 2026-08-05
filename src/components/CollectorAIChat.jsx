@@ -120,10 +120,14 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
     if (!pendingAction) return;
     setExecuting(true);
     try {
-      const result = await executeAction(pendingAction, user, navigate);
+      const result = await executeAction(pendingAction, user, navigate, {
+        conversationId: conversationId,
+      });
       setActionResult(result);
-      if (result.success && result.route) {
-        setTimeout(() => navigate(result.route), 1500);
+      if (result.success && result.navigate) {
+        // Don't auto-navigate; show a link the user can click
+      } else if (result.success && result.route) {
+        // Route is available for the user to click
       }
     } catch (err) {
       setActionResult({ success: false, message: err.message || 'Failed to execute action' });
@@ -278,16 +282,42 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
             <DialogTitle>{pendingAction?.title}</DialogTitle>
             <DialogDescription>{pendingAction?.description}</DialogDescription>
           </DialogHeader>
-          <div className="text-sm text-muted-foreground bg-accent/50 rounded-lg p-3">
+          <div className="text-sm text-muted-foreground bg-accent/50 rounded-lg p-3 space-y-2">
             {actionResult ? (
-              <div className="flex items-center gap-2">
-                {actionResult.success ? (
-                  <Check className="w-4 h-4 text-gain flex-shrink-0" />
-                ) : (
-                  <X className="w-4 h-4 text-destructive flex-shrink-0" />
+              <>
+                <div className="flex items-center gap-2">
+                  {actionResult.success ? (
+                    <Check className="w-4 h-4 text-gain flex-shrink-0" />
+                  ) : (
+                    <X className="w-4 h-4 text-destructive flex-shrink-0" />
+                  )}
+                  <span>{actionResult.message}</span>
+                </div>
+                {actionResult.success && actionResult.route && (
+                  <button
+                    onClick={() => {
+                      setPendingAction(null);
+                      setActionResult(null);
+                      navigate(actionResult.route);
+                    }}
+                    className="text-xs text-primary font-medium flex items-center gap-1 hover:underline"
+                  >
+                    View result <ChevronRight className="w-3 h-3" />
+                  </button>
                 )}
-                <span>{actionResult.message}</span>
-              </div>
+                {actionResult.success && actionResult.navigate && (
+                  <button
+                    onClick={() => {
+                      setPendingAction(null);
+                      setActionResult(null);
+                      actionResult.navigate();
+                    }}
+                    className="text-xs text-primary font-medium flex items-center gap-1 hover:underline"
+                  >
+                    View result <ChevronRight className="w-3 h-3" />
+                  </button>
+                )}
+              </>
             ) : (
               <p>This action will modify your data. Please confirm to proceed. You can review the details above before executing.</p>
             )}

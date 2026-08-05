@@ -275,7 +275,15 @@ export default function Settings() {
                 )}
 
                 {section.key === 'ai' && (
-                  <p className="text-xs text-muted-foreground">AI features include auto-identification, grade worthiness analysis, and action recommendations. These can be triggered from each collectible's detail page.</p>
+                  <>
+                    <SettingToggle
+                      label="Auto-confirm routine changes"
+                      description="Allow Collector AI to make low-risk changes (profile edits, favorites, trade status) without asking for confirmation each time. Destructive actions always require confirmation."
+                      checked={profile?.ai_auto_confirm_routine || false}
+                      onChange={(v) => updateProfile('ai_auto_confirm_routine', v)}
+                    />
+                    <p className="text-xs text-muted-foreground">AI features include auto-identification, grade worthiness analysis, and action recommendations. These can be triggered from each collectible's detail page.</p>
+                  </>
                 )}
               </div>
             )}

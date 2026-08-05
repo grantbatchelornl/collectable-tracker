@@ -26,6 +26,14 @@ import CompletionCelebration from '@/components/binder/CompletionCelebration';
 import CompletedBinderBanner from '@/components/binder/CompletedBinderBanner';
 import { Button } from '@/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
   ArrowLeft,
   Loader2,
   Star,
@@ -43,6 +51,8 @@ import {
   Grid3x3,
   BookOpen,
   Share2,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { Image as UIImage } from '@/components/ui/image';
@@ -82,6 +92,8 @@ export default function BinderDetail() {
   const [sorting, setSorting] = useState('number');
   const [showCelebration, setShowCelebration] = useState(false);
   const [completionSnapshot, setCompletionSnapshot] = useState(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -218,6 +230,20 @@ export default function BinderDetail() {
       setCollectibles(updated);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteBinder = async () => {
+    setDeleting(true);
+    try {
+      await base44.entities.CollectionBinder.update(binder.id, {
+        is_deleted: true,
+        deleted_date: new Date().toISOString(),
+      });
+      navigate('/binders');
+    } catch (e) {
+      console.error(e);
+      setDeleting(false);
     }
   };
 
@@ -430,6 +456,22 @@ export default function BinderDetail() {
           <span className="text-xs font-medium capitalize">{binder.privacy_status || 'private'}</span>
         </button>
 
+        {/* Delete Binder */}
+        <button
+          onClick={() => setShowDelete(true)}
+          className="w-full flex items-center justify-between rounded-xl bg-card border border-destructive/20 p-3 hover:bg-destructive/5 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Trash2 className="w-4 h-4 text-destructive" />
+            <div className="text-left">
+              <p className="text-sm font-medium text-destructive">Delete Binder</p>
+              <p className="text-[10px] text-muted-foreground">
+                Remove this binder — your collectibles will remain in your collection
+              </p>
+            </div>
+          </div>
+        </button>
+
         {/* Binder Statistics */}
         <BinderStatistics
           checklist={matchedChecklist}
@@ -591,6 +633,37 @@ export default function BinderDetail() {
           navigate('/hall-of-fame');
         }}
       />
+
+      {/* Delete Binder Confirmation */}
+      <Dialog open={showDelete} onOpenChange={setShowDelete}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+              Delete "{binder.name}"?
+            </DialogTitle>
+            <DialogDescription>
+              This will remove the binder from your collection.
+              <span className="block mt-2 font-medium text-foreground">Your collectibles will NOT be deleted</span> — they will remain in your collection.
+              Wishlist items will also remain unless you separately remove them.
+              {completion.percent === 100 && (
+                <span className="block mt-2 text-gold">
+                  ⚠️ This is a completed binder. The completed binder display and Hall of Fame entry will be removed, but your collectible records will remain.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDelete(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteBinder} disabled={deleting}>
+              {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+              Delete Binder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -109,6 +109,13 @@
     },
     "ai_prompt": {
       "type": "string"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false
+    },
+    "deleted_date": {
+      "type": "string"
     }
   },
   "required": [

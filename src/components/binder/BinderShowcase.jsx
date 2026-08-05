@@ -23,7 +23,7 @@ export default function BinderShowcase({ userId }) {
         '-updated_date',
         20
       );
-      setBinders(data);
+      setBinders(data.filter((b) => !b.is_deleted));
     } catch (e) {
       console.error(e);
     } finally {

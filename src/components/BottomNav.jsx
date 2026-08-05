@@ -5,7 +5,7 @@ import QuickActionsSheet from './QuickActionsSheet';
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/collection', icon: LayoutGrid, label: 'Collection' },
-  { to: '/add', icon: ScanLine, label: 'Scan', isCenter: true },
+  { to: '/scan', icon: ScanLine, label: 'Scan', isCenter: true },
   { to: '/profile', icon: User, label: 'Profile' },
   { to: '/binders', icon: BookOpen, label: 'Binders' },
   { to: '/settings', icon: Settings, label: 'Settings' },

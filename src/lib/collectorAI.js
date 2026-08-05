@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { isValidRoute } from '@/lib/appCapabilityRegistry';
 
 export async function askCollectorAI(question, history = [], contextHint = '') {
   const response = await base44.functions.invoke('collectorAIChat', {
@@ -9,13 +10,60 @@ export async function askCollectorAI(question, history = [], contextHint = '') {
   return response.data;
 }
 
-export async function executeAction(action, user, navigate) {
+/**
+ * Execute a Collector AI action. Write actions go through the backend function
+ * collectorAIExecute for server-side ownership validation + audit logging.
+ * Navigation actions are validated against the route registry before navigating.
+ */
+export async function executeAction(action, user, navigate, options = {}) {
   let details = {};
   try {
     details = typeof action.details === 'string' ? JSON.parse(action.details) : (action.details || {});
   } catch { details = {}; }
 
-  switch (action.action_type) {
+  const actionType = action.action_type;
+
+  // Write actions — route through backend function
+  const WRITE_ACTIONS = [
+    'update_profile', 'update_collectible', 'update_binder',
+    'add_to_wishlist', 'mark_for_trade', 'toggle_favorite',
+    'toggle_showcase', 'delete_binder',
+  ];
+
+  if (WRITE_ACTIONS.includes(actionType)) {
+    try {
+      const response = await base44.functions.invoke('collectorAIExecute', {
+        action_type: actionType,
+        details,
+        conversation_id: options.conversationId || null,
+        auto_confirmed: options.autoConfirmed || false,
+      });
+      const result = response.data || response;
+      if (result.success && result.route && isValidRoute(result.route)) {
+        return { ...result, navigate: () => navigate(result.route) };
+      }
+      return result;
+    } catch (err) {
+      const errorMsg = err?.response?.data?.error || err.message || 'Action failed';
+      return { success: false, message: errorMsg };
+    }
+  }
+
+  // Navigation actions — validate route before navigating
+  if (actionType === 'navigate' || actionType === 'refresh_pricing' || actionType === 'start_grading') {
+    let route = details.route;
+    if (actionType === 'refresh_pricing' || actionType === 'start_grading') {
+      route = details.collectible_id ? `/collectible/${details.collectible_id}` : null;
+    }
+    if (!route || !isValidRoute(route)) {
+      return { success: false, message: `Invalid or unknown route: ${route || 'none'}. This destination may not exist.` };
+    }
+    navigate(route);
+    return { success: true, message: 'Navigating', route };
+  }
+
+  // Legacy client-side actions
+  switch (actionType) {
     case 'create_binder': {
       const binder = await base44.entities.CollectionBinder.create({
         user_id: user.id,
@@ -25,51 +73,7 @@ export async function executeAction(action, user, navigate) {
         binder_type: 'custom',
         privacy_status: 'private',
       });
-      return { success: true, message: `Created binder "${binder.name}"`, route: `/binder/${binder.id}` };
-    }
-
-    case 'add_to_wishlist': {
-      const items = details.items || [];
-      if (!items.length) return { success: false, message: 'No items specified' };
-      await base44.entities.Watchlist.bulkCreate(
-        items.map(item => ({
-          user_id: user.id,
-          item_name: item.name || item,
-          category_name: item.category || '',
-          target_price: item.target_price || 0,
-          priority: item.priority || 'medium',
-          status: 'active',
-          alert_type: 'buy_target',
-        }))
-      );
-      return { success: true, message: `Added ${items.length} item${items.length > 1 ? 's' : ''} to your wishlist`, route: '/watchlist' };
-    }
-
-    case 'mark_for_trade': {
-      const ids = details.collectible_ids || [];
-      if (!ids.length) return { success: false, message: 'No items specified' };
-      for (const id of ids) {
-        await base44.entities.Collectible.update(id, { trade_status: 'trade' });
-      }
-      return { success: true, message: `Marked ${ids.length} item${ids.length > 1 ? 's' : ''} as available for trade` };
-    }
-
-    case 'refresh_pricing': {
-      const id = details.collectible_id;
-      if (id) {
-        navigate(`/collectible/${id}`);
-        return { success: true, message: 'Opening collectible for pricing refresh' };
-      }
-      return { success: false, message: 'No collectible specified' };
-    }
-
-    case 'start_grading': {
-      const id = details.collectible_id;
-      if (id) {
-        navigate(`/collectible/${id}`);
-        return { success: true, message: 'Opening collectible for grading evaluation' };
-      }
-      return { success: false, message: 'No collectible specified' };
+      return { success: true, message: `Created binder "${binder.name}"`, route: `/binder/${binder.id}`, navigate: () => navigate(`/binder/${binder.id}`) };
     }
 
     case 'create_goal': {
@@ -80,29 +84,11 @@ export async function executeAction(action, user, navigate) {
         target_count: details.target_count || 0,
         status: 'active',
       });
-      return { success: true, message: `Created goal "${goal.title}"`, route: '/goals' };
-    }
-
-    case 'update_preference': {
-      const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
-      if (!profiles[0]) return { success: false, message: 'Profile not found' };
-      const field = details.field;
-      const value = details.value;
-      if (!field) return { success: false, message: 'No preference field specified' };
-      await base44.entities.CollectorProfile.update(profiles[0].id, { [field]: value });
-      return { success: true, message: `Updated ${field.replace(/_/g, ' ')} to ${value}` };
-    }
-
-    case 'navigate': {
-      if (details.route) {
-        navigate(details.route);
-        return { success: true, message: 'Navigating' };
-      }
-      return { success: false, message: 'No route specified' };
+      return { success: true, message: `Created goal "${goal.title}"`, route: '/goals', navigate: () => navigate('/goals') };
     }
 
     default:
-      return { success: false, message: `Unknown action: ${action.action_type}` };
+      return { success: false, message: `Unknown action: ${actionType}` };
   }
 }
 
@@ -117,6 +103,8 @@ export const SUGGESTED_PROMPTS = [
   { label: 'Show my biggest gains', question: 'Which items in my collection gained the most value recently?' },
   { label: 'Find a fair trade', question: 'Do I have any fair trade matches with friends or collectors?' },
   { label: 'Explain my Collection Health', question: 'What are my Collection Health issues and how do I fix them?' },
+  { label: 'What can you do?', question: 'What features and actions can you perform for me? List your capabilities.' },
+  { label: 'Where are Master Binders?', question: 'Where are Master Binders located in the app? How do I find them?' },
 ];
 
 export function getAdaptivePrompts(collectibles, binders, healthIssues) {
@@ -155,6 +143,7 @@ export function getAdaptivePrompts(collectibles, binders, healthIssues) {
 
   prompts.push({ label: 'Review my collection', question: 'Give me a comprehensive review of my collection.' });
   prompts.push({ label: 'What changed this week?', question: 'What changed in my collection this week? Show me gains, losses, and new additions.' });
+  prompts.push({ label: 'What can you do?', question: 'What features and actions can you perform for me?' });
 
   return prompts.slice(0, 6);
 }
