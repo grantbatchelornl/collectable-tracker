@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,84 +6,84 @@
 
 @layer base {
   :root {
-    --background: 139 77% 97%;
-    --foreground: 164 86% 16%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 164 86% 16%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 164 86% 16%;
-    --primary: 161 94% 30%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 141 84% 93%;
-    --secondary-foreground: 164 86% 16%;
-    --muted: 141 84% 93%;
-    --muted-foreground: 160 30% 40%;
-    --accent: 141 84% 93%;
-    --accent-foreground: 161 94% 30%;
-    --destructive: 347 89% 60%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 347 79% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 347 60% 95%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 215 25% 95%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 352 60% 95%;
+    --accent-foreground: 347 79% 40%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 140 30% 88%;
-    --input: 140 30% 88%;
-    --ring: 161 94% 30%;
-    --gain: 160 84% 39%;
-    --loss: 347 89% 60%;
-    --gold: 160 84% 39%;
-    --chart-1: 161 94% 30%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 141 84% 93%;
-    --chart-4: 347 89% 60%;
-    --chart-5: 280 65% 60%;
+    --border: 215 25% 90%;
+    --input: 215 25% 90%;
+    --ring: 347 79% 50%;
+    --gain: 142 71% 45%;
+    --loss: 0 72% 51%;
+    --gold: 38 92% 50%;
+    --chart-1: 347 79% 50%;
+    --chart-2: 352 94% 75%;
+    --chart-3: 215 32% 17%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 142 71% 45%;
     --radius: 1rem;
-    --font-heading: 'Playfair Display', ui-serif, Georgia, serif;
-    --font-body: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+    --font-heading: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 164 86% 16%;
-    --sidebar-primary: 161 94% 30%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 141 84% 93%;
-    --sidebar-accent-foreground: 161 94% 30%;
-    --sidebar-border: 140 30% 88%;
-    --sidebar-ring: 161 94% 30%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 347 79% 50%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 352 60% 95%;
+    --sidebar-accent-foreground: 347 79% 40%;
+    --sidebar-border: 215 25% 90%;
+    --sidebar-ring: 347 79% 50%;
   }
 
   .dark {
-    --background: 164 86% 16%;
-    --foreground: 139 77% 97%;
-    --card: 162 60% 20%;
-    --card-foreground: 139 77% 97%;
-    --popover: 162 60% 20%;
-    --popover-foreground: 139 77% 97%;
-    --primary: 160 84% 39%;
-    --primary-foreground: 164 86% 16%;
-    --secondary: 162 40% 22%;
-    --secondary-foreground: 139 77% 97%;
-    --muted: 162 40% 18%;
-    --muted-foreground: 160 20% 64%;
-    --accent: 160 40% 20%;
-    --accent-foreground: 160 84% 50%;
-    --destructive: 347 89% 60%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 215 32% 17%;
+    --card-foreground: 210 40% 98%;
+    --popover: 215 32% 17%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 347 79% 50%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 215 30% 22%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 28% 20%;
+    --muted-foreground: 215 16% 65%;
+    --accent: 347 40% 22%;
+    --accent-foreground: 352 94% 80%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 162 40% 24%;
-    --input: 162 40% 24%;
-    --ring: 160 84% 39%;
-    --gain: 160 84% 39%;
-    --loss: 347 89% 60%;
-    --gold: 160 84% 39%;
-    --chart-1: 160 84% 39%;
-    --chart-2: 161 94% 30%;
-    --chart-3: 139 77% 97%;
-    --chart-4: 347 89% 60%;
-    --chart-5: 280 65% 60%;
-    --sidebar-background: 164 86% 16%;
-    --sidebar-foreground: 139 77% 97%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 164 86% 16%;
-    --sidebar-accent: 160 40% 20%;
-    --sidebar-accent-foreground: 160 84% 50%;
-    --sidebar-border: 162 40% 24%;
-    --sidebar-ring: 160 84% 39%;
+    --border: 215 28% 24%;
+    --input: 215 28% 24%;
+    --ring: 347 79% 50%;
+    --gain: 142 71% 45%;
+    --loss: 0 72% 51%;
+    --gold: 38 92% 50%;
+    --chart-1: 347 79% 50%;
+    --chart-2: 352 94% 75%;
+    --chart-3: 210 40% 98%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 142 71% 45%;
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 347 79% 50%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 347 40% 22%;
+    --sidebar-accent-foreground: 352 94% 80%;
+    --sidebar-border: 215 28% 24%;
+    --sidebar-ring: 347 79% 50%;
   }
 
   /* Adaptive Themes — dark-based, layered on .dark */
@@ -241,7 +241,7 @@
   .bg-gold { background-color: hsl(var(--gold)); }
 
   .holo-shimmer {
-    background: linear-gradient(135deg, hsl(239 84% 67% / 0.08), hsl(280 65% 60% / 0.08), hsl(38 92% 50% / 0.08), hsl(160 84% 39% / 0.08));
+    background: linear-gradient(135deg, hsl(347 79% 50% / 0.08), hsl(352 94% 75% / 0.08), hsl(38 92% 50% / 0.08), hsl(215 32% 17% / 0.08));
     background-size: 200% 200%;
     animation: holo-shift 6s ease-in-out infinite;
   }
