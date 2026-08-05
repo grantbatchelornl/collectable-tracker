@@ -25,6 +25,15 @@ export default async function(req) {
     const alwaysRequiresConfirmation = ACTIONS_REQUIRING_CONFIRMATION.includes(actionType);
     const confirmationStatus = autoConfirmed && !alwaysRequiresConfirmation ? 'auto_confirmed' : 'confirmed';
 
+    // Helper: safe get (returns null instead of throwing when record doesn't exist)
+    const safeGet = async (entity: any, id: string) => {
+      try {
+        return await entity.get(id);
+      } catch {
+        return null;
+      }
+    };
+
     // Helper: audit log
     const logAction = async (targetType: string, targetId: string, targetName: string, prev: any, next: any, success: boolean, errorMsg?: string) => {
       try {
@@ -75,7 +84,7 @@ export default async function(req) {
       case 'update_collectible': {
         const collectibleId = details.collectible_id;
         if (!collectibleId) return Response.json({ error: 'Missing collectible_id' }, { status: 400 });
-        const collectible = await base44.asServiceRole.entities.Collectible.get(collectibleId);
+        const collectible = await safeGet(base44.asServiceRole.entities.Collectible, collectibleId);
         if (!collectible) return Response.json({ error: 'Collectible not found' }, { status: 404 });
         if (collectible.created_by_id !== user.id) {
           return Response.json({ error: 'You can only update your own collectibles' }, { status: 403 });
@@ -103,7 +112,7 @@ export default async function(req) {
       case 'update_binder': {
         const binderId = details.binder_id;
         if (!binderId) return Response.json({ error: 'Missing binder_id' }, { status: 400 });
-        const binder = await base44.asServiceRole.entities.CollectionBinder.get(binderId);
+        const binder = await safeGet(base44.asServiceRole.entities.CollectionBinder, binderId);
         if (!binder) return Response.json({ error: 'Binder not found' }, { status: 404 });
         if (binder.created_by_id !== user.id) {
           return Response.json({ error: 'You can only update your own binders' }, { status: 403 });
@@ -154,7 +163,7 @@ export default async function(req) {
         const ids = details.collectible_ids || [];
         if (!ids.length) return Response.json({ error: 'No items specified' }, { status: 400 });
         for (const id of ids) {
-          const c = await base44.asServiceRole.entities.Collectible.get(id);
+          const c = await safeGet(base44.asServiceRole.entities.Collectible, id);
           if (!c || c.created_by_id !== user.id) {
             return Response.json({ error: `You can only update your own collectibles (failed on ${id})` }, { status: 403 });
           }
@@ -174,7 +183,7 @@ export default async function(req) {
       case 'toggle_favorite': {
         const collectibleId = details.collectible_id;
         if (!collectibleId) return Response.json({ error: 'Missing collectible_id' }, { status: 400 });
-        const collectible = await base44.asServiceRole.entities.Collectible.get(collectibleId);
+        const collectible = await safeGet(base44.asServiceRole.entities.Collectible, collectibleId);
         if (!collectible) return Response.json({ error: 'Collectible not found' }, { status: 404 });
         if (collectible.created_by_id !== user.id) {
           return Response.json({ error: 'You can only update your own collectibles' }, { status: 403 });
@@ -195,7 +204,7 @@ export default async function(req) {
       case 'toggle_showcase': {
         const collectibleId = details.collectible_id;
         if (!collectibleId) return Response.json({ error: 'Missing collectible_id' }, { status: 400 });
-        const collectible = await base44.asServiceRole.entities.Collectible.get(collectibleId);
+        const collectible = await safeGet(base44.asServiceRole.entities.Collectible, collectibleId);
         if (!collectible) return Response.json({ error: 'Collectible not found' }, { status: 404 });
         if (collectible.created_by_id !== user.id) {
           return Response.json({ error: 'You can only update your own collectibles' }, { status: 403 });
@@ -217,7 +226,7 @@ export default async function(req) {
       case 'delete_binder': {
         const binderId = details.binder_id;
         if (!binderId) return Response.json({ error: 'Missing binder_id' }, { status: 400 });
-        const binder = await base44.asServiceRole.entities.CollectionBinder.get(binderId);
+        const binder = await safeGet(base44.asServiceRole.entities.CollectionBinder, binderId);
         if (!binder) return Response.json({ error: 'Binder not found' }, { status: 404 });
         if (binder.created_by_id !== user.id) {
           return Response.json({ error: 'You can only delete your own binders' }, { status: 403 });
