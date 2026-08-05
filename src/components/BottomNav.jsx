@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, LayoutGrid, ScanLine, User, Settings, BookOpen } from 'lucide-react';
 import QuickActionsSheet from './QuickActionsSheet';
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
 
 export default function BottomNav() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border safe-bottom">
@@ -23,7 +24,13 @@ export default function BottomNav() {
             return (
               <button
                 key={item.to}
-                onClick={() => navigate(item.to)}
+                onClick={() => {
+                  if (location.pathname === item.to) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  } else {
+                    navigate(item.to);
+                  }
+                }}
                 className="flex flex-col items-center -mt-6"
                 aria-label="Scan collectible"
               >
@@ -37,6 +44,7 @@ export default function BottomNav() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => { if (location.pathname === item.to) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               end={item.to === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
@@ -56,6 +64,7 @@ export default function BottomNav() {
             <NavLink
               key={item.to}
               to={item.to}
+              onClick={() => { if (location.pathname === item.to) window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               className={({ isActive }) =>
                 `flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
                   isActive ? 'text-primary' : 'text-muted-foreground'

@@ -19,10 +19,12 @@ import {
   Moon,
   Sun,
   Plane,
+  Trash2,
 } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
 import ThemePicker from '@/components/ThemePicker';
 import { getSoundsEnabled, setSoundsEnabled as setSfxEnabled } from '@/lib/sounds';
+import DeleteAccountDialog from '@/components/DeleteAccountDialog';
 
 const SECTIONS = [
   { key: 'account', label: 'Account', icon: User },
@@ -38,6 +40,7 @@ const SECTIONS = [
   { key: 'security', label: 'Security', icon: Shield },
   { key: 'data_export', label: 'Data Export', icon: Download },
   { key: 'help', label: 'Help', icon: HelpCircle },
+  { key: 'delete_account', label: 'Delete Account', icon: Trash2 },
 ];
 
 export default function Settings() {
@@ -50,6 +53,7 @@ export default function Settings() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [soundsOn, setSoundsOn] = useState(getSoundsEnabled());
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -266,6 +270,19 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">Need help? Contact Base44 support for assistance with your account or the app.</p>
                 )}
 
+                {section.key === 'delete_account' && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="w-full h-10 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 flex items-center justify-center gap-2 text-sm font-medium hover:bg-destructive/20 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete My Account
+                    </button>
+                  </div>
+                )}
+
                 {section.key === 'collection' && (
                   <p className="text-xs text-muted-foreground">Default privacy for new items and folder management are available on the Collection page.</p>
                 )}
@@ -290,6 +307,8 @@ export default function Settings() {
           </div>
         );
       })}
+
+      <DeleteAccountDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} onDeleted={() => logout()} />
     </div>
   );
 }

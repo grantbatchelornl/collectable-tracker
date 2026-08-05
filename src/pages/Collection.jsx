@@ -8,6 +8,7 @@ import SmartSearchBar from '@/components/SmartSearchBar';
 import { Search, Loader2, Package, Plus, FileText, Store } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
 import EmptyState from '@/components/ui/EmptyState';
+import PullToRefresh from '@/components/PullToRefresh';
 import { getCategoryIcon } from '@/lib/categoryIcons';
 
 export default function Collection() {
@@ -145,6 +146,7 @@ export default function Collection() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="px-4 py-4 space-y-3">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-xl font-bold">Collection</h1>
@@ -248,5 +250,6 @@ export default function Collection() {
         </div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

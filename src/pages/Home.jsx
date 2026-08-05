@@ -27,6 +27,7 @@ import {
 } from '@/lib/portfolio';
 import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star, Sparkles } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
+import PullToRefresh from '@/components/PullToRefresh';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -163,6 +164,7 @@ export default function Home() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadData}>
     <div className="px-4 py-4 space-y-6">
       {collectibles.length > 0 && (
         <button
@@ -373,5 +375,6 @@ export default function Home() {
         </>
       )}
     </div>
+    </PullToRefresh>
   );
 }

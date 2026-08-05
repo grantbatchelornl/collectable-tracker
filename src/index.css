@@ -226,6 +226,17 @@
 
   body {
     @apply bg-background text-foreground font-body antialiased;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button,
+  nav,
+  a,
+  [role="button"],
+  [role="navigation"] {
+    -webkit-user-select: none;
+    user-select: none;
   }
 }
 
