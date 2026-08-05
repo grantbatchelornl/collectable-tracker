@@ -85,20 +85,22 @@ export default function Profile() {
   };
 
   const acceptRequest = async (request) => {
+    setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
     try {
       await base44.entities.Follow.update(request.id, { status: 'active' });
-      setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
     } catch (err) {
       console.error(err);
+      setFriendRequests((prev) => [...prev, request]);
     }
   };
 
   const declineRequest = async (request) => {
+    setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
     try {
       await base44.entities.Follow.delete(request.id);
-      setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
     } catch (err) {
       console.error(err);
+      setFriendRequests((prev) => [...prev, request]);
     }
   };
 

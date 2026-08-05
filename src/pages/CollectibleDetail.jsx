@@ -12,6 +12,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import ValueChart from '@/components/ValueChart';
 import PrivacyBadge from '@/components/PrivacyBadge';
 import {
@@ -211,10 +218,17 @@ export default function CollectibleDetail() {
   const cyclePrivacy = async () => {
     const order = ['private', 'friends', 'public'];
     const next = order[(order.indexOf(collectible.privacy_status) + 1) % 3];
-    const updated = await base44.entities.Collectible.update(id, {
-      privacy_status: next,
-    });
-    setCollectible(updated);
+    const prev = collectible.privacy_status;
+    setCollectible((c) => ({ ...c, privacy_status: next }));
+    try {
+      const updated = await base44.entities.Collectible.update(id, {
+        privacy_status: next,
+      });
+      setCollectible(updated);
+    } catch (err) {
+      console.error(err);
+      setCollectible((c) => ({ ...c, privacy_status: prev }));
+    }
   };
 
   const toggleForSale = async () => {
@@ -590,18 +604,22 @@ export default function CollectibleDetail() {
               <p className="text-[10px] text-muted-foreground">Add to your Trade Binder</p>
             </div>
           </div>
-          <select
+          <Select
             value={collectible.trade_status || 'keep'}
-            onChange={async (e) => {
-              const updated = await base44.entities.Collectible.update(collectible.id, { trade_status: e.target.value });
+            onValueChange={async (v) => {
+              const updated = await base44.entities.Collectible.update(collectible.id, { trade_status: v });
               setCollectible(updated);
             }}
-            className="text-xs bg-card border border-border rounded-lg px-3 py-1.5"
           >
-            <option value="keep">Keep</option>
-            <option value="trade">Trade</option>
-            <option value="sell">Sell</option>
-          </select>
+            <SelectTrigger className="h-8 w-[88px] text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="keep">Keep</SelectItem>
+              <SelectItem value="trade">Trade</SelectItem>
+              <SelectItem value="sell">Sell</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         )}
 

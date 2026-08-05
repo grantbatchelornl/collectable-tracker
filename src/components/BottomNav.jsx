@@ -67,13 +67,18 @@ export default function BottomNav() {
   }, [location.pathname]);
 
   const handleNav = (item) => {
-    let target = item.to;
-    if (item.tabRoot) {
-      target = getCachedRoute(item.tabRoot) || item.to;
-    }
-    if (location.pathname === target) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    const isOnTab = item.tabRoot
+      ? getTabRoot(location.pathname) === item.tabRoot
+      : location.pathname === item.to;
+
+    if (isOnTab) {
+      if (location.pathname === item.to) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        navigate(item.to);
+      }
     } else {
+      const target = item.tabRoot ? getCachedRoute(item.tabRoot) || item.to : item.to;
       navigate(target);
     }
   };
