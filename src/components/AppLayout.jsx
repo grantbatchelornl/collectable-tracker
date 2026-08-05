@@ -21,9 +21,9 @@ export default function AppLayout() {
   if (user?.is_suspended) return <SuspendedScreen />;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen overflow-hidden bg-background">
       <TopBar />
-      <main className="pb-24 min-h-screen max-w-lg mx-auto" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+      <main className="pb-24 h-screen max-w-lg mx-auto overflow-y-auto overscroll-y-contain" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

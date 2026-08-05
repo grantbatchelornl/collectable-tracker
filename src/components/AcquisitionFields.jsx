@@ -1,4 +1,11 @@
 import { Store, Calendar, User } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const SOURCES = [
   { value: 'purchase', label: 'Purchase' },
@@ -22,15 +29,19 @@ export default function AcquisitionFields({ data, update }) {
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground">Source</label>
-          <select
+          <Select
             value={data.acquisition_source || 'purchase'}
-            onChange={(e) => update('acquisition_source', e.target.value)}
-            className="w-full h-10 rounded-lg bg-background border border-border text-sm px-3 focus:outline-none focus:ring-2 focus:ring-primary"
+            onValueChange={(v) => update('acquisition_source', v)}
           >
-            {SOURCES.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-10">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SOURCES.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1">
           <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">

@@ -14,6 +14,13 @@ import ShowcaseCollection from '@/components/ShowcaseCollection';
 import BinderShowcase from '@/components/binder/BinderShowcase';
 import FoundingBadge from '@/components/FoundingBadge';
 import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X, BadgeCheck } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function PublicProfile() {
   const { userId } = useParams();
@@ -210,18 +217,19 @@ export default function PublicProfile() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              className="w-full h-11 rounded-md border border-input bg-transparent px-3 text-sm"
-            >
-              <option value="spam">Spam</option>
-              <option value="harassment">Harassment</option>
-              <option value="fake_item">Fake Item</option>
-              <option value="scam">Scam</option>
-              <option value="inappropriate">Inappropriate Content</option>
-              <option value="other">Other</option>
-            </select>
+            <Select value={reportReason} onValueChange={setReportReason}>
+              <SelectTrigger className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="spam">Spam</SelectItem>
+                <SelectItem value="harassment">Harassment</SelectItem>
+                <SelectItem value="fake_item">Fake Item</SelectItem>
+                <SelectItem value="scam">Scam</SelectItem>
+                <SelectItem value="inappropriate">Inappropriate Content</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
             <button
               onClick={async () => {
                 await base44.entities.Report.create({

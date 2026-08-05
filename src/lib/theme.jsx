@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 const THEME_KEY = 'collectable-theme';
 
 export const THEMES = [
+  { id: 'system', label: 'System', colors: ['#ffffff', '#94a3b8', '#0f172a'] },
   { id: 'light', label: 'Light', colors: ['#F0FDF4', '#059669', '#064E3B'] },
   { id: 'dark', label: 'Dark', colors: ['#064E3B', '#10B981', '#F0FDF4'] },
   { id: 'midnight', label: 'Midnight', colors: ['#0a0e1a', '#6366f1', '#e2e8f0'] },
@@ -17,10 +18,16 @@ const THEME_CLASSES = ['dark', 'theme-midnight', 'theme-emerald', 'theme-royal-p
 export function applyTheme(themeId) {
   const root = document.documentElement;
   root.classList.remove(...THEME_CLASSES);
-  if (themeId !== 'light') {
+
+  let effective = themeId;
+  if (themeId === 'system') {
+    effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  if (effective !== 'light') {
     root.classList.add('dark');
-    if (themeId !== 'dark') {
-      root.classList.add(`theme-${themeId}`);
+    if (effective !== 'dark') {
+      root.classList.add(`theme-${effective}`);
     }
   }
   localStorage.setItem(THEME_KEY, themeId);
@@ -39,7 +46,20 @@ export function useTheme() {
     applyTheme(theme);
     const handler = (e) => setThemeState(e.detail);
     window.addEventListener('theme-change', handler);
-    return () => window.removeEventListener('theme-change', handler);
+
+    let mediaQuery;
+    const mediaHandler = () => {
+      if (theme === 'system') applyTheme('system');
+    };
+    if (theme === 'system') {
+      mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      mediaQuery.addEventListener('change', mediaHandler);
+    }
+
+    return () => {
+      window.removeEventListener('theme-change', handler);
+      if (mediaQuery) mediaQuery.removeEventListener('change', mediaHandler);
+    };
   }, [theme]);
 
   const setTheme = (id) => setThemeState(id);
