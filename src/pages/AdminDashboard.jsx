@@ -78,22 +78,21 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const allSettings = await base44.entities.AppSetting.list();
-      setSettings(allSettings);
-      const threshold = allSettings.find((s) => s.key === 'default_alert_threshold');
-      if (threshold) setThresholdValue(threshold.value);
-
       if (isAdmin) {
-        const [usersData, cats, logs, allCollectibles] = await Promise.all([
+        const [usersData, cats, logs, allCollectibles, allSettings] = await Promise.all([
           base44.entities.User.list('-created_date', 200),
           base44.entities.CollectibleCategory.list('sort_order', 50),
           base44.entities.AuditLog.list('-created_date', 100),
           base44.entities.Collectible.list('-created_date', 500),
+          base44.entities.AppSetting.list(),
         ]);
         setUsers(usersData);
         setCategories(cats);
         setAuditLogs(logs);
         setCollectibles(allCollectibles);
+        setSettings(allSettings);
+        const threshold = allSettings.find((s) => s.key === 'default_alert_threshold');
+        if (threshold) setThresholdValue(threshold.value);
         const [reportData, flagData] = await Promise.all([
           base44.entities.Report.list('-created_date', 100),
           base44.entities.AppFeatureFlag.list(),
