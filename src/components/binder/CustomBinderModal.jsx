@@ -12,6 +12,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Image } from '@/components/ui/image';
 import { buildBinderFromPrompt } from '@/lib/binderChecklist';
 import { Loader2, Camera, Lock, Users, Globe } from 'lucide-react';
@@ -214,16 +221,17 @@ export default function CustomBinderModal({ onClose, onCreated }) {
             {/* Sorting */}
             <div className="space-y-1.5">
               <Label>Default Sorting</Label>
-              <select
-                value={sorting}
-                onChange={(e) => setSorting(e.target.value)}
-                className="w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm"
-              >
-                <option value="number">Card Number</option>
-                <option value="value">Value (High to Low)</option>
-                <option value="name">Name (A-Z)</option>
-                <option value="rarity">Rarity</option>
-              </select>
+              <Select value={sorting} onValueChange={setSorting}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="number">Card Number</SelectItem>
+                  <SelectItem value="value">Value (High to Low)</SelectItem>
+                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                  <SelectItem value="rarity">Rarity</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Visibility */}

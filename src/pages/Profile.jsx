@@ -7,6 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Pencil,
   LogOut,
   Shield,
@@ -420,7 +427,7 @@ export default function Profile() {
       {/* Edit modal */}
       {editing && (
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
-          <div className="bg-card w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border max-h-[90vh] overflow-y-auto p-5 space-y-4">
+          <div className="bg-card w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-border max-h-[90vh] overflow-y-auto p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-bold">Edit Profile</h3>
               <button onClick={() => setEditing(false)} className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-accent">
@@ -486,20 +493,23 @@ export default function Profile() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="space-y-2">
                     <Label>Platform</Label>
-                    <select
-                      value={editData.influencer_platform}
-                      onChange={(e) => setEditData((d) => ({ ...d, influencer_platform: e.target.value }))}
-                      className="w-full h-10 rounded-md border border-input bg-transparent px-2 text-sm"
+                    <Select
+                      value={editData.influencer_platform || undefined}
+                      onValueChange={(v) => setEditData((d) => ({ ...d, influencer_platform: v }))}
                     >
-                      <option value="">Select...</option>
-                      <option value="YouTube">YouTube</option>
-                      <option value="TikTok">TikTok</option>
-                      <option value="Instagram">Instagram</option>
-                      <option value="Twitch">Twitch</option>
-                      <option value="X (Twitter)">X (Twitter)</option>
-                      <option value="Facebook">Facebook</option>
-                      <option value="Other">Other</option>
-                    </select>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Select..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="YouTube">YouTube</SelectItem>
+                        <SelectItem value="TikTok">TikTok</SelectItem>
+                        <SelectItem value="Instagram">Instagram</SelectItem>
+                        <SelectItem value="Twitch">Twitch</SelectItem>
+                        <SelectItem value="X (Twitter)">X (Twitter)</SelectItem>
+                        <SelectItem value="Facebook">Facebook</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label>Handle</Label>
@@ -556,11 +566,16 @@ export default function Profile() {
                 </div>
                 <div className="space-y-2">
                   <Label>Risk Tolerance</Label>
-                  <select value={editData.risk_tolerance} onChange={(e) => setEditData((d) => ({ ...d, risk_tolerance: e.target.value }))} className="w-full h-10 rounded-md border border-input bg-transparent px-2 text-sm">
-                    <option value="conservative">Conservative</option>
-                    <option value="moderate">Moderate</option>
-                    <option value="aggressive">Aggressive</option>
-                  </select>
+                  <Select value={editData.risk_tolerance} onValueChange={(v) => setEditData((d) => ({ ...d, risk_tolerance: v }))}>
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="conservative">Conservative</SelectItem>
+                      <SelectItem value="moderate">Moderate</SelectItem>
+                      <SelectItem value="aggressive">Aggressive</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-2">

@@ -6,6 +6,7 @@ import { findTradeMatches, getWishlistMatches, getPublicTradeBinders, getTradeBi
 import TradeMatchCard from '@/components/trade/TradeMatchCard';
 import TradeWindow from '@/components/trade/TradeWindow';
 import { Image } from '@/components/ui/image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatCurrency } from '@/lib/format';
 import { Loader2, Handshake, Search, Package, Heart, Sparkles, ChevronRight } from 'lucide-react';
 
@@ -219,15 +220,16 @@ export default function TradeCenter() {
                   <p className="text-sm font-medium truncate">{item.item_name}</p>
                   <p className="text-xs text-muted-foreground">{formatCurrency(item.estimated_value)}</p>
                 </div>
-                <select
-                  value={item.trade_status}
-                  onChange={(e) => updateTradeStatus(item.id, e.target.value)}
-                  className="text-xs bg-card border border-border rounded-lg px-2 py-1.5"
-                >
-                  <option value="trade">Trade</option>
-                  <option value="sell">Sell</option>
-                  <option value="keep">Remove</option>
-                </select>
+                <Select value={item.trade_status} onValueChange={(v) => updateTradeStatus(item.id, v)}>
+                  <SelectTrigger className="h-8 w-[88px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="trade">Trade</SelectItem>
+                    <SelectItem value="sell">Sell</SelectItem>
+                    <SelectItem value="keep">Remove</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             ))
           )}
