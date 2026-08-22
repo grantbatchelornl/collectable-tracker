@@ -10,6 +10,7 @@ import BinderLibrary from '@/components/binder/BinderLibrary';
 import AIBinderBuilder from '@/components/binder/AIBinderBuilder';
 import { ArrowLeft, Plus, BookOpen, Loader2, Trophy, Wand2, Palette, Library } from 'lucide-react';
 import { Image } from '@/components/ui/image';
+import EmptyState from '@/components/ui/EmptyState';
 
 const TABS = [
   { key: 'my', label: 'My Binders', icon: BookOpen },
@@ -123,23 +124,15 @@ export default function Binders() {
               <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
             </div>
           ) : binders.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 rounded-3xl bg-accent flex items-center justify-center mx-auto mb-4">
-                <BookOpen className="w-10 h-10 text-muted-foreground" />
-              </div>
-              <h2 className="font-display text-lg font-bold mb-2">No Binders Yet</h2>
-              <p className="text-muted-foreground text-sm max-w-xs mx-auto mb-4">
-                Browse Master Binders for every official set, use the AI Builder for custom collections, or create your own.
-              </p>
-              <div className="flex gap-2 justify-center">
-                <button onClick={() => setTab('library')} className="text-xs bg-primary text-primary-foreground rounded-full px-3 py-1.5 font-medium">
-                  Browse Binder Library
-                </button>
-                <button onClick={() => setShowAIBuilder(true)} className="text-xs bg-card border border-border rounded-full px-3 py-1.5 font-medium">
-                  Try AI Builder
-                </button>
-              </div>
-            </div>
+            <EmptyState
+              icon={BookOpen}
+              title="Start Building Your First Set"
+              description="Browse Master Binders for every official set, use the AI Builder for custom collections, or create your own."
+              actionLabel="Browse Master Binders"
+              onAction={() => setTab('library')}
+              secondaryActionLabel="Try AI Builder"
+              onSecondaryAction={() => setShowAIBuilder(true)}
+            />
           ) : (
             <div className="space-y-3">
               {binders.map((binder) => {

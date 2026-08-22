@@ -55,10 +55,10 @@ export default function QuickActionsSheet() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] text-muted-foreground transition-colors"
+        className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent transition-colors text-muted-foreground"
+        aria-label="Quick actions"
       >
         <LayoutGrid className="w-5 h-5" />
-        <span className="text-[9px] font-medium">Quick</span>
       </button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="bottom" className="rounded-t-2xl">

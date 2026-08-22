@@ -1,21 +1,18 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { Home, LayoutGrid, ScanLine, User, Settings, BookOpen } from 'lucide-react';
-import QuickActionsSheet from './QuickActionsSheet';
+import { Home, LayoutGrid, ScanLine, Users, User } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/', icon: Home, label: 'Home' },
   { to: '/collection', icon: LayoutGrid, label: 'Collection', tabRoot: '/collection' },
   { to: '/scan', icon: ScanLine, label: 'Scan', isCenter: true },
+  { to: '/community', icon: Users, label: 'Community' },
   { to: '/profile', icon: User, label: 'Profile', tabRoot: '/profile' },
-  { to: '/binders', icon: BookOpen, label: 'Binders', tabRoot: '/binders' },
-  { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 const TAB_PREFIXES = {
   '/collection': ['/collection'],
-  '/profile': ['/profile'],
-  '/binders': ['/binder'],
+  '/profile': ['/profile', '/settings'],
 };
 
 const CACHE_KEY = 'b44_tab_route_cache';
@@ -51,7 +48,7 @@ function setCachedRoute(tabRoot, path) {
 function isTabActive(pathname, item) {
   if (item.to === '/') return pathname === '/';
   if (item.tabRoot) return getTabRoot(pathname) === item.tabRoot;
-  return pathname === item.to;
+  return pathname === item.to || pathname.startsWith(item.to);
 }
 
 export default function BottomNav() {
@@ -73,7 +70,8 @@ export default function BottomNav() {
 
     if (isOnTab) {
       if (location.pathname === item.to) {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const main = document.querySelector('main');
+        if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         navigate(item.to);
       }
@@ -106,22 +104,21 @@ export default function BottomNav() {
       <button
         key={item.to}
         onClick={() => handleNav(item)}
-        className={`flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] transition-colors ${
+        aria-label={item.label}
+        className={`flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] min-h-[44px] transition-colors ${
           active ? 'text-primary' : 'text-muted-foreground'
         }`}
       >
         <Icon className="w-5 h-5" />
-        <span className="text-[9px] font-medium">{item.label}</span>
+        <span className="text-[10px] font-medium">{item.label}</span>
       </button>
     );
   };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border safe-bottom">
-      <div className="flex items-end justify-around h-16 max-w-lg mx-auto px-1">
-        {NAV_ITEMS.slice(0, 4).map(renderNavItem)}
-        <QuickActionsSheet />
-        {NAV_ITEMS.slice(4).map(renderNavItem)}
+      <div className="flex items-end justify-around h-16 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto px-1">
+        {NAV_ITEMS.map(renderNavItem)}
       </div>
     </nav>
   );

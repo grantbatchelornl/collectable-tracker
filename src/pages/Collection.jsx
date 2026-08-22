@@ -5,11 +5,18 @@ import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 import SmartSearchBar from '@/components/SmartSearchBar';
-import { Search, Loader2, Package, Plus, FileText, Store } from 'lucide-react';
+import { Search, Loader2, Package, Plus, FileText, Store, BookOpen } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
 import EmptyState from '@/components/ui/EmptyState';
 import PullToRefresh from '@/components/PullToRefresh';
 import { getCategoryIcon } from '@/lib/categoryIcons';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function Collection() {
   const navigate = useNavigate();
@@ -137,10 +144,12 @@ export default function Collection() {
     return (
       <EmptyState
         icon={Package}
-        title="No Collectibles Yet"
-        description="Scan or add your first collectible to start building your collection."
-        actionLabel="Add Collectible"
-        onAction={() => navigate('/add')}
+        title="Your Collection Starts Here"
+        description="Scan a collectible to identify and price it instantly, or add one manually."
+        actionLabel="Scan a Collectible"
+        onAction={() => navigate('/scan')}
+        secondaryActionLabel="Add Manually"
+        onSecondaryAction={() => navigate('/add')}
       />
     );
   }
@@ -150,14 +159,23 @@ export default function Collection() {
     <div className="px-4 py-4 space-y-3">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-xl font-bold">Collection</h1>
-        <button
-          onClick={handleInsuranceReport}
-          disabled={reportLoading}
-          className="flex items-center gap-1.5 text-xs font-medium text-primary border border-primary/20 rounded-full px-3 py-1.5 disabled:opacity-40"
-        >
-          {reportLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
-          Insurance Report
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/binders')}
+            className="flex items-center gap-1.5 text-xs font-medium text-primary border border-primary/20 rounded-full px-3 py-1.5"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            Binders
+          </button>
+          <button
+            onClick={handleInsuranceReport}
+            disabled={reportLoading}
+            className="flex items-center gap-1.5 text-xs font-medium text-primary border border-primary/20 rounded-full px-3 py-1.5 disabled:opacity-40"
+          >
+            {reportLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
+            Insurance
+          </button>
+        </div>
       </div>
 
       <SmartSearchBar
@@ -226,16 +244,17 @@ export default function Collection() {
 
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{filtered.length} items</p>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-          className="text-xs bg-card border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-        >
-          <option value="recent">Recent</option>
-          <option value="value_desc">Value: High to Low</option>
-          <option value="value_asc">Value: Low to High</option>
-          <option value="name">Name: A to Z</option>
-        </select>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[170px] h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="recent">Recent</SelectItem>
+            <SelectItem value="value_desc">Value: High to Low</SelectItem>
+            <SelectItem value="value_asc">Value: Low to High</SelectItem>
+            <SelectItem value="name">Name: A to Z</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -245,8 +264,14 @@ export default function Collection() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-8 text-sm text-muted-foreground">
-          No collectibles match your filters.
+        <div className="text-center py-12 text-sm text-muted-foreground">
+          <p className="mb-3">No collectibles match your filters.</p>
+          <button
+            onClick={() => { setSmartFilterIds(null); setSmartExplanation(null); setActiveCategory('all'); setShowForSale(false); setShowFavorites(false); setAcquisitionSource('all'); }}
+            className="text-primary font-medium hover:underline underline-offset-4"
+          >
+            Clear all filters
+          </button>
         </div>
       )}
     </div>

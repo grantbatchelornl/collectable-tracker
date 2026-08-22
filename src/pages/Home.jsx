@@ -25,7 +25,7 @@ import {
   getRecentPriceChanges,
   getPurchaseStats,
 } from '@/lib/portfolio';
-import { Plus, Package, Loader2, Eye, ChevronRight, ShieldCheck, LayoutGrid, Target, Clock, BookOpen, MapPin, Compass, Star, Sparkles } from 'lucide-react';
+import { Package, ChevronRight, LayoutGrid, BookOpen, Sparkles } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import PullToRefresh from '@/components/PullToRefresh';
 
@@ -38,6 +38,7 @@ export default function Home() {
   const [watchlistItems, setWatchlistItems] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [trades, setTrades] = useState([]);
+  const [binders, setBinders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,13 +49,14 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [items, history, cats, watchlist, badges, tradeData] = await Promise.all([
+      const [items, history, cats, watchlist, badges, tradeData, binderData] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
         base44.entities.PricingHistory.list('-created_date', 500),
         base44.entities.CollectibleCategory.list('sort_order', 50),
         base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 5),
         base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 10),
         base44.entities.Trade.filter({ recipient_id: user.id }, '-created_date', 50),
+        base44.entities.CollectionBinder.filter({ user_id: user.id, is_deleted: false }, '-updated_date', 10),
       ]);
       setCollectibles(items.filter((c) => !c.is_deleted));
       setPricingHistory(history);
@@ -62,6 +64,7 @@ export default function Home() {
       setWatchlistItems(watchlist);
       setAchievements(badges);
       setTrades(tradeData);
+      setBinders(binderData);
     } catch (err) {
       console.error('Failed to load data', err);
     } finally {
@@ -139,6 +142,14 @@ export default function Home() {
     [collectibles]
   );
 
+  const inProgressBinders = useMemo(
+    () => binders
+      .filter((b) => (b.completion_percent || 0) < 100)
+      .sort((a, b) => (b.completion_percent || 0) - (a.completion_percent || 0))
+      .slice(0, 3),
+    [binders]
+  );
+
   if (loading) {
     return (
       <div className="px-4 py-4 space-y-6">
@@ -182,90 +193,51 @@ export default function Home() {
         </button>
       )}
 
-      {collectibles.length > 0 && (
-        <div className="grid grid-cols-3 gap-3">
-          <button
-            onClick={() => navigate('/collection')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <LayoutGrid className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Collection</span>
-          </button>
-          <button
-            onClick={() => navigate('/watchlist')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Eye className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Watchlist</span>
-          </button>
-          <button
-            onClick={() => navigate('/data-quality')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Data Quality</span>
-          </button>
-          <button
-            onClick={() => navigate('/goals')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Target className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Goals</span>
-          </button>
-          <button
-            onClick={() => navigate('/timeline')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Clock className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Timeline</span>
-          </button>
-          <button
-            onClick={() => navigate('/binders')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+      {inProgressBinders.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display font-bold text-lg flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Binders</span>
-          </button>
-          <button
-            onClick={() => navigate('/conventions')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Shows</span>
-          </button>
-          <button
-            onClick={() => navigate('/discover')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 hover:bg-accent transition-colors shadow-soft"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Compass className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Discover</span>
-          </button>
-          <button
-            onClick={() => navigate('/founding-collectors')}
-            className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-primary/10 to-amber-500/10 border border-primary/20 p-4 hover:bg-accent transition-colors"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-amber-500/20 flex items-center justify-center">
-              <Star className="w-5 h-5 text-primary" />
-            </div>
-            <span className="text-xs font-medium">Founders</span>
-          </button>
-        </div>
+              Continue Collecting
+            </h2>
+            <button
+              onClick={() => navigate('/binders')}
+              className="text-xs text-primary font-medium flex items-center gap-0.5"
+            >
+              All Binders <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {inProgressBinders.map((binder) => (
+              <button
+                key={binder.id}
+                onClick={() => navigate(`/binder/${binder.id}`)}
+                className="w-full text-left rounded-2xl bg-card border border-border p-3.5 hover:bg-accent transition-colors shadow-soft"
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">
+                    {binder.icon || '📓'}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate">{binder.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {binder.owned_count || 0} / {binder.target_count || 0} cards
+                    </p>
+                  </div>
+                  <span className="text-sm font-display font-bold text-primary">
+                    {binder.completion_percent || 0}%
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full bg-primary transition-all"
+                    style={{ width: `${binder.completion_percent || 0}%` }}
+                  />
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
       )}
 
       <PortfolioSummary

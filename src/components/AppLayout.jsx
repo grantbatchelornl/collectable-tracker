@@ -23,7 +23,7 @@ export default function AppLayout() {
   return (
     <div className="h-screen overflow-hidden bg-background">
       <TopBar />
-      <main className="pb-24 h-screen max-w-lg mx-auto overflow-y-auto overscroll-y-contain" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+      <main className="pb-24 h-screen max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto overflow-y-auto overscroll-y-contain" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
