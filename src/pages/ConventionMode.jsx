@@ -7,7 +7,6 @@ import {
   getNearbyCollectors,
   getCurrentLocation,
   generateTradeBinderQR,
-  calculateDistance,
 } from '@/lib/conventionMode';
 import { getTradeHistory } from '@/lib/tradeHistory';
 import { Image } from '@/components/ui/image';

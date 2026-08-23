@@ -77,7 +77,7 @@ export default function CollectibleDetail() {
       ]);
       setPhotos(photosData);
       setHistory(historyData);
-      const allItems = user ? await base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-created_date', 200) : [];
+      const allItems = user ? await base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-created_date', 500) : [];
       setAllCollectibles(allItems.filter((item) => !item.is_deleted));
       if (!photosData.some((p) => p.photo_type === 'front') && photosData.length > 0) {
         setActivePhoto('back');

@@ -220,7 +220,75 @@ export default async function(req) {
       });
     }
 
-    // Test 15: Direct User.update for role change (platform limitation check)
+    // Test 15: Direct Trade creation is blocked; trades must use createTrade backend validation.
+    try {
+      await base44.entities.Trade.create({
+        proposer_id: user.id,
+        recipient_id: user.id,
+        status: 'pending',
+        offered_items_json: '[]',
+        requested_items_json: '[]',
+      });
+      results.push({
+        test: 'trade_direct_create_blocked',
+        passed: false,
+        reason: 'Direct Trade.create succeeded — backend-only trade creation is not enforced',
+      });
+    } catch (e) {
+      results.push({
+        test: 'trade_direct_create_blocked',
+        passed: true,
+        reason: 'Direct Trade.create blocked by RLS',
+      });
+    }
+
+    // Test 16: Direct TradeReview creation is blocked; reviews must use submitTradeReview.
+    try {
+      await base44.entities.TradeReview.create({
+        trade_id: '__security_test__',
+        reviewer_id: user.id,
+        reviewed_id: user.id,
+        rating_accuracy: 5,
+        rating_communication: 5,
+        rating_shipping: 5,
+        rating_packaging: 5,
+      });
+      results.push({
+        test: 'trade_review_direct_create_blocked',
+        passed: false,
+        reason: 'Direct TradeReview.create succeeded — backend-only review validation is not enforced',
+      });
+    } catch (e) {
+      results.push({
+        test: 'trade_review_direct_create_blocked',
+        passed: true,
+        reason: 'Direct TradeReview.create blocked by RLS',
+      });
+    }
+
+    // Test 17: createTrade rejects a self-trade before any records are created.
+    try {
+      const selfTradeRes = await base44.functions.invoke('createTrade', {
+        recipientId: user.id,
+        offeredItemIds: ['__security_test__'],
+        requestedItemIds: ['__security_test_2__'],
+      });
+      const selfTradeData = selfTradeRes?.data || selfTradeRes || {};
+      const hasError = !!selfTradeData.error;
+      results.push({
+        test: 'self_trade_blocked',
+        passed: hasError,
+        reason: hasError ? `Rejected: ${selfTradeData.error}` : 'Self-trade was not rejected',
+      });
+    } catch (e) {
+      results.push({
+        test: 'self_trade_blocked',
+        passed: true,
+        reason: 'Self-trade rejected with exception',
+      });
+    }
+
+    // Test 18: Direct User.update for role change (platform limitation check)
     // Documents whether admins can change roles via direct SDK call
     try {
       await base44.entities.User.update(user.id, { role: user.role }); // no-op (same role)

@@ -36,13 +36,17 @@ export default function Messages() {
     if (!user?.id) return;
     if (showSpinner) setLoading(true);
     try {
-      const [sentMsgs, receivedMsgs, trades, blocks] = await Promise.all([
+      const [sentMsgs, receivedMsgs, incomingTradeRows, outgoingTradeRows, blocks] = await Promise.all([
         base44.entities.Message.filter({ sender_id: user.id }, '-created_date', 250),
         base44.entities.Message.filter({ recipient_id: user.id }, '-created_date', 250),
-        base44.entities.Trade.list('-created_date', 200),
+        base44.entities.Trade.filter({ recipient_id: user.id }, '-created_date', 100),
+        base44.entities.Trade.filter({ proposer_id: user.id }, '-created_date', 100),
         base44.entities.UserBlock.filter({ blocker_id: user.id }),
       ]);
       const messages = [...sentMsgs, ...receivedMsgs];
+      const tradeMap = new Map();
+      [...incomingTradeRows, ...outgoingTradeRows].forEach((trade) => tradeMap.set(trade.id, trade));
+      const trades = [...tradeMap.values()].sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
 
       const blockedSet = new Set(blocks.map((b) => b.blocked_id));
       setBlockedIds(blockedSet);

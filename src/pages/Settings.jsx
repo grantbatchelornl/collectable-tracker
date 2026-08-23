@@ -16,8 +16,6 @@ import {
   Sparkles,
   ChevronRight,
   Loader2,
-  Moon,
-  Sun,
   Plane,
   Trash2,
 } from 'lucide-react';

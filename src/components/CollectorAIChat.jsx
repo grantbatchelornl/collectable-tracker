@@ -122,6 +122,7 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
     try {
       const result = await executeAction(pendingAction, user, navigate, {
         conversationId: conversationId,
+        confirmed: true,
       });
       setActionResult(result);
       if (result.success && result.navigate) {

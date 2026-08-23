@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { Image as UIImage } from '@/components/ui/image';
-import { BookOpen, Loader2, Trophy, ChevronRight } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
+import { Loader2, Trophy, ChevronRight } from 'lucide-react';
 import { getCategoryConfig } from '@/lib/binderCategories';
 
 export default function BinderShowcase({ userId }) {

@@ -17,13 +17,21 @@ export default async function(req) {
     const actionType = body.action_type;
     const details = typeof body.details === 'string' ? JSON.parse(body.details) : (body.details || {});
     const conversationId = body.conversation_id || null;
-    const autoConfirmed = body.auto_confirmed || false;
+    const autoConfirmed = body.auto_confirmed === true;
+    const confirmed = body.confirmed === true;
 
     if (!actionType) return Response.json({ error: 'Missing action_type' }, { status: 400 });
 
-    // Check if this action always requires confirmation
+    // Collector AI must never infer user consent from model output.
+    // Every write action must arrive after an explicit confirmation in the UI.
+    if (actionType !== 'navigate' && !confirmed) {
+      return Response.json({ error: 'Explicit user confirmation is required for this action' }, { status: 409 });
+    }
+
     const alwaysRequiresConfirmation = ACTIONS_REQUIRING_CONFIRMATION.includes(actionType);
-    const confirmationStatus = autoConfirmed && !alwaysRequiresConfirmation ? 'auto_confirmed' : 'confirmed';
+    const confirmationStatus = confirmed
+      ? (autoConfirmed && !alwaysRequiresConfirmation ? 'auto_confirmed' : 'confirmed')
+      : 'not_confirmed';
 
     // Helper: safe get (returns null instead of throwing when record doesn't exist)
     const safeGet = async (entity: any, id: string) => {

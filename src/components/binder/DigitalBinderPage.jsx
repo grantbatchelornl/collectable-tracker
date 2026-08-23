@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Image } from '@/components/ui/image';
 import { ChevronLeft, ChevronRight, Check, Star, Trophy, Award } from 'lucide-react';
-import { celebrateBig, haptic } from '@/lib/celebrations';
+import { haptic } from '@/lib/celebrations';
 
 const POCKETS_PER_PAGE = 9;
 const FUNKO_PER_SHELF = 4;

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import CollectorCard from '@/components/social/CollectorCard';
 import CollectibleCard from '@/components/CollectibleCard';
-import { Search, Loader2, Compass, Package } from 'lucide-react';
+import { Search, Loader2, Compass } from 'lucide-react';
 
 export default function Discover() {
   const { user } = useAuth();

@@ -56,25 +56,18 @@ function getFavoritePartners(trades, userId) {
 }
 
 export async function submitTradeReview(reviewData) {
-  await base44.entities.TradeReview.create(reviewData);
-
-  const reviews = await base44.entities.TradeReview.filter({ reviewed_id: reviewData.reviewed_id });
-  const avgScore =
-    reviews.reduce((s, r) => {
-      const score =
-        ((r.rating_accuracy || 0) + (r.rating_communication || 0) + (r.rating_shipping || 0) + (r.rating_packaging || 0)) /
-        4;
-      return s + score;
-    }, 0) / reviews.length;
-
-  const profiles = await base44.entities.CollectorProfile.filter({ user_id: reviewData.reviewed_id });
-  if (profiles.length > 0) {
-    await base44.entities.CollectorProfile.update(profiles[0].id, {
-      trade_reputation_score: Math.round(avgScore * 10) / 10,
-      trade_review_count: reviews.length,
-      total_completed_trades: (profiles[0].total_completed_trades || 0) + 1,
-    });
-  }
+  const response = await base44.functions.invoke('submitTradeReview', {
+    tradeId: reviewData.trade_id,
+    rating_accuracy: reviewData.rating_accuracy,
+    rating_communication: reviewData.rating_communication,
+    rating_shipping: reviewData.rating_shipping,
+    rating_packaging: reviewData.rating_packaging,
+    would_trade_again: reviewData.would_trade_again,
+    comment: reviewData.comment || '',
+  });
+  const data = response?.data || response;
+  if (data?.error) throw new Error(data.error);
+  return data.review;
 }
 
 export async function checkExistingReview(tradeId, reviewerId) {

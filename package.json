@@ -9,7 +9,12 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:routes": "node scripts/check-route-parity.mjs",
+    "check": "npm run lint && npm run typecheck && npm run check:invariants && npm run build",
+    "check:security-static": "node scripts/check-security-invariants.mjs",
+    "check:ai-actions": "node scripts/check-ai-action-parity.mjs",
+    "check:invariants": "npm run check:routes && npm run check:security-static && npm run check:ai-actions"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.43",

@@ -29,16 +29,23 @@ export default async function(req) {
     }
 
     // 3. Fetch user data (RLS-enforced via user token)
-    const [collectibles, pricingHistory, binders, watchlist, healthIssues, trades, achievements, profiles] = await Promise.all([
-      base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
-      base44.entities.PricingHistory.list('-created_date', 100),
-      base44.entities.CollectionBinder.filter({ created_by_id: user.id }, '-created_date', 20),
-      base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 20),
-      base44.entities.CollectionHealth.filter({ user_id: user.id }, '-created_date', 20),
-      base44.entities.Trade.filter({ recipient_id: user.id }, '-created_date', 10),
-      base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 10),
+    const [collectibles, pricingHistory, binders, watchlist, healthIssues, incomingTrades, outgoingTrades, achievements, profiles] = await Promise.all([
+      base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
+      base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 250),
+      base44.entities.CollectionBinder.filter({ created_by_id: user.id }, '-created_date', 50),
+      base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 30),
+      base44.entities.CollectionHealth.filter({ user_id: user.id }, '-created_date', 30),
+      base44.entities.Trade.filter({ recipient_id: user.id }, '-created_date', 15),
+      base44.entities.Trade.filter({ proposer_id: user.id }, '-created_date', 15),
+      base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 20),
       base44.entities.CollectorProfile.filter({ user_id: user.id }),
     ]);
+
+    const tradesById = new Map();
+    [...incomingTrades, ...outgoingTrades].forEach((trade) => tradesById.set(trade.id, trade));
+    const trades = [...tradesById.values()]
+      .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
+      .slice(0, 20);
 
     const profile = profiles[0];
     const validItems = collectibles.filter(c => !c.is_deleted);
@@ -106,9 +113,13 @@ export default async function(req) {
       type: h.issue_type, collectible: h.collectible_name, description: h.description,
     }));
 
-    const activeTrades = trades.filter(t => t.status === 'pending').slice(0, 5).map(t => ({
-      partner: t.proposer_name, status: t.status, offered_value: t.offered_value,
-      requested_value: t.requested_value, is_counter: t.is_counter_offer,
+    const activeTrades = trades.filter(t => t.status === 'pending').slice(0, 8).map(t => ({
+      partner: t.proposer_id === user.id ? t.recipient_name : t.proposer_name,
+      direction: t.proposer_id === user.id ? 'sent' : 'received',
+      status: t.status,
+      offered_value: t.offered_value,
+      requested_value: t.requested_value,
+      is_counter: t.is_counter_offer,
     }));
 
     const achievementCount = achievements.length;

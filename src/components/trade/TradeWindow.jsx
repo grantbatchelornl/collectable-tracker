@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Image } from '@/components/ui/image';
 import { formatCurrency } from '@/lib/format';
 import { calculateFairness, calculateCashAdjustment, sendTradeOffer, getAISuggestedTrades } from '@/lib/tradeCenter';
 import AITradeAssistant from '@/components/trade/AITradeAssistant';
-import { X, Loader2, Sparkles, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { X, Loader2, Sparkles, Check, ArrowRight } from 'lucide-react';
 
 export default function TradeWindow({ user, match, onClose, onSent }) {
   const navigate = useNavigate();

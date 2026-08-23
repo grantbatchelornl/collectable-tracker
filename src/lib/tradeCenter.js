@@ -193,37 +193,14 @@ export function calculateCashAdjustment(valueA, valueB) {
 }
 
 export async function sendTradeOffer(user, partnerId, partnerName, offeredItems, requestedItems, message) {
-  const offeredValue = offeredItems.reduce((s, i) => s + (i.estimated_value || 0), 0);
-  const requestedValue = requestedItems.reduce((s, i) => s + (i.estimated_value || 0), 0);
-  const cash = calculateCashAdjustment(offeredValue, requestedValue);
-
-  const trade = await base44.entities.Trade.create({
-    proposer_id: user.id,
-    recipient_id: partnerId,
-    proposer_name: user.full_name || user.email,
-    recipient_name: partnerName,
-    status: 'pending',
-    message: message || undefined,
-    offered_items_json: JSON.stringify(offeredItems.map((i) => ({
-      id: i.id, name: i.item_name, value: i.estimated_value, photo: i.primary_photo_url,
-    }))),
-    requested_items_json: JSON.stringify(requestedItems.map((i) => ({
-      id: i.id, name: i.item_name, value: i.estimated_value, photo: i.primary_photo_url,
-    }))),
-    offered_value: offeredValue,
-    requested_value: requestedValue,
-    cash_adjustment: cash.amount,
-    cash_direction: cash.amount === 0 ? 'proposer_to_recipient' : (cash.direction === 'a_to_b' ? 'proposer_to_recipient' : 'recipient_to_proposer'),
+  const response = await base44.functions.invoke('createTrade', {
+    recipientId: partnerId,
+    offeredItemIds: offeredItems.map((item) => item.id),
+    requestedItemIds: requestedItems.map((item) => item.id),
+    message: message || '',
+    cashAdjustment: 0,
   });
-
-  await base44.entities.Notification.create({
-    recipient_id: partnerId,
-    type: 'trade_request',
-    title: 'New Trade Offer!',
-    body: `${user.full_name || user.email} proposed a trade with you`,
-    destination_route: '/messages',
-    icon: '🔄',
-  });
-
-  return trade;
+  const data = response?.data || response;
+  if (data?.error) throw new Error(data.error);
+  return data.trade;
 }

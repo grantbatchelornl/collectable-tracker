@@ -5,7 +5,7 @@ import { base44 } from '@/api/base44Client';
 import CollectibleCard from '@/components/CollectibleCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 import SmartSearchBar from '@/components/SmartSearchBar';
-import { Search, Loader2, Package, Plus, FileText, Store, BookOpen } from 'lucide-react';
+import { Loader2, Package, FileText, Store, BookOpen } from 'lucide-react';
 import { generateInsuranceReport } from '@/lib/insuranceReport';
 import EmptyState from '@/components/ui/EmptyState';
 import PullToRefresh from '@/components/PullToRefresh';
@@ -43,8 +43,8 @@ export default function Collection() {
     setLoading(true);
     try {
       const [items, history, cats] = await Promise.all([
-        base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
-        base44.entities.PricingHistory.list('-created_date', 500),
+        base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
+        base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 1000),
         base44.entities.CollectibleCategory.list('sort_order', 50),
       ]);
       setCollectibles(items.filter((c) => !c.is_deleted));

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
-import { Camera, Upload, X, Loader2, ChevronDown, ChevronUp, ZoomIn } from 'lucide-react';
+import { Camera, X, Loader2, ChevronDown, ChevronUp, ZoomIn } from 'lucide-react';
 import { useRef } from 'react';
 
 const CONDITION_TYPES = [

@@ -8,10 +8,12 @@ export default async function(req) {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     // Fetch user's own data using user-scoped token (RLS enforces ownership)
-    const [collectibles, follows, trades, existing, profiles] = await Promise.all([
+    const [collectibles, followsOut, followsIn, tradesOut, tradesIn, existing, profiles] = await Promise.all([
       base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
+      base44.entities.Follow.filter({ follower_id: user.id, status: 'active' }, '-created_date', 100),
       base44.entities.Follow.filter({ following_id: user.id, status: 'active' }, '-created_date', 100),
-      base44.entities.Trade.list('-created_date', 200),
+      base44.entities.Trade.filter({ proposer_id: user.id, status: 'completed' }, '-updated_date', 200),
+      base44.entities.Trade.filter({ recipient_id: user.id, status: 'completed' }, '-updated_date', 200),
       base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 50),
       base44.entities.CollectorProfile.filter({ user_id: user.id }),
     ]);
@@ -19,11 +21,15 @@ export default async function(req) {
     const awardedTypes = new Set(existing.map((a) => a.badge_type));
     const validCollectibles = collectibles.filter((c) => !c.is_deleted);
     const cardCount = validCollectibles.length;
-    const friendCount = follows.length;
-    const completedTrades = trades.filter(
-      (t) => (t.proposer_id === user.id || t.recipient_id === user.id) && t.status === 'completed'
-    ).length;
-    const totalValue = validCollectibles.reduce((s, c) => s + (c.estimated_value || 0), 0);
+    const friendIds = new Set([
+      ...followsOut.map((f) => f.following_id),
+      ...followsIn.map((f) => f.follower_id),
+    ].filter(Boolean));
+    const friendCount = friendIds.size;
+    const completedTrades = new Set([...tradesOut, ...tradesIn].map((t) => t.id)).size;
+    const totalValue = validCollectibles
+      .filter((c) => c.value_type === 'verified_sold')
+      .reduce((s, c) => s + (c.estimated_value || 0), 0);
     const hasPublic = validCollectibles.some((c) => c.privacy_status === 'public');
     const gradedCount = validCollectibles.filter((c) => c.grading_company).length;
 

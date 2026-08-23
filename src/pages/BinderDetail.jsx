@@ -14,7 +14,6 @@ import {
   updateBinderStats,
   handleBinderCompletion,
 } from '@/lib/binderChecklist';
-import BinderSlot from '@/components/binder/BinderSlot';
 import BinderGrid from '@/components/binder/BinderGrid';
 import BinderStatistics from '@/components/binder/BinderStatistics';
 import DigitalBinderPage from '@/components/binder/DigitalBinderPage';
@@ -50,11 +49,9 @@ import {
   Square,
   Grid3x3,
   BookOpen,
-  Share2,
   Trash2,
   AlertTriangle,
 } from 'lucide-react';
-import { formatCurrency } from '@/lib/format';
 import { Image as UIImage } from '@/components/ui/image';
 
 const FILTERS = [

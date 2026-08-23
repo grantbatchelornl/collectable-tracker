@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { analyzeTrade } from '@/lib/tradeAssistant';
-import { Brain, Loader2, TrendingUp, AlertTriangle, Clock, ThumbsUp, ThumbsDown, Scale } from 'lucide-react';
+import { Brain, Loader2, AlertTriangle, Clock, ThumbsUp, ThumbsDown, Scale } from 'lucide-react';
 
 const RECOMMENDATION_STYLES = {
   beneficial: {

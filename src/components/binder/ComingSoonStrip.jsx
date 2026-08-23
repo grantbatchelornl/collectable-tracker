@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Clock, ChevronRight } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { getComingSoonSets, daysUntil, getCategoryColor } from '@/lib/masterBinderIndex';
 
 export default function ComingSoonStrip({ onOpenSet }) {

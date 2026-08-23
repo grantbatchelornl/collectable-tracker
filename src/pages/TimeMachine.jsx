@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import { formatCurrency } from '@/lib/format';
-import { ArrowLeft, Loader2, Clock, TrendingUp, TrendingDown, Plus, Minus, Calendar } from 'lucide-react';
+import { ArrowLeft, Loader2, TrendingUp, TrendingDown, Plus, Calendar } from 'lucide-react';
 
 const TIME_OPTIONS = [
   { key: 'today', label: 'Today', days: 0 },
@@ -33,7 +33,7 @@ export default function TimeMachine() {
     try {
       const [items, history, snaps] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
-        base44.entities.PricingHistory.list('-created_date', 1000),
+        base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 2000),
         base44.entities.CollectionValueSnapshot.filter({ created_by_id: user.id }, '-created_date', 100),
       ]);
       setCollectibles(items.filter((c) => !c.is_deleted));

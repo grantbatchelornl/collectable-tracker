@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Star, Clock, TrendingUp } from 'lucide-react';
+import { Star, TrendingUp } from 'lucide-react';
 import { getCategoryColor, DIFFICULTY_TIERS, formatSetValue } from '@/lib/masterBinderIndex';
 
 export default function SetLibraryCard({ entry, isFavorite, ownership, onToggleFavorite, onOpen, compact }) {

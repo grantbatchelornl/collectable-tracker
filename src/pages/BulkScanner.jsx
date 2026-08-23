@@ -20,6 +20,28 @@ import {
 
 const SUPPORTED_CATEGORIES = ['Pokémon', 'Magic: The Gathering', 'Disney Lorcana', 'Sports Cards'];
 
+const BULK_SCAN_CONCURRENCY = 3;
+
+async function mapWithConcurrency(items, concurrency, worker, onProgress) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+  let completed = 0;
+
+  async function runWorker() {
+    while (true) {
+      const index = nextIndex++;
+      if (index >= items.length) return;
+      results[index] = await worker(items[index], index);
+      completed += 1;
+      onProgress?.(completed);
+    }
+  }
+
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
+  return results;
+}
+
 export default function BulkScanner() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -77,43 +99,51 @@ export default function BulkScanner() {
     setError('');
 
     const selectedCat = categories.find((c) => c.id === selectedCategoryId);
-    const updatedResults = [];
 
-    for (let i = 0; i < uploads.length; i++) {
-      const upload = uploads[i];
-      setUploads((prev) => prev.map((u) => (u.id === upload.id ? { ...u, status: 'processing' } : u)));
-      try {
-        const result = await identifyAndPrice([upload.file_url], selectedCat?.name || 'Trading Cards');
-        updatedResults.push({
-          ...upload,
-          status: 'done',
-          result: {
-            item_name: result.item_name || 'Unknown Card',
-            character_athlete_name: result.character_athlete_name || '',
-            set_name: result.set_name || '',
-            card_number: result.card_number || '',
-            year: result.year || '',
-            variant: result.variant || '',
-            edition: result.edition || '',
-            estimated_value: result.estimated_value || 0,
-            low_value: result.low_value || 0,
-            high_value: result.high_value || 0,
-            confidence: result.confidence || 'low',
-            identification_confidence: result.identification_confidence || result.confidence || 'low',
-            identification_notes: result.identification_notes || '',
-          },
-          confirmed: (result.identification_confidence || result.confidence || 'low') === 'high',
-        });
-      } catch (err) {
-        updatedResults.push({ ...upload, status: 'failed', result: null, confirmed: false });
-      }
-      setProcessProgress(i + 1);
-    }
+    // Mark the entire batch as queued immediately so the user sees progress,
+    // then process a small number in parallel to reduce total scan time
+    // without flooding the AI integration.
+    setUploads((prev) => prev.map((u) => ({ ...u, status: 'processing' })));
+
+    const updatedResults = await mapWithConcurrency(
+      uploads,
+      BULK_SCAN_CONCURRENCY,
+      async (upload) => {
+        try {
+          const result = await identifyAndPrice([upload.file_url], selectedCat?.name || 'Trading Cards');
+          const confidence = result.identification_confidence || result.confidence || 'low';
+          return {
+            ...upload,
+            status: 'done',
+            result: {
+              item_name: result.item_name || 'Unknown Card',
+              character_athlete_name: result.character_athlete_name || '',
+              set_name: result.set_name || '',
+              card_number: result.card_number || '',
+              year: result.year || '',
+              variant: result.variant || '',
+              edition: result.edition || '',
+              estimated_value: result.estimated_value || 0,
+              low_value: result.low_value || 0,
+              high_value: result.high_value || 0,
+              confidence: result.confidence || 'low',
+              identification_confidence: confidence,
+              identification_notes: result.identification_notes || '',
+            },
+            confirmed: confidence === 'high',
+          };
+        } catch (err) {
+          console.error('Bulk scan identification failed', upload.file_name, err);
+          return { ...upload, status: 'failed', result: null, confirmed: false };
+        }
+      },
+      setProcessProgress
+    );
 
     setUploads(updatedResults);
     setResults(updatedResults);
 
-    // Load existing items for duplicate detection
+    // Load the user's existing collection once, after identification, for duplicate detection.
     try {
       const existing = await base44.entities.Collectible.filter(
         { created_by_id: user.id, is_deleted: false },
@@ -122,7 +152,7 @@ export default function BulkScanner() {
       );
       setExistingItems(existing);
     } catch (e) {
-      // non-critical
+      console.error('Duplicate-check collection load failed', e);
     }
 
     setProcessing(false);
@@ -352,7 +382,7 @@ export default function BulkScanner() {
               <div className="grid grid-cols-3 gap-2">
                 {uploads.map((upload) => (
                   <div key={upload.id} className="relative aspect-square rounded-xl overflow-hidden border border-border group">
-                    <img src={upload.file_url} alt={upload.file_name} className="w-full h-full object-cover" />
+                    <img src={upload.file_url} alt={upload.file_name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     <button
                       onClick={() => removeUpload(upload.id)}
                       className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

@@ -74,8 +74,9 @@
   ],
   "rls": {
     "create": {
-      "created_by_id": "{{user.id}}",
-      "data.proposer_id": "{{user.id}}"
+      "user_condition": {
+        "role": "system_only"
+      }
     },
     "read": {
       "$or": [
@@ -98,24 +99,14 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "data.proposer_id": "{{user.id}}"
-        },
-        {
-          "data.recipient_id": "{{user.id}}"
-        }
-      ]
+      "user_condition": {
+        "role": "system_only"
+      }
     },
     "delete": {
-      "$or": [
-        {
-          "data.proposer_id": "{{user.id}}"
-        },
-        {
-          "data.recipient_id": "{{user.id}}"
-        }
-      ]
+      "user_condition": {
+        "role": "system_only"
+      }
     }
   }
 }

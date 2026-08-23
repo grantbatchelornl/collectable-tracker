@@ -1,4 +1,4 @@
-import { Moon, Sun, Sparkles, MessageCircle, LayoutGrid } from 'lucide-react';
+import { Moon, Sun, Sparkles, MessageCircle } from 'lucide-react';
 import { useTheme } from '@/lib/theme';
 import { useNavigate } from 'react-router-dom';
 import NotificationBell from './NotificationBell';

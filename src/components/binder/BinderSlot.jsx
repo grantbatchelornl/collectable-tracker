@@ -1,5 +1,5 @@
 import { Image } from '@/components/ui/image';
-import { Check, Star, Trophy, Plus } from 'lucide-react';
+import { Check, Star, Trophy } from 'lucide-react';
 
 export default function BinderSlot({ item, onClick }) {
   const { status, collectible, isGraded, duplicateCount, name, number, rarity } = item;
