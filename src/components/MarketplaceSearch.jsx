@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { formatCurrency, formatRelativeDate } from '@/lib/format';
+import { formatCurrency } from '@/lib/format';
 import { Search, Loader2, TrendingUp, TrendingDown, Minus, Bookmark, ExternalLink } from 'lucide-react';
 
 export default function MarketplaceSearch({ collectible }) {

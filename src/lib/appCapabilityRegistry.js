@@ -6,6 +6,7 @@
 export const VALID_ROUTES = [
   { pattern: '/', label: 'Home' },
   { pattern: '/collection', label: 'Collection' },
+  { pattern: '/discover', label: 'Discover' },
   { pattern: '/add', label: 'Scan One Card' },
   { pattern: '/scan', label: 'Scan' },
   { pattern: '/binder-scan', label: 'Binder Page Scanner' },
@@ -13,6 +14,7 @@ export const VALID_ROUTES = [
   { pattern: '/collector-ai', label: 'Collector AI' },
   { pattern: '/leaderboards', label: 'Leaderboards' },
   { pattern: '/community', label: 'Community Rankings' },
+  { pattern: '/league/:id', label: 'League Detail' },
   { pattern: '/goals', label: 'Collection Goals' },
   { pattern: '/timeline', label: 'Collection Timeline' },
   { pattern: '/conventions', label: 'Convention Mode' },

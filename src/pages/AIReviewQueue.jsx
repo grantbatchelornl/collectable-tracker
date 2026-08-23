@@ -5,13 +5,10 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Image } from '@/components/ui/image';
 import { identifyAndPrice } from '@/lib/collectibleAI';
-import { checkAndAwardBadges } from '@/lib/achievements';
-import { awardXP, XP_REWARDS } from '@/lib/xpSystem';
 import {
   ArrowLeft,
   Loader2,
   AlertTriangle,
-  Search,
   Edit3,
   RefreshCw,
   Check,

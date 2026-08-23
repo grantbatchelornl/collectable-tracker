@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Flame, Clock, Star, DollarSign, TrendingUp, BookOpen, Loader2, Calendar } from 'lucide-react';
+import { ArrowLeft, Flame, Clock, Star, DollarSign, BookOpen, Loader2, Calendar } from 'lucide-react';
 import {
   getCategorySets, getCategoryColor, estimateOwnership,
 } from '@/lib/masterBinderIndex';

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -6,46 +7,54 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AppLayout from '@/components/AppLayout';
-import Onboarding from '@/pages/Onboarding';
-import Home from '@/pages/Home';
-import Discover from '@/pages/Discover';
-import AddCollectible from '@/pages/AddCollectible';
-import Scan from '@/pages/Scan';
-import BulkScanner from '@/pages/BulkScanner';
-import BinderScanner from '@/pages/BinderScanner';
-import CollectorAI from '@/pages/CollectorAI';
-import Leaderboards from '@/pages/Leaderboards';
-import CommunityRankings from '@/pages/CommunityRankings';
-import LeagueDetail from '@/pages/LeagueDetail';
-import CollectionGoals from '@/pages/CollectionGoals';
-import CollectionTimeline from '@/pages/CollectionTimeline';
-import ConventionMode from '@/pages/ConventionMode';
-import TradeBinder from '@/pages/TradeBinder';
-import Binders from '@/pages/Binders';
-import BinderDetail from '@/pages/BinderDetail';
-import BinderLeaderboards from '@/pages/BinderLeaderboards';
-import AIReviewQueue from '@/pages/AIReviewQueue';
-import TimeMachine from '@/pages/TimeMachine';
-import HallOfFame from '@/pages/HallOfFame';
-import RoomScanner from '@/pages/RoomScanner';
-import FoundingCollectors from '@/pages/FoundingCollectors';
-import Settings from '@/pages/Settings';
-import CollectibleDetail from '@/pages/CollectibleDetail';
-import EditCollectible from '@/pages/EditCollectible';
-import Messages from '@/pages/Messages';
-import Chat from '@/pages/Chat';
-import PublicProfile from '@/pages/PublicProfile';
-import Profile from '@/pages/Profile';
-import Watchlist from '@/pages/Watchlist';
-import DataQuality from '@/pages/DataQuality';
-import Collection from '@/pages/Collection';
-import AdminDashboard from '@/pages/AdminDashboard';
+
+// Route-level code splitting keeps feature-heavy screens out of the initial bundle.
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const Onboarding = lazy(() => import('@/pages/Onboarding'));
+const Home = lazy(() => import('@/pages/Home'));
+const Discover = lazy(() => import('@/pages/Discover'));
+const AddCollectible = lazy(() => import('@/pages/AddCollectible'));
+const Scan = lazy(() => import('@/pages/Scan'));
+const BulkScanner = lazy(() => import('@/pages/BulkScanner'));
+const BinderScanner = lazy(() => import('@/pages/BinderScanner'));
+const CollectorAI = lazy(() => import('@/pages/CollectorAI'));
+const Leaderboards = lazy(() => import('@/pages/Leaderboards'));
+const CommunityRankings = lazy(() => import('@/pages/CommunityRankings'));
+const LeagueDetail = lazy(() => import('@/pages/LeagueDetail'));
+const CollectionGoals = lazy(() => import('@/pages/CollectionGoals'));
+const CollectionTimeline = lazy(() => import('@/pages/CollectionTimeline'));
+const ConventionMode = lazy(() => import('@/pages/ConventionMode'));
+const TradeBinder = lazy(() => import('@/pages/TradeBinder'));
+const Binders = lazy(() => import('@/pages/Binders'));
+const BinderDetail = lazy(() => import('@/pages/BinderDetail'));
+const BinderLeaderboards = lazy(() => import('@/pages/BinderLeaderboards'));
+const AIReviewQueue = lazy(() => import('@/pages/AIReviewQueue'));
+const TimeMachine = lazy(() => import('@/pages/TimeMachine'));
+const HallOfFame = lazy(() => import('@/pages/HallOfFame'));
+const RoomScanner = lazy(() => import('@/pages/RoomScanner'));
+const FoundingCollectors = lazy(() => import('@/pages/FoundingCollectors'));
+const Settings = lazy(() => import('@/pages/Settings'));
+const CollectibleDetail = lazy(() => import('@/pages/CollectibleDetail'));
+const EditCollectible = lazy(() => import('@/pages/EditCollectible'));
+const Messages = lazy(() => import('@/pages/Messages'));
+const Chat = lazy(() => import('@/pages/Chat'));
+const PublicProfile = lazy(() => import('@/pages/PublicProfile'));
+const Profile = lazy(() => import('@/pages/Profile'));
+const Watchlist = lazy(() => import('@/pages/Watchlist'));
+const DataQuality = lazy(() => import('@/pages/DataQuality'));
+const Collection = lazy(() => import('@/pages/Collection'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+
+const RouteFallback = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-background" role="status" aria-label="Loading page">
+    <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+  </div>
+);
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -72,6 +81,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -117,6 +127,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 

@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
-import { formatCurrency } from '@/lib/format';
-import { ArrowLeft, Loader2, Trophy, BookOpen, Star, Award, Calendar } from 'lucide-react';
+import { ArrowLeft, Loader2, Trophy, BookOpen, Award, Calendar } from 'lucide-react';
 
 const ENTRY_ICONS = {
   completed_binder: BookOpen,

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import { findTradeMatches, getWishlistMatches, getPublicTradeBinders, getTradeBinder } from '@/lib/tradeCenter';

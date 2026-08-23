@@ -16,7 +16,6 @@ import {
   Share2,
   MessageCircle,
 } from 'lucide-react';
-import { formatRelativeDate } from '@/lib/format';
 
 export default function FoundingCollectors() {
   const navigate = useNavigate();

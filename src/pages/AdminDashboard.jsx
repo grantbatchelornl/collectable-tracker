@@ -32,7 +32,7 @@ import {
   Server,
 } from 'lucide-react';
 import AchievementBuilder from '@/components/AchievementBuilder';
-import { formatCurrency, formatRelativeDate, formatDate } from '@/lib/format';
+import { formatCurrency, formatRelativeDate } from '@/lib/format';
 
 const TABS = [
   { key: 'overview', label: 'Overview', icon: TrendingUp },

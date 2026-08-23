@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { joinLeague } from '@/lib/league';
-import { Image } from '@/components/ui/image';
 import { X, Loader2, Users } from 'lucide-react';
 
 export default function JoinLeagueModal({ onClose, onJoined }) {

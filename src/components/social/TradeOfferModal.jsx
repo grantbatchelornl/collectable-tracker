@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { Image } from '@/components/ui/image';
-import { serializeTradeItems } from '@/lib/social';
 import FairnessIndicator from './FairnessIndicator';
 import { formatCurrency } from '@/lib/format';
 import { X, Loader2, ArrowRight, Check, Package } from 'lucide-react';
@@ -26,11 +25,11 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
     setLoading(true);
     try {
       const [mine, theirs] = await Promise.all([
-        base44.entities.Collectible.list('-created_date', 100),
-        base44.entities.Collectible.filter({ created_by_id: targetUserId, privacy_status: 'public' }, '-created_date', 100),
+        base44.entities.Collectible.filter({ created_by_id: user.id, is_deleted: false }, '-created_date', 200),
+        base44.entities.Collectible.filter({ created_by_id: targetUserId, privacy_status: 'public', is_deleted: false }, '-created_date', 200),
       ]);
       setMyItems(mine);
-      setTheirItems(theirs);
+      setTheirItems(theirs.filter((item) => item.trade_status === 'trade' || item.trade_status === 'sell'));
     } catch (err) {
       console.error(err);
     } finally {
@@ -57,21 +56,14 @@ export default function TradeOfferModal({ targetUserId, targetName, onClose, onS
     if (!canSubmit) return;
     setSubmitting(true);
     try {
-      await base44.entities.Trade.create({
-        proposer_id: user.id,
-        recipient_id: targetUserId,
-        proposer_name: user.display_name || user.full_name || '',
-        recipient_name: targetName || '',
-        proposer_photo: user.profile_photo || '',
-        status: 'pending',
+      const response = await base44.functions.invoke('createTrade', {
+        recipientId: targetUserId,
+        offeredItemIds: offeredItems.map((item) => item.id),
+        requestedItemIds: requestedItems.map((item) => item.id),
         message: message.trim(),
-        offered_items_json: serializeTradeItems(offeredItems),
-        requested_items_json: serializeTradeItems(requestedItems),
-        offered_value: offeredValue,
-        requested_value: requestedValue,
-        cash_adjustment: parseFloat(cashAdjustment) || 0,
-        cash_direction: offeredValue < requestedValue ? 'proposer_to_recipient' : 'recipient_to_proposer',
+        cashAdjustment: parseFloat(cashAdjustment) || 0,
       });
+      if (response?.data?.error) throw new Error(response.data.error);
       onSubmitted?.();
       onClose?.();
     } catch (err) {

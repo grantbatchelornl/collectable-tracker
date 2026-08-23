@@ -50,8 +50,8 @@ export default function Home() {
     setLoading(true);
     try {
       const [items, history, cats, watchlist, badges, tradeData, binderData] = await Promise.all([
-        base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
-        base44.entities.PricingHistory.list('-created_date', 500),
+        base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
+        base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 1000),
         base44.entities.CollectibleCategory.list('sort_order', 50),
         base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 5),
         base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 10),

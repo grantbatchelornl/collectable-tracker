@@ -91,8 +91,8 @@ export default function DataQuality() {
     try {
       const [collectibles, pricingHistory, photos] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
-        base44.entities.PricingHistory.list('-created_date', 500),
-        base44.entities.CollectiblePhoto.list('-created_date', 500),
+        base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 1000),
+        base44.entities.CollectiblePhoto.filter({ created_by_id: user.id }, '-created_date', 1000),
       ]);
       const active = collectibles.filter((c) => !c.is_deleted);
       const deleted = collectibles.filter((c) => c.is_deleted);

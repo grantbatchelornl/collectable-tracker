@@ -38,7 +38,8 @@ export default function TradeCard({ trade, isIncoming, onAction }) {
 
     setLoading(true);
     try {
-      await base44.entities.Trade.update(trade.id, { status: newStatus });
+      const response = await base44.functions.invoke('updateTradeStatus', { tradeId: trade.id, status: newStatus });
+      if (response?.data?.error) throw new Error(response.data.error);
       onAction?.();
     } catch (err) {
       console.error(err);

@@ -41,8 +41,9 @@
   ],
   "rls": {
     "create": {
-      "created_by_id": "{{user.id}}",
-      "data.reviewer_id": "{{user.id}}"
+      "user_condition": {
+        "role": "system_only"
+      }
     },
     "read": true,
     "update": {

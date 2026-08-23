@@ -6,6 +6,7 @@
 export const VALID_ROUTES: { pattern: string; label: string; description: string; auth?: string }[] = [
   { pattern: '/', label: 'Home', description: 'Dashboard with portfolio summary, quick actions, and recent activity' },
   { pattern: '/collection', label: 'Collection', description: 'Browse and filter all your collectibles' },
+  { pattern: '/discover', label: 'Discover', description: 'Browse public collector content' },
   { pattern: '/add', label: 'Scan One Card', description: 'Add a single collectible via photo + AI identification' },
   { pattern: '/scan', label: 'Scan', description: 'Scan landing page with all scanner options' },
   { pattern: '/binder-scan', label: 'Binder Page Scanner', description: 'Scan a binder page to detect multiple cards' },
@@ -13,6 +14,7 @@ export const VALID_ROUTES: { pattern: string; label: string; description: string
   { pattern: '/collector-ai', label: 'Collector AI', description: 'AI assistant chat' },
   { pattern: '/leaderboards', label: 'Leaderboards', description: 'Collector rankings' },
   { pattern: '/community', label: 'Community Rankings', description: 'Community rankings page' },
+  { pattern: '/league/:id', label: 'League Detail', description: 'View an authorized collector league' },
   { pattern: '/goals', label: 'Collection Goals', description: 'Your collection goals' },
   { pattern: '/timeline', label: 'Collection Timeline', description: 'Timeline of your collection activity' },
   { pattern: '/conventions', label: 'Convention Mode', description: 'Find collectors near you at conventions' },
@@ -56,8 +58,7 @@ export const COLLECTIBLE_UPDATABLE_FIELDS = [
   'item_condition', 'authentication_company', 'country', 'denomination', 'mint_mark',
   'composition', 'sport', 'is_rookie', 'has_patch', 'item_type', 'is_game_used',
   'is_exclusive', 'has_sticker', 'is_chase', 'is_boxed', 'box_number', 'series',
-  'estimated_value', 'low_value', 'high_value', 'value_locked', 'for_sale', 'asking_price',
-  'trade_status', 'privacy_status', 'notes', 'acquisition_source', 'seller_name',
+  'for_sale', 'asking_price', 'trade_status', 'privacy_status', 'notes', 'acquisition_source', 'seller_name',
   'purchase_date', 'memory', 'why_special', 'memory_date', 'memory_shared',
   'is_favorite', 'showcase_order',
 ];
@@ -88,7 +89,7 @@ ${VALID_ROUTES.map(r => `- "${r.label}" → route: ${r.pattern}${r.auth ? ` (req
 - Room Scanner (/room-scanner): Scan a room of collectibles
 
 ### Supported Collectible Categories
-Pokémon, Magic: The Gathering, Disney Lorcana, Sports Cards, Funko Pop!, Coins, and more (see CollectibleCategory entity).
+Pokémon, Magic: The Gathering, Disney Lorcana, Sports Cards, Funko Pop!, Coins, and Sports Memorabilia. These are the only supported collectible categories.
 
 ### Binder Features
 - Custom Binders: User-created binders with AI-generated or manual checklists
@@ -133,7 +134,6 @@ Collector AI can perform these write actions for the authenticated user:
 - mark_for_trade: Set trade_status on collectibles
 - toggle_favorite: Toggle is_favorite on a collectible
 - toggle_showcase: Set showcase_order on a collectible
-- refresh_pricing: Trigger pricing refresh on a collectible
 - delete_binder: Soft-delete a user-owned binder
 
 ### Actions Always Requiring Explicit Confirmation (even with auto-confirm enabled)

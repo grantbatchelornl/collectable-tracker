@@ -7,7 +7,7 @@ import { getLeaderboard, LEADERBOARD_SECTIONS, LEADERBOARD_TIMEFRAMES } from '@/
 import LeagueFeed from '@/components/league/LeagueFeed';
 import LeaderboardEntry from '@/components/leaderboard/LeaderboardEntry';
 import { Image } from '@/components/ui/image';
-import { formatCurrency, formatRelativeDate } from '@/lib/format';
+import { formatRelativeDate } from '@/lib/format';
 import { ArrowLeft, Users, Loader2, Trophy, Activity, Target, Crown, Plus, X, Copy, Check } from 'lucide-react';
 
 const TABS = [

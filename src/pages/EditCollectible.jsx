@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Image } from '@/components/ui/image';
 import CollectibleFormFields from '@/components/CollectibleFormFields';
 import PhotoUploader from '@/components/PhotoUploader';
 import { ArrowLeft, Check, Loader2, AlertTriangle } from 'lucide-react';

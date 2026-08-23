@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import BinderSlot from './BinderSlot';
 import { Image } from '@/components/ui/image';
-import { Check, Star, Trophy, Plus } from 'lucide-react';
+import { Check, Star, Trophy } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 
 const GRID_CONFIGS = {

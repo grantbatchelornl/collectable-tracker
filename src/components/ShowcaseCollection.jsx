@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Image } from '@/components/ui/image';
 import { formatCurrency } from '@/lib/format';
-import { Star, ChevronUp, ChevronDown, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Star, ChevronUp, ChevronDown, Loader2 } from 'lucide-react';
 
 export default function ShowcaseCollection({ userId, isOwnProfile, editable = false }) {
   const navigate = useNavigate();

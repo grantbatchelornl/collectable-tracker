@@ -6,12 +6,12 @@ import { subscribeToMasterBinder } from '@/lib/binderChecklist';
 import {
   getBinderIndex, searchBinders, getSmartSuggestions,
   getFavorites, toggleFavorite, getRecentlyViewed, addRecentlyViewed,
-  getRecommendations, estimateOwnership, getCategoryColor,
+  getRecommendations, estimateOwnership,
   setPokemonDynamicSets,
 } from '@/lib/masterBinderIndex';
 import { MASTER_BINDERS } from '@/lib/masterBinders';
 import { fetchCategorySetsDynamic } from '@/lib/binderSetGenerator';
-import { Loader2, Sparkles, Star, BookOpen, Search, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Sparkles, Star, BookOpen, Search, ChevronRight } from 'lucide-react';
 import BinderSearchBar from './BinderSearchBar';
 import SetLibraryCard from './SetLibraryCard';
 import SetDetailModal from './SetDetailModal';

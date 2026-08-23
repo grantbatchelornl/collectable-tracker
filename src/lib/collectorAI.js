@@ -37,6 +37,7 @@ export async function executeAction(action, user, navigate, options = {}) {
         details,
         conversation_id: options.conversationId || null,
         auto_confirmed: options.autoConfirmed || false,
+        confirmed: options.confirmed === true,
       });
       const result = response.data || response;
       if (result.success && result.route && isValidRoute(result.route)) {
