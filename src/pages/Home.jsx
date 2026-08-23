@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { lazy, Suspense, useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
@@ -7,7 +7,6 @@ import SkeletonCard from '@/components/ui/SkeletonCard';
 import PortfolioSummary from '@/components/PortfolioSummary';
 import RawGradedBreakdown from '@/components/RawGradedBreakdown';
 import RecentPriceChanges from '@/components/RecentPriceChanges';
-import PortfolioChart from '@/components/PortfolioChart';
 import CategoryBreakdown from '@/components/CategoryBreakdown';
 import TopMovers from '@/components/TopMovers';
 import WishlistActivity from '@/components/WishlistActivity';
@@ -28,6 +27,8 @@ import {
 import { Package, ChevronRight, LayoutGrid, BookOpen, Sparkles } from 'lucide-react';
 import EmptyState from '@/components/ui/EmptyState';
 import PullToRefresh from '@/components/PullToRefresh';
+
+const PortfolioChart = lazy(() => import('@/components/PortfolioChart'));
 
 export default function Home() {
   const navigate = useNavigate();
@@ -275,7 +276,9 @@ export default function Home() {
           {pricingHistory.length > 1 && (
             <div className="rounded-2xl bg-card border border-border p-4">
               <h3 className="font-semibold text-sm mb-3">Portfolio Value Over Time</h3>
-              <PortfolioChart data={portfolioTimeSeries} />
+              <Suspense fallback={<div className="h-40 rounded-xl skeleton" aria-label="Loading portfolio chart" />}>
+                <PortfolioChart data={portfolioTimeSeries} />
+              </Suspense>
             </div>
           )}
 
