@@ -6,7 +6,6 @@ import CollectibleCard from '@/components/CollectibleCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 import SmartSearchBar from '@/components/SmartSearchBar';
 import { Loader2, Package, FileText, Store, BookOpen } from 'lucide-react';
-import { generateInsuranceReport } from '@/lib/insuranceReport';
 import EmptyState from '@/components/ui/EmptyState';
 import PullToRefresh from '@/components/PullToRefresh';
 import { getCategoryIcon } from '@/lib/categoryIcons';
@@ -60,6 +59,7 @@ export default function Collection() {
   const handleInsuranceReport = async () => {
     setReportLoading(true);
     try {
+      const { generateInsuranceReport } = await import('@/lib/insuranceReport');
       const profiles = await base44.entities.CollectorProfile.filter({ user_id: user.id });
       await generateInsuranceReport(collectibles, user, profiles[0]);
     } catch (e) {
