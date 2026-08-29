@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import TopBar from './TopBar';
@@ -24,17 +23,12 @@ export default function AppLayout() {
     <div className="h-screen overflow-hidden bg-background">
       <TopBar />
       <main className="pb-24 h-screen max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto overflow-y-auto overscroll-y-contain" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={location.pathname}
+          className="animate-in fade-in slide-in-from-right-2 duration-200"
+        >
+          <Outlet />
+        </div>
       </main>
       <BottomNav />
       <FloatingAIButton />
