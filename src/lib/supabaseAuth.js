@@ -14,11 +14,11 @@ export async function signInWithEmail(email, password) {
   });
 }
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(redirectPath = '/supabase-auth-test') {
   return supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/supabase-auth-test`,
+      redirectTo: `${window.location.origin}${redirectPath}`,
     },
   });
 }
