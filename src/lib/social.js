@@ -1,25 +1,27 @@
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 
 export async function syncCollectorProfile(user) {
-  if (!user?.id) return;
+  if (!user?.id) return null;
+
   const data = {
-    user_id: user.id,
+    id: user.id,
     display_name: user.display_name || user.full_name || '',
-    username: user.username || '',
+    username: user.username || null,
     bio: user.bio || '',
     profile_photo: user.profile_photo || '',
-    show_public_value: user.privacy_show_public_value || false,
+    show_public_value: user.privacy_show_public_value || user.show_public_value || false,
+    has_completed_onboarding: Boolean(user.has_completed_onboarding),
   };
-  try {
-    const existing = await base44.entities.CollectorProfile.filter({ user_id: user.id });
-    if (existing.length > 0) {
-      await base44.entities.CollectorProfile.update(existing[0].id, data);
-    } else {
-      await base44.entities.CollectorProfile.create(data);
-    }
-  } catch (err) {
-    console.error('Failed to sync collector profile:', err);
-  }
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .upsert(data, { onConflict: 'id' })
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return profile;
 }
 
 export function parseTradeItems(jsonString) {

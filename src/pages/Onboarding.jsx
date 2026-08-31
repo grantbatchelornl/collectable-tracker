@@ -48,19 +48,13 @@ export default function Onboarding() {
     }
     setSaving(true);
     try {
-      await base44.auth.updateMe({
-        display_name: displayName.trim(),
-        username: username.trim(),
-        bio: bio.trim(),
-        profile_photo: profilePhoto,
-        has_completed_onboarding: true,
-      });
       await syncCollectorProfile({
         ...user,
         display_name: displayName.trim(),
         username: username.trim(),
         bio: bio.trim(),
         profile_photo: profilePhoto,
+        has_completed_onboarding: true,
       });
       window.location.href = '/';
     } catch (err) {
