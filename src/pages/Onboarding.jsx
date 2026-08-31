@@ -68,8 +68,8 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 max-w-md mx-auto w-full">
+    <div className="fixed inset-0 z-50 bg-background overflow-y-auto overscroll-contain">
+      <div className="flex flex-col items-center px-6 pt-12 pb-32 max-w-md mx-auto w-full min-h-max">
         <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center mb-6 shadow-lg shadow-primary/20">
           <Sparkles className="w-7 h-7 text-primary-foreground" />
         </div>
