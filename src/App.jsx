@@ -49,6 +49,7 @@ const Watchlist = lazy(() => import('@/pages/Watchlist'));
 const DataQuality = lazy(() => import('@/pages/DataQuality'));
 const Collection = lazy(() => import('@/pages/Collection'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const SupabaseAuthTest = lazy(() => import('@/pages/SupabaseAuthTest'));
 
 const RouteFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background" role="status" aria-label="Loading page">
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/supabase-auth-test" element={<SupabaseAuthTest />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
