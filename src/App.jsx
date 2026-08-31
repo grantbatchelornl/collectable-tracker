@@ -21,7 +21,6 @@ const Discover = lazy(() => import('@/pages/Discover'));
 const AddCollectible = lazy(() => import('@/pages/AddCollectible'));
 const Scan = lazy(() => import('@/pages/Scan'));
 const BulkScanner = lazy(() => import('@/pages/BulkScanner'));
-const BinderScanner = lazy(() => import('@/pages/BinderScanner'));
 const CollectorAI = lazy(() => import('@/pages/CollectorAI'));
 const Leaderboards = lazy(() => import('@/pages/Leaderboards'));
 const CommunityRankings = lazy(() => import('@/pages/CommunityRankings'));
@@ -30,9 +29,6 @@ const CollectionGoals = lazy(() => import('@/pages/CollectionGoals'));
 const CollectionTimeline = lazy(() => import('@/pages/CollectionTimeline'));
 const ConventionMode = lazy(() => import('@/pages/ConventionMode'));
 const TradeBinder = lazy(() => import('@/pages/TradeBinder'));
-const Binders = lazy(() => import('@/pages/Binders'));
-const BinderDetail = lazy(() => import('@/pages/BinderDetail'));
-const BinderLeaderboards = lazy(() => import('@/pages/BinderLeaderboards'));
 const AIReviewQueue = lazy(() => import('@/pages/AIReviewQueue'));
 const TimeMachine = lazy(() => import('@/pages/TimeMachine'));
 const HallOfFame = lazy(() => import('@/pages/HallOfFame'));
@@ -97,7 +93,6 @@ const AuthenticatedApp = () => {
           <Route path="/add" element={<AddCollectible />} />
           <Route path="/scan" element={<Scan />} />
           <Route path="/bulk-scan" element={<BulkScanner />} />
-          <Route path="/binder-scan" element={<BinderScanner />} />
           <Route path="/collector-ai" element={<CollectorAI />} />
           <Route path="/leaderboards" element={<Leaderboards />} />
           <Route path="/community" element={<CommunityRankings />} />
@@ -106,9 +101,6 @@ const AuthenticatedApp = () => {
           <Route path="/timeline" element={<CollectionTimeline />} />
           <Route path="/conventions" element={<ConventionMode />} />
           <Route path="/trade-binder/:userId" element={<TradeBinder />} />
-          <Route path="/binders" element={<Binders />} />
-          <Route path="/binder/:id" element={<BinderDetail />} />
-          <Route path="/binder-leaderboards" element={<BinderLeaderboards />} />
           <Route path="/review-queue" element={<AIReviewQueue />} />
           <Route path="/time-machine" element={<TimeMachine />} />
           <Route path="/hall-of-fame" element={<HallOfFame />} />

@@ -13,7 +13,6 @@ import WishlistActivity from '@/components/WishlistActivity';
 import AchievementProgress from '@/components/AchievementProgress';
 import CollectionBriefing from '@/components/CollectionBriefing';
 import CollectorScoreCard from '@/components/CollectorScoreCard';
-import AISmartSuggestions from '@/components/binder/AISmartSuggestions';
 import { computeCollectorScore } from '@/lib/collectorScore';
 import {
   buildPortfolioTimeSeries,
@@ -39,7 +38,6 @@ export default function Home() {
   const [watchlistItems, setWatchlistItems] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [trades, setTrades] = useState([]);
-  const [binders, setBinders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -50,14 +48,13 @@ export default function Home() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [items, history, cats, watchlist, badges, tradeData, binderData] = await Promise.all([
+      const [items, history, cats, watchlist, badges, tradeData] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 500),
         base44.entities.PricingHistory.filter({ created_by_id: user.id }, '-created_date', 1000),
         base44.entities.CollectibleCategory.list('sort_order', 50),
         base44.entities.Watchlist.filter({ user_id: user.id, status: 'active' }, '-created_date', 5),
         base44.entities.Achievement.filter({ user_id: user.id }, '-created_date', 10),
         base44.entities.Trade.filter({ recipient_id: user.id }, '-created_date', 50),
-        base44.entities.CollectionBinder.filter({ user_id: user.id, is_deleted: false }, '-updated_date', 10),
       ]);
       setCollectibles(items.filter((c) => !c.is_deleted));
       setPricingHistory(history);
@@ -65,7 +62,6 @@ export default function Home() {
       setWatchlistItems(watchlist);
       setAchievements(badges);
       setTrades(tradeData);
-      setBinders(binderData);
     } catch (err) {
       console.error('Failed to load data', err);
     } finally {
@@ -143,14 +139,6 @@ export default function Home() {
     [collectibles]
   );
 
-  const inProgressBinders = useMemo(
-    () => binders
-      .filter((b) => (b.completion_percent || 0) < 100)
-      .sort((a, b) => (b.completion_percent || 0) - (a.completion_percent || 0))
-      .slice(0, 3),
-    [binders]
-  );
-
   if (loading) {
     return (
       <div className="px-4 py-4 space-y-6">
@@ -194,54 +182,7 @@ export default function Home() {
         </button>
       )}
 
-      {inProgressBinders.length > 0 && (
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display font-bold text-lg flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Continue Collecting
-            </h2>
-            <button
-              onClick={() => navigate('/binders')}
-              className="text-xs text-primary font-medium flex items-center gap-0.5"
-            >
-              All Binders <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-          <div className="space-y-2.5">
-            {inProgressBinders.map((binder) => (
-              <button
-                key={binder.id}
-                onClick={() => navigate(`/binder/${binder.id}`)}
-                className="w-full text-left rounded-2xl bg-card border border-border p-3.5 hover:bg-accent transition-colors shadow-soft"
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-lg flex-shrink-0">
-                    {binder.icon || '📓'}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">{binder.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {binder.owned_count || 0} / {binder.target_count || 0} cards
-                    </p>
-                  </div>
-                  <span className="text-sm font-display font-bold text-primary">
-                    {binder.completion_percent || 0}%
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${binder.completion_percent || 0}%` }}
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <PortfolioSummary
+<PortfolioSummary
         totalValue={stats.totalValue}
         verifiedValue={verifiedManual.verified}
         manualValue={verifiedManual.manual}
