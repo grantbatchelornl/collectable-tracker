@@ -3,26 +3,43 @@ import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
-function mapUser(authUser) {
+async function mapUser(authUser) {
   if (!authUser) return null;
+
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', authUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Failed to load Supabase profile:', error);
+  }
 
   return {
     id: authUser.id,
     email: authUser.email,
-    role: authUser.user_metadata?.role || 'user',
+    role: profile?.role || authUser.user_metadata?.role || 'user',
     display_name:
+      profile?.display_name ||
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
       authUser.email?.split('@')[0] ||
       '',
     full_name:
+      profile?.display_name ||
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
       '',
+    username: profile?.username || '',
+    bio: profile?.bio || '',
     profile_photo:
+      profile?.profile_photo ||
       authUser.user_metadata?.avatar_url ||
       authUser.user_metadata?.picture ||
       '',
+    has_completed_onboarding: Boolean(profile?.has_completed_onboarding),
+    is_suspended: Boolean(profile?.is_suspended),
     auth_provider: authUser.app_metadata?.provider || null,
     raw_user: authUser,
   };
@@ -57,7 +74,7 @@ export const AuthProvider = ({ children }) => {
         });
       }
 
-      const mapped = mapUser(data?.session?.user ?? null);
+      const mapped = await mapUser(data?.session?.user ?? null);
       setUser(mapped);
       setIsAuthenticated(Boolean(mapped));
       setIsLoadingAuth(false);
@@ -68,10 +85,10 @@ export const AuthProvider = ({ children }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
 
-      const mapped = mapUser(session?.user ?? null);
+      const mapped = await mapUser(session?.user ?? null);
       setUser(mapped);
       setIsAuthenticated(Boolean(mapped));
       setIsLoadingAuth(false);
@@ -98,7 +115,7 @@ export const AuthProvider = ({ children }) => {
         message: error.message,
       });
     } else {
-      const mapped = mapUser(data?.user ?? null);
+      const mapped = await mapUser(data?.user ?? null);
       setUser(mapped);
       setIsAuthenticated(Boolean(mapped));
       setAuthError(null);
