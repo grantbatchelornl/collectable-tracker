@@ -11,7 +11,6 @@ import { getInitials } from '@/lib/social';
 import AchievementBadges from '@/components/AchievementBadges';
 import ReputationBadge from '@/components/trade/ReputationBadge';
 import ShowcaseCollection from '@/components/ShowcaseCollection';
-import BinderShowcase from '@/components/binder/BinderShowcase';
 import FoundingBadge from '@/components/FoundingBadge';
 import { ArrowLeft, MessageCircle, ArrowLeftRight, Package, Loader2, DollarSign, Ban, Flag, X, BadgeCheck } from 'lucide-react';
 import {
@@ -140,7 +139,6 @@ export default function PublicProfile() {
 
       <ShowcaseCollection userId={userId} isOwnProfile={false} editable={false} />
 
-      <BinderShowcase userId={userId} />
 
       <ReputationBadge profile={profile} />
 
