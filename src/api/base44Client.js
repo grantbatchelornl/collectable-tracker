@@ -597,7 +597,7 @@ export const base44 = {
           supabase
             .from('collection_health')
             .select('*')
-            .eq('user_id', currentUserId)
+            .eq('created_by_id', currentUserId)
             .limit(20),
         ]);
 
