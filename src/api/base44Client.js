@@ -290,8 +290,296 @@ export const base44 = {
   },
 
   functions: {
-    invoke: async (name) => {
-      throw new Error(`Base44 function "${name}" still needs migration`);
+    invoke: async (name, args = {}) => {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+
+      const currentUser = authData?.user;
+      const currentUserId = currentUser?.id;
+
+      const wrap = (data) => ({ data });
+
+      if (name === 'getPublicProfiles') {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*');
+
+        if (error) throw error;
+
+        const profiles = (data || []).map((p) => ({
+          ...p,
+          user_id: p.user_id || p.id,
+        }));
+
+        return wrap({ profiles });
+      }
+
+      if (name === 'getPublicProfile') {
+        const targetUserId = args.targetUserId;
+
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', targetUserId)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        const { data: blocks, error: blockError } = await supabase
+          .from('user_blocks')
+          .select('*')
+          .or(
+            `and(blocker_id.eq.${currentUserId},blocked_id.eq.${targetUserId}),and(blocker_id.eq.${targetUserId},blocked_id.eq.${currentUserId})`
+          );
+
+        if (blockError) throw blockError;
+
+        const { data: follows, error: followError } = await supabase
+          .from('follows')
+          .select('*')
+          .or(
+            `and(follower_id.eq.${currentUserId},following_id.eq.${targetUserId}),and(follower_id.eq.${targetUserId},following_id.eq.${currentUserId})`
+          );
+
+        if (followError) throw followError;
+
+        const iBlockedThem = (blocks || []).some(
+          (b) => b.blocker_id === currentUserId && b.blocked_id === targetUserId
+        );
+
+        const theyBlockedMe = (blocks || []).some(
+          (b) => b.blocker_id === targetUserId && b.blocked_id === currentUserId
+        );
+
+        const isFriend = (follows || []).some(
+          (f) =>
+            f.status === 'active' &&
+            (
+              (f.follower_id === currentUserId && f.following_id === targetUserId) ||
+              (f.follower_id === targetUserId && f.following_id === currentUserId)
+            )
+        );
+
+        return wrap({
+          profile: profile
+            ? { ...profile, user_id: profile.user_id || profile.id }
+            : null,
+          isFriend,
+          iBlockedThem,
+          theyBlockedMe,
+        });
+      }
+
+      if (name === 'sendMessage') {
+        const recipientId = args.recipientId;
+
+        const { data: blocked } = await supabase
+          .from('user_blocks')
+          .select('id')
+          .or(
+            `and(blocker_id.eq.${currentUserId},blocked_id.eq.${recipientId}),and(blocker_id.eq.${recipientId},blocked_id.eq.${currentUserId})`
+          )
+          .limit(1);
+
+        if (blocked?.length) {
+          return wrap({ error: 'blocked' });
+        }
+
+        const { data: senderProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUserId)
+          .maybeSingle();
+
+        const { data: recipientProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', recipientId)
+          .maybeSingle();
+
+        const { data: message, error } = await supabase
+          .from('messages')
+          .insert({
+            sender_id: currentUserId,
+            recipient_id: recipientId,
+            sender_name: senderProfile?.display_name || currentUser?.email || 'Collector',
+            recipient_name: recipientProfile?.display_name || 'Collector',
+            sender_photo: senderProfile?.profile_photo || '',
+            recipient_photo: recipientProfile?.profile_photo || '',
+            body: args.body || '',
+            read: false,
+            attached_collectible_id: args.attachedCollectibleId || '',
+            attached_collectible_name: args.attachedCollectibleName || '',
+            attached_collectible_photo: args.attachedCollectiblePhoto || '',
+            attached_collectible_value: args.attachedCollectibleValue || 0,
+            created_by_id: currentUserId,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return wrap({ message });
+      }
+
+      if (name === 'createTrade') {
+        const recipientId = args.recipientId;
+
+        const { data: proposerProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUserId)
+          .maybeSingle();
+
+        const { data: recipientProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', recipientId)
+          .maybeSingle();
+
+        const { data: trade, error } = await supabase
+          .from('trades')
+          .insert({
+            proposer_id: currentUserId,
+            recipient_id: recipientId,
+            proposer_name: proposerProfile?.display_name || 'Collector',
+            recipient_name: recipientProfile?.display_name || 'Collector',
+            proposer_photo: proposerProfile?.profile_photo || '',
+            status: 'pending',
+            message: args.message || '',
+            offered_items_json: JSON.stringify(args.offeredItemIds || []),
+            requested_items_json: JSON.stringify(args.requestedItemIds || []),
+            cash_adjustment: args.cashAdjustment || 0,
+            created_by_id: currentUserId,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return wrap({ trade });
+      }
+
+      if (name === 'updateTradeStatus') {
+        const { data: trade, error: readError } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('id', args.tradeId)
+          .single();
+
+        if (readError) throw readError;
+
+        const allowed =
+          trade.proposer_id === currentUserId ||
+          trade.recipient_id === currentUserId;
+
+        if (!allowed) {
+          return wrap({ error: 'Not authorized' });
+        }
+
+        const { data: updated, error } = await supabase
+          .from('trades')
+          .update({
+            status: args.status,
+            updated_date: new Date().toISOString(),
+          })
+          .eq('id', args.tradeId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return wrap({ trade: updated });
+      }
+
+      if (name === 'submitTradeReview') {
+        const { data: trade, error: tradeError } = await supabase
+          .from('trades')
+          .select('*')
+          .eq('id', args.tradeId)
+          .single();
+
+        if (tradeError) throw tradeError;
+
+        const reviewedId =
+          trade.proposer_id === currentUserId
+            ? trade.recipient_id
+            : trade.proposer_id;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUserId)
+          .maybeSingle();
+
+        const { data: review, error } = await supabase
+          .from('trade_reviews')
+          .insert({
+            trade_id: args.tradeId,
+            reviewer_id: currentUserId,
+            reviewer_name: profile?.display_name || 'Collector',
+            reviewed_id: reviewedId,
+            rating_accuracy: args.rating_accuracy,
+            rating_communication: args.rating_communication,
+            rating_shipping: args.rating_shipping,
+            rating_packaging: args.rating_packaging,
+            would_trade_again: args.would_trade_again,
+            comment: args.comment || '',
+            created_by_id: currentUserId,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return wrap({ review });
+      }
+
+      if (name === 'updateUserRole') {
+        const { data: me } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', currentUserId)
+          .maybeSingle();
+
+        if (!['admin', 'super_admin'].includes(me?.role)) {
+          return wrap({ error: 'Not authorized' });
+        }
+
+        const { data: updated, error } = await supabase
+          .from('profiles')
+          .update({ role: args.newRole })
+          .eq('id', args.targetUserId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return wrap({ user: updated });
+      }
+
+      if (name === 'awardAchievements') {
+        // Keep the app operational while the old Base44 award engine
+        // is replaced separately.
+        const { data, error } = await supabase
+          .from('achievements')
+          .select('*')
+          .eq('user_id', currentUserId);
+
+        if (error) throw error;
+        return wrap({ achievements: data || [] });
+      }
+
+      if (name === 'verifyAdminAccess') {
+        // Do not reproduce the old shared-password mechanism client-side.
+        // Supabase role authorization is now the source of truth.
+        const { data: me } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', currentUserId)
+          .maybeSingle();
+
+        return wrap({
+          authorized: ['admin', 'super_admin'].includes(me?.role),
+        });
+      }
+
+      throw new Error(`Function "${name}" still needs migration`);
     },
   },
 
