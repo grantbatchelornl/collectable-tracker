@@ -247,7 +247,15 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
             </div>
             <div className="rounded-2xl bg-card border border-destructive/20 p-3">
               <p className="text-sm text-destructive">{error}</p>
-              <button onClick={() => ask(messages[messages.length - 2]?.text || '')} className="text-xs text-primary font-medium mt-1">
+              <button
+  onClick={() => {
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === 'user');
+    if (lastUserMessage?.text) ask(lastUserMessage.text);
+  }}
+  className="text-xs text-primary font-medium mt-1"
+>
                 Retry
               </button>
             </div>
