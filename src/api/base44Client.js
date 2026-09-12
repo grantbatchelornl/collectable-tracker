@@ -285,7 +285,14 @@ export const base44 = {
         };
       },
 
-      InvokeLLM: unsupported('InvokeLLM'),
+      InvokeLLM: async (payload = {}) => {
+        const { data, error } = await supabase.functions.invoke('invoke-llm', {
+          body: payload,
+        });
+
+        if (error) throw error;
+        return data;
+      },
     },
   },
 
