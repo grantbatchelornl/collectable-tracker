@@ -98,14 +98,12 @@ export const SUGGESTED_PROMPTS = [
   { label: 'What changed this week?', question: 'What changed in my collection this week? Show me gains, losses, and new additions.' },
   { label: 'What should I grade?', question: 'Which of my collectibles are the best candidates for professional grading? Explain why.' },
   { label: 'What should I trade?', question: 'Which duplicates or items should I consider trading? What are my best trade candidates?' },
-  { label: 'Help me finish a binder', question: 'Which binder am I closest to completing? What items am I missing and which are the least expensive?' },
   { label: 'Find my duplicates', question: 'Do I have any duplicate items? Which ones could I trade?' },
   { label: 'Show stale prices', question: 'Which items have stale pricing and need a refresh?' },
   { label: 'Show my biggest gains', question: 'Which items in my collection gained the most value recently?' },
   { label: 'Find a fair trade', question: 'Do I have any fair trade matches with friends or collectors?' },
   { label: 'Explain my Collection Health', question: 'What are my Collection Health issues and how do I fix them?' },
   { label: 'What can you do?', question: 'What features and actions can you perform for me? List your capabilities.' },
-  { label: 'Where are Master Binders?', question: 'Where are Master Binders located in the app? How do I find them?' },
 ];
 
 export function getAdaptivePrompts(collectibles, binders, healthIssues) {
@@ -129,13 +127,6 @@ export function getAdaptivePrompts(collectibles, binders, healthIssues) {
   const ungradedValuable = collectibles.filter(c => !c.grading_company && (c.estimated_value || 0) > 100);
   if (ungradedValuable.length > 0) {
     prompts.push({ label: 'What should I grade?', question: `I have ${ungradedValuable.length} ungraded items worth over $100. Which are the best grading candidates?` });
-  }
-
-  if (binders && binders.length > 0) {
-    const closest = [...binders].sort((a, b) => (b.completion_percent || 0) - (a.completion_percent || 0))[0];
-    if (closest && (closest.completion_percent || 0) > 0) {
-      prompts.push({ label: 'Help me finish a binder', question: `I'm ${closest.completion_percent}% done with my "${closest.name}" binder. What am I missing and which missing items are cheapest?` });
-    }
   }
 
   if (healthIssues && healthIssues.filter(h => !h.status || h.status === 'open').length > 0) {

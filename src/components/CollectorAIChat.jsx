@@ -146,7 +146,7 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
               <h3 className="font-semibold text-sm">Ask about your collection</h3>
             </div>
             <p className="text-xs text-muted-foreground mb-3">
-              I can analyze your collection, find duplicates, suggest grading candidates, help finish binders, find trades, and more — using only your verified data.
+              I can analyze your collection, find duplicates, suggest grading candidates, find trades, spot stale prices, and more — using only your verified data.
             </p>
             {contextHint && (
               <div className="mb-3 rounded-lg bg-accent/50 p-2.5">
