@@ -50,13 +50,12 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
 
   const loadAdaptiveData = async () => {
     try {
-      const [items, binders, health] = await Promise.all([
+      const [items, health] = await Promise.all([
         base44.entities.Collectible.filter({ created_by_id: user.id }, '-created_date', 200),
-        base44.entities.CollectionBinder.filter({ created_by_id: user.id }, '-created_date', 10),
         base44.entities.CollectionHealth.filter({ user_id: user.id }, '-created_date', 20),
       ]);
       const validItems = items.filter(c => !c.is_deleted);
-      const adaptive = getAdaptivePrompts(validItems, binders, health);
+      const adaptive = getAdaptivePrompts(validItems, [], health);
       if (adaptive.length > 0) setAdaptivePrompts(adaptive);
     } catch (err) {
       // fall back to default prompts

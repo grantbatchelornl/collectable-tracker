@@ -586,6 +586,252 @@ export const base44 = {
         });
       }
 
+      if (name === 'collectorAIChat') {
+        const [collectiblesRes, healthRes] = await Promise.all([
+          supabase
+            .from('collectibles')
+            .select('*')
+            .eq('created_by_id', currentUserId)
+            .eq('is_deleted', false)
+            .limit(200),
+          supabase
+            .from('collection_health')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .limit(20),
+        ]);
+
+        if (collectiblesRes.error) throw collectiblesRes.error;
+        if (healthRes.error) throw healthRes.error;
+
+        const items = collectiblesRes.data || [];
+        const health = healthRes.data || [];
+
+        const historyText = (args.history || [])
+          .slice(-10)
+          .map((m) => `${m.role}: ${m.text}`)
+          .join('\n');
+
+        const collectionText = items
+          .slice(0, 100)
+          .map((c) =>
+            `${c.item_name || 'Unknown'} | category:${c.category_name || ''} | value:$${c.estimated_value || 0} | year:${c.year || ''} | grade:${c.grade || 'raw'} | set:${c.set_name || ''}`
+          )
+          .join('\n');
+
+        const prompt = `You are COLLECTABLE AI, an assistant for a collectibles tracking app.
+
+Answer using the collector's actual collection data below. Do not invent collectibles they do not own.
+
+Context hint:
+${args.contextHint || 'None'}
+
+Recent conversation:
+${historyText || 'None'}
+
+Collection:
+${collectionText || 'No collectibles yet'}
+
+Collection health:
+${JSON.stringify(health)}
+
+User question:
+${args.question}
+
+Return JSON with:
+- response: a helpful plain-text answer
+- suggested_actions: an array of zero or more actions
+
+Each suggested action must contain:
+- title
+- description
+- action_type
+- details
+
+Allowed action_type values:
+navigate, update_profile, update_collectible, add_to_wishlist,
+mark_for_trade, toggle_favorite, toggle_showcase,
+refresh_pricing, start_grading, create_goal.
+
+Only suggest a write action when it is clearly useful.`;
+
+        const { data, error } = await supabase.functions.invoke('invoke-llm', {
+          body: {
+            prompt,
+            model: 'gemini_3_flash',
+            response_json_schema: {
+              type: 'object',
+              properties: {
+                response: { type: 'string' },
+                suggested_actions: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      title: { type: 'string' },
+                      description: { type: 'string' },
+                      action_type: { type: 'string' },
+                      details: { type: 'object' },
+                    },
+                  },
+                },
+              },
+              required: ['response', 'suggested_actions'],
+            },
+          },
+        });
+
+        if (error) throw error;
+        return wrap(data);
+      }
+
+      if (name === 'collectorAIExecute') {
+        if (args.confirmed !== true) {
+          return wrap({
+            success: false,
+            message: 'Confirmation is required before changing your data.',
+          });
+        }
+
+        const details = args.details || {};
+
+        if (args.action_type === 'update_profile') {
+          const allowed = [
+            'display_name',
+            'username',
+            'bio',
+            'profile_photo',
+            'show_public_value',
+          ];
+
+          const update = Object.fromEntries(
+            Object.entries(details).filter(([key]) => allowed.includes(key))
+          );
+
+          const { error } = await supabase
+            .from('profiles')
+            .update(update)
+            .eq('id', currentUserId);
+
+          if (error) throw error;
+
+          return wrap({
+            success: true,
+            message: 'Profile updated.',
+            route: '/profile',
+          });
+        }
+
+        if (args.action_type === 'update_collectible') {
+          if (!details.collectible_id) {
+            return wrap({ success: false, message: 'Collectible ID is required.' });
+          }
+
+          const { collectible_id, ...requested } = details;
+
+          const allowed = [
+            'item_name',
+            'estimated_value',
+            'notes',
+            'trade_status',
+            'is_favorite',
+            'showcase_order',
+            'privacy_status',
+          ];
+
+          const update = Object.fromEntries(
+            Object.entries(requested).filter(([key]) => allowed.includes(key))
+          );
+
+          const { data, error } = await supabase
+            .from('collectibles')
+            .update(update)
+            .eq('id', collectible_id)
+            .eq('created_by_id', currentUserId)
+            .select()
+            .maybeSingle();
+
+          if (error) throw error;
+          if (!data) {
+            return wrap({ success: false, message: 'Collectible not found.' });
+          }
+
+          return wrap({
+            success: true,
+            message: 'Collectible updated.',
+            route: `/collectible/${collectible_id}`,
+          });
+        }
+
+        if (args.action_type === 'add_to_wishlist') {
+          const { data, error } = await supabase
+            .from('watchlist')
+            .insert({
+              user_id: currentUserId,
+              item_name: details.item_name || details.name || 'Collectible',
+              category_name: details.category_name || '',
+              target_price: details.target_price || 0,
+              notes: details.notes || '',
+              priority: details.priority || 'medium',
+              status: 'active',
+              created_by_id: currentUserId,
+            })
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          return wrap({
+            success: true,
+            message: `Added "${data.item_name}" to your wishlist.`,
+            route: '/watchlist',
+          });
+        }
+
+        if (
+          ['mark_for_trade', 'toggle_favorite', 'toggle_showcase'].includes(
+            args.action_type
+          )
+        ) {
+          const collectibleId = details.collectible_id;
+
+          if (!collectibleId) {
+            return wrap({ success: false, message: 'Collectible ID is required.' });
+          }
+
+          const update =
+            args.action_type === 'mark_for_trade'
+              ? { trade_status: details.trade_status || 'trade' }
+              : args.action_type === 'toggle_favorite'
+                ? { is_favorite: details.is_favorite !== false }
+                : { showcase_order: details.showcase_order || 1 };
+
+          const { data, error } = await supabase
+            .from('collectibles')
+            .update(update)
+            .eq('id', collectibleId)
+            .eq('created_by_id', currentUserId)
+            .select()
+            .maybeSingle();
+
+          if (error) throw error;
+          if (!data) {
+            return wrap({ success: false, message: 'Collectible not found.' });
+          }
+
+          return wrap({
+            success: true,
+            message: 'Collectible updated.',
+            route: `/collectible/${collectibleId}`,
+          });
+        }
+
+        return wrap({
+          success: false,
+          message: `Unsupported Collector AI action: ${args.action_type}`,
+        });
+      }
+
       throw new Error(`Function "${name}" still needs migration`);
     },
   },
