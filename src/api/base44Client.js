@@ -247,7 +247,44 @@ export const base44 = {
 
   integrations: {
     Core: {
-      UploadFile: unsupported('UploadFile'),
+      UploadFile: async ({ file }) => {
+        if (!file) {
+          throw new Error('UploadFile requires a file');
+        }
+
+        const { data: authData } = await supabase.auth.getUser();
+        const userId = authData?.user?.id || 'anonymous';
+
+        const extension = file.name?.includes('.')
+          ? file.name.split('.').pop()
+          : 'bin';
+
+        const safeName = (file.name || `upload.${extension}`)
+          .replace(/[^a-zA-Z0-9._-]/g, '_');
+
+        const path = `${userId}/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}-${safeName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('uploads')
+          .upload(path, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data } = supabase.storage
+          .from('uploads')
+          .getPublicUrl(path);
+
+        return {
+          file_url: data.publicUrl,
+          path,
+        };
+      },
+
       InvokeLLM: unsupported('InvokeLLM'),
     },
   },
