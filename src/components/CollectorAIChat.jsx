@@ -93,7 +93,7 @@ export default function CollectorAIChat({ conversationId, contextHint, onConvers
       } else if (errorMsg.includes('temporarily disabled')) {
         setError('Collector AI is temporarily disabled for maintenance.');
       } else {
-        setError('I encountered an error. Please try again.');
+        setError(`AI error: ${errorMsg}`);
       }
     } finally {
       setLoading(false);

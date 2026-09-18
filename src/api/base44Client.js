@@ -35,22 +35,42 @@ const tableMap = {
   Watchlist: 'watchlist',
 };
 
-function normalizeSort(sort) {
+const fieldAliases = {
+  Collectible: {
+    created_by_id: 'user_id',
+    created_date: 'created_at',
+  },
+  CollectorProfile: {
+    user_id: 'id',
+  },
+  User: {
+    user_id: 'id',
+  },
+};
+
+function fieldName(entityName, field) {
+  return fieldAliases[entityName]?.[field] || field;
+}
+
+
+function normalizeSort(sort, entityName) {
   if (!sort) return null;
   const desc = sort.startsWith('-');
+  const raw = desc ? sort.slice(1) : sort;
   return {
-    column: desc ? sort.slice(1) : sort,
+    column: fieldName(entityName, raw),
     ascending: !desc,
   };
 }
 
-function applyFilters(query, filters = {}) {
+function applyFilters(query, filters = {}, entityName) {
   for (const [key, value] of Object.entries(filters || {})) {
     if (value === undefined) continue;
+    const column = fieldName(entityName, key);
     if (value === null) {
-      query = query.is(key, null);
+      query = query.is(column, null);
     } else {
-      query = query.eq(key, value);
+      query = query.eq(column, value);
     }
   }
   return query;
@@ -66,7 +86,7 @@ function makeEntity(entityName) {
     async list(sort, limit = 100) {
       let query = supabase.from(table).select('*');
 
-      const ordering = normalizeSort(sort);
+      const ordering = normalizeSort(sort, entityName);
       if (ordering) {
         query = query.order(ordering.column, {
           ascending: ordering.ascending,
@@ -82,9 +102,9 @@ function makeEntity(entityName) {
 
     async filter(filters = {}, sort, limit = 100) {
       let query = supabase.from(table).select('*');
-      query = applyFilters(query, filters);
+      query = applyFilters(query, filters, entityName);
 
-      const ordering = normalizeSort(sort);
+      const ordering = normalizeSort(sort, entityName);
       if (ordering) {
         query = query.order(ordering.column, {
           ascending: ordering.ascending,
@@ -115,10 +135,14 @@ function makeEntity(entityName) {
 
       const row = {
         ...payload,
-        ...(userId && !payload.created_by_id
-          ? { created_by_id: userId }
-          : {}),
       };
+
+      if (entityName === 'Collectible') {
+        delete row.created_by_id;
+        if (!row.user_id && userId) row.user_id = userId;
+      } else if (userId && !row.created_by_id) {
+        row.created_by_id = userId;
+      }
 
       if (entityName === 'User' || entityName === 'CollectorProfile') {
         if (payload.user_id && !payload.id) {
@@ -163,7 +187,7 @@ function makeEntity(entityName) {
 
     async deleteMany(filters = {}) {
       let query = supabase.from(table).delete();
-      query = applyFilters(query, filters);
+      query = applyFilters(query, filters, entityName);
 
       const { error } = await query;
       if (error) throw error;
@@ -591,7 +615,7 @@ export const base44 = {
           supabase
             .from('collectibles')
             .select('*')
-            .eq('created_by_id', currentUserId)
+            .eq('user_id', currentUserId)
             .eq('is_deleted', false)
             .limit(200),
           supabase
