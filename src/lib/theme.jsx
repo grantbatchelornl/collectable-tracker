@@ -35,8 +35,8 @@ export function applyTheme(themeId) {
 }
 
 export function getStoredTheme() {
-  if (typeof window === 'undefined') return 'dark';
-  return localStorage.getItem(THEME_KEY) || 'dark';
+  if (typeof window === 'undefined') return 'light';
+  return localStorage.getItem(THEME_KEY) || 'light';
 }
 
 export function useTheme() {
