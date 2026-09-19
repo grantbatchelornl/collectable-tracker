@@ -359,8 +359,21 @@ export default function AddCollectible() {
                     : 'border-border bg-card hover:border-primary/50'
                 }`}
               >
-                <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center mb-3 text-lg">
-                  {cat.icon || '📦'}
+                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                  <img
+                    src={{
+                      'pokemon': '/categories/pokemon.png',
+                      'magic': '/categories/magic.png',
+                      'lorcana': '/categories/lorcana.png',
+                      'sports-cards': '/categories/scards.png',
+                      'funko': '/categories/pop.png',
+                      'coins': '/categories/coins.png',
+                      'sports-memorabilia': '/categories/sports.png',
+                    }[cat.slug] || '/collectable-icon.png'}
+                    alt={cat.name}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
                 <p className="font-semibold text-sm">{cat.name}</p>
               </button>
