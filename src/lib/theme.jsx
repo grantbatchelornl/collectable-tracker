@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const THEME_KEY = 'collectable-theme';
 
@@ -13,29 +13,44 @@ export const THEMES = [
   { id: 'gold-vault', label: 'Gold Vault', colors: ['#1a1408', '#f59e0b', '#fef3c7'] },
 ];
 
-const THEME_CLASSES = ['dark', 'theme-midnight', 'theme-emerald', 'theme-royal-purple', 'theme-poke-red', 'theme-gold-vault'];
+const THEME_CLASSES = [
+  'dark',
+  'theme-midnight',
+  'theme-emerald',
+  'theme-royal-purple',
+  'theme-poke-red',
+  'theme-gold-vault',
+];
 
 export function applyTheme(themeId) {
+  if (typeof window === 'undefined') return;
+
   const root = document.documentElement;
+
   root.classList.remove(...THEME_CLASSES);
 
-  let effective = themeId;
-  if (themeId === 'system') {
-    effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  let effectiveTheme = themeId || 'light';
+
+  if (effectiveTheme === 'system') {
+    effectiveTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
   }
 
-  if (effective !== 'light') {
+  if (effectiveTheme !== 'light') {
     root.classList.add('dark');
-    if (effective !== 'dark') {
-      root.classList.add(`theme-${effective}`);
+
+    if (effectiveTheme !== 'dark') {
+      root.classList.add(`theme-${effectiveTheme}`);
     }
   }
-  localStorage.setItem(THEME_KEY, themeId);
-  window.dispatchEvent(new CustomEvent('theme-change', { detail: themeId }));
 }
 
 export function getStoredTheme() {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') {
+    return 'light';
+  }
+
   return localStorage.getItem(THEME_KEY) || 'light';
 }
 
@@ -44,24 +59,57 @@ export function useTheme() {
 
   useEffect(() => {
     applyTheme(theme);
-    const handler = (e) => setThemeState(e.detail);
-    window.addEventListener('theme-change', handler);
 
-    let mediaQuery;
-    const mediaHandler = () => {
-      if (theme === 'system') applyTheme('system');
+    const handleThemeChange = (event) => {
+      setThemeState(event.detail);
     };
+
+    window.addEventListener('theme-change', handleThemeChange);
+
+    let mediaQuery = null;
+
+    const handleSystemThemeChange = () => {
+      if (theme === 'system') {
+        applyTheme('system');
+      }
+    };
+
     if (theme === 'system') {
       mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      mediaQuery.addEventListener('change', mediaHandler);
+      mediaQuery.addEventListener('change', handleSystemThemeChange);
     }
 
     return () => {
-      window.removeEventListener('theme-change', handler);
-      if (mediaQuery) mediaQuery.removeEventListener('change', mediaHandler);
+      window.removeEventListener('theme-change', handleThemeChange);
+
+      if (mediaQuery) {
+        mediaQuery.removeEventListener('change', handleSystemThemeChange);
+      }
     };
   }, [theme]);
 
-  const setTheme = (id) => setThemeState(id);
-  return { theme, setTheme };
+  const setTheme = (themeId) => {
+    localStorage.setItem(THEME_KEY, themeId);
+    applyTheme(themeId);
+    setThemeState(themeId);
+
+    window.dispatchEvent(
+      new CustomEvent('theme-change', {
+        detail: themeId,
+      })
+    );
+  };
+
+  const toggleTheme = () => {
+    const isCurrentlyDark =
+      document.documentElement.classList.contains('dark');
+
+    setTheme(isCurrentlyDark ? 'light' : 'dark');
+  };
+
+  return {
+    theme,
+    setTheme,
+    toggleTheme,
+  };
 }
