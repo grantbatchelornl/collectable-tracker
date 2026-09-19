@@ -867,6 +867,91 @@ Only suggest a write action when it is clearly useful.`;
       return data.user;
     },
 
+    register: async ({ email, password }) => {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+
+    verifyOtp: async ({ email, otpCode }) => {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: otpCode,
+        type: 'signup',
+      });
+
+      if (error) throw error;
+
+      return {
+        ...data,
+        access_token: data.session?.access_token || null,
+      };
+    },
+
+    resendOtp: async (email) => {
+      const { data, error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+
+    loginWithProvider: async (provider, returnTo = '/') => {
+      const redirectTo = new URL(returnTo, window.location.origin).toString();
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo,
+        },
+      });
+
+      if (error) throw error;
+      return data;
+    },
+
+    resetPasswordRequest: async (email) => {
+      const redirectTo = `${window.location.origin}/reset-password`;
+
+      const { data, error } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo }
+      );
+
+      if (error) throw error;
+      return data;
+    },
+
+    resetPassword: async ({ resetToken, newPassword }) => {
+      // Supabase establishes a recovery session when the user follows the
+      // password-reset email link. At that point updateUser changes the
+      // password for that authenticated recovery session.
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) throw error;
+      return data.user;
+    },
+
+    setToken: async () => {
+      // Supabase persists the session returned by verifyOtp automatically.
+      // Kept as a compatibility no-op for the former Base44 call site.
+      return true;
+    },
+
     logout: async () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
