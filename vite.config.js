@@ -2,17 +2,11 @@ import path from 'path';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
-// Standard Vite + React config.
-// Base44 plugin removed as part of Supabase migration.
-//
-// GitHub Pages initially serves this repository from /collectable-tracker/.
-// Once collectabletracker.com is attached, Pages serves the app from /.
-// GITHUB_ACTIONS lets the temporary Pages deployment use the repository path
-// without changing local development behavior.
+// Production Vite + React configuration.
+// COLLECTABLE is hosted at the root of collectabletracker.com.
+// Base44 is no longer part of the application stack.
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS === 'true'
-    ? '/collectable-tracker/'
-    : '/',
+  base: '/',
 
   plugins: [react()],
 
