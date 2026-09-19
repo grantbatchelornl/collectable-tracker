@@ -884,7 +884,7 @@ Only suggest a write action when it is clearly useful.`;
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otpCode,
-        type: 'signup',
+        type: 'email',
       });
 
       if (error) throw error;
