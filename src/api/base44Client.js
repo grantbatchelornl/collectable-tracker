@@ -694,9 +694,29 @@ Only suggest a write action when it is clearly useful.`;
                     properties: {
                       title: { type: 'string' },
                       description: { type: 'string' },
-                      action_type: { type: 'string' },
+                      action_type: {
+                        type: 'string',
+                        enum: [
+                          'navigate',
+                          'update_profile',
+                          'update_collectible',
+                          'add_to_wishlist',
+                          'mark_for_trade',
+                          'toggle_favorite',
+                          'toggle_showcase',
+                          'refresh_pricing',
+                          'start_grading',
+                          'create_goal',
+                        ],
+                      },
                       details: { type: 'object' },
                     },
+                    required: [
+                      'title',
+                      'description',
+                      'action_type',
+                      'details',
+                    ],
                   },
                 },
               },
@@ -706,7 +726,67 @@ Only suggest a write action when it is clearly useful.`;
         });
 
         if (error) throw error;
-        return wrap(data);
+
+        const allowedActionTypes = new Set([
+          'navigate',
+          'update_profile',
+          'update_collectible',
+          'add_to_wishlist',
+          'mark_for_trade',
+          'toggle_favorite',
+          'toggle_showcase',
+          'refresh_pricing',
+          'start_grading',
+          'create_goal',
+        ]);
+
+        const safeResponse =
+          typeof data?.response === 'string'
+            ? data.response.trim()
+            : '';
+
+        const safeActions = Array.isArray(data?.suggested_actions)
+          ? data.suggested_actions
+              .filter((action) => {
+                if (!action || typeof action !== 'object') return false;
+
+                if (
+                  typeof action.title !== 'string' ||
+                  !action.title.trim()
+                ) return false;
+
+                if (
+                  typeof action.description !== 'string' ||
+                  !action.description.trim()
+                ) return false;
+
+                if (
+                  typeof action.action_type !== 'string' ||
+                  !allowedActionTypes.has(action.action_type)
+                ) return false;
+
+                if (
+                  !action.details ||
+                  typeof action.details !== 'object' ||
+                  Array.isArray(action.details)
+                ) return false;
+
+                return true;
+              })
+              .map((action) => ({
+                title: action.title.trim(),
+                description: action.description.trim(),
+                action_type: action.action_type,
+                details: action.details,
+              }))
+          : [];
+
+        return wrap({
+          response:
+            safeResponse ||
+            'I could not generate a complete answer. Please try asking another way.',
+          suggested_actions: safeActions,
+        });
       }
 
       if (name === 'collectorAIExecute') {
