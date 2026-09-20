@@ -8,35 +8,7 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   base: '/',
 
-  plugins: [
-    react(),
-    {
-      name: 'verify-required-build-env',
-      configResolved() {
-        const required = [
-          'VITE_SUPABASE_URL',
-          'VITE_SUPABASE_ANON_KEY',
-        ];
-
-        const missing = required.filter((name) => !process.env[name]);
-
-        console.log(
-          '[build-env] VITE_SUPABASE_URL:',
-          process.env.VITE_SUPABASE_URL ? 'SET' : 'MISSING'
-        );
-        console.log(
-          '[build-env] VITE_SUPABASE_ANON_KEY:',
-          process.env.VITE_SUPABASE_ANON_KEY ? 'SET' : 'MISSING'
-        );
-
-        if (missing.length) {
-          throw new Error(
-            `Missing required build environment variables: ${missing.join(', ')}`
-          );
-        }
-      },
-    },
-  ],
+  plugins: [react()],
 
   resolve: {
     alias: {
