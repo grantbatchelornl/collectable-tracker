@@ -773,12 +773,52 @@ Only suggest a write action when it is clearly useful.`;
 
                 return true;
               })
-              .map((action) => ({
-                title: action.title.trim(),
-                description: action.description.trim(),
-                action_type: action.action_type,
-                details: action.details,
-              }))
+              .map((action) => {
+                const details = action.details || {};
+
+                const route =
+                  details.route ||
+                  details.screen ||
+                  details.target_screen ||
+                  '';
+
+                if (
+                  action.action_type === 'navigate' &&
+                  (
+                    route === '/add-collectible' ||
+                    route === 'add_collectible' ||
+                    route === 'add-collectible'
+                  )
+                ) {
+                  return {
+                    title: 'Add First Collectible',
+                    description:
+                      'Start tracking your collection by adding your first item.',
+                    action_type: 'navigate',
+                    details: {
+                      ...details,
+                      route: '/add-collectible',
+                    },
+                  };
+                }
+
+                if (action.action_type === 'create_goal') {
+                  return {
+                    title: 'Create Collection Goal',
+                    description:
+                      'Set a target for your collecting journey.',
+                    action_type: 'create_goal',
+                    details,
+                  };
+                }
+
+                return {
+                  title: action.title.trim(),
+                  description: action.description.trim(),
+                  action_type: action.action_type,
+                  details,
+                };
+              })
           : [];
 
         return wrap({
