@@ -10,8 +10,21 @@ const GRADE_SCHEMA = {
     grading_cost: { type: 'number' },
     break_even_value: { type: 'number' },
     potential_profit: { type: 'number' },
-    recommendation: { type: 'string', enum: ['grade', 'do_not_grade', 'marginal'] },
-    confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+
+    psa_9_value: { type: 'number' },
+    psa_10_value: { type: 'number' },
+    psa_9_net_change: { type: 'number' },
+    psa_10_net_change: { type: 'number' },
+
+    recommendation: {
+      type: 'string',
+      enum: ['grade', 'do_not_grade', 'marginal']
+    },
+    confidence: {
+      type: 'string',
+      enum: ['high', 'medium', 'low']
+    },
+    pricing_basis: { type: 'string' },
     explanation: { type: 'string' },
   },
 };
@@ -35,13 +48,20 @@ ${isGraded
     : 'Assess whether this raw item would benefit from professional grading.'}
 
 Based on the photos and details:
-1. Estimate the likely grade if professionally graded (e.g., PSA 9, BGS 9.5, NGC MS65)
-2. Estimate the value if graded at that level (based ONLY on sold comparables, never active listings)
-3. Estimate typical grading cost (service fee + shipping/insurance)
-4. Calculate break-even: grading_cost + current_raw_value vs estimated_graded_value
-5. Recommend: "grade" if potential profit is significant (>20% of current value), "do_not_grade" if likely a loss, "marginal" if within 20%
+1. Estimate the likely grade if professionally graded.
+2. For trading cards and sports cards, use PSA as the comparison grading company.
+3. For cards, estimate BOTH a PSA 9 value and PSA 10 value.
+4. Estimate typical grading cost including service fee plus reasonable shipping/insurance.
+5. Calculate:
+   psa_9_net_change = psa_9_value - current_raw_value - grading_cost
+   psa_10_net_change = psa_10_value - current_raw_value - grading_cost
+6. Set estimated_graded_value to the value corresponding to the most likely estimated grade.
+7. Set potential_profit to the net change corresponding to the most likely estimated grade.
+8. Recommend "grade" only when the risk-adjusted economics are favorable, "do_not_grade" when grading is likely to reduce value after costs, and "marginal" when the result is close or highly grade-dependent.
+9. In pricing_basis, briefly state what the estimate is based on. Never claim that live sold comparables were verified unless actual market data was supplied to you.
+10. Do not invent a verified sale, auction result, population count, or PSA price-guide value.
 
-Always include in the explanation that this is an AI estimate and not an official grading assessment.`;
+Always include in the explanation that this is an AI estimate, the eventual PSA grade is not guaranteed, and this is not an official grading assessment.`;
 
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
