@@ -782,13 +782,18 @@ Only suggest a write action when it is clearly useful.`;
                   details.target_screen ||
                   '';
 
+                const normalizedRoute = String(route)
+                  .toLowerCase()
+                  .replace(/[_\s]+/g, '-');
+
+                const isAddCollectibleRoute =
+                  normalizedRoute.includes('add-collectible') ||
+                  normalizedRoute.includes('add-item') ||
+                  normalizedRoute.includes('new-collectible');
+
                 if (
                   action.action_type === 'navigate' &&
-                  (
-                    route === '/add-collectible' ||
-                    route === 'add_collectible' ||
-                    route === 'add-collectible'
-                  )
+                  isAddCollectibleRoute
                 ) {
                   return {
                     title: 'Add First Collectible',
