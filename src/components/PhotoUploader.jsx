@@ -34,7 +34,14 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
       onPhotoChange(result.file_url);
     } catch (err) {
       console.error('Upload failed', err);
-      setUploadError('Upload failed. Please try again.');
+
+      const message =
+        err?.message ||
+        err?.error_description ||
+        err?.error ||
+        'Unknown upload error';
+
+      setUploadError(`Upload failed: ${message}`);
     } finally {
       setUploading(false);
     }
