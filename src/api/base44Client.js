@@ -276,8 +276,49 @@ export const base44 = {
           throw new Error('UploadFile requires a file');
         }
 
-        const { data: authData } = await supabase.auth.getUser();
-        const userId = authData?.user?.id || 'anonymous';
+        // Storage INSERT policies require an authenticated Supabase session.
+        // Never silently fall back to an "anonymous" upload path.
+        let { data: sessionData, error: sessionError } =
+          await supabase.auth.getSession();
+
+        if (sessionError) {
+          throw new Error(`Authentication error: ${sessionError.message}`);
+        }
+
+        let session = sessionData?.session;
+
+        // If the access token is close to expiry, explicitly refresh it
+        // before sending the Storage request.
+        const expiresAtMs = session?.expires_at
+          ? session.expires_at * 1000
+          : 0;
+
+        const expiresSoon =
+          expiresAtMs > 0 &&
+          expiresAtMs - Date.now() < 60_000;
+
+        if (session && expiresSoon) {
+          const {
+            data: refreshedData,
+            error: refreshError,
+          } = await supabase.auth.refreshSession();
+
+          if (refreshError) {
+            throw new Error(
+              `Could not refresh your login: ${refreshError.message}`
+            );
+          }
+
+          session = refreshedData?.session;
+        }
+
+        if (!session?.user?.id || !session?.access_token) {
+          throw new Error(
+            'Your login session is not available. Please sign in again.'
+          );
+        }
+
+        const userId = session.user.id;
 
         const extension = file.name?.includes('.')
           ? file.name.split('.').pop()
@@ -290,22 +331,35 @@ export const base44 = {
           .toString(36)
           .slice(2)}-${safeName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('uploads')
-          .upload(path, file, {
-            cacheControl: '3600',
-            upsert: false,
-          });
+        const { data: uploadData, error: uploadError } =
+          await supabase.storage
+            .from('uploads')
+            .upload(path, file, {
+              cacheControl: '3600',
+              upsert: false,
+              contentType:
+                file.type || 'application/octet-stream',
+            });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          throw new Error(
+            `Storage upload failed: ${uploadError.message}`
+          );
+        }
 
-        const { data } = supabase.storage
+        const { data: publicData } = supabase.storage
           .from('uploads')
-          .getPublicUrl(path);
+          .getPublicUrl(uploadData?.path || path);
+
+        if (!publicData?.publicUrl) {
+          throw new Error(
+            'Upload completed but no public photo URL was returned.'
+          );
+        }
 
         return {
-          file_url: data.publicUrl,
-          path,
+          file_url: publicData.publicUrl,
+          path: uploadData?.path || path,
         };
       },
 
