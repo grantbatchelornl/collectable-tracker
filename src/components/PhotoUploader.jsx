@@ -49,13 +49,27 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
 
   return (
     <div>
-      <p className="text-xs font-medium text-muted-foreground mb-1.5">
-        {label} {required && <span className="text-primary">*</span>}
-      </p>
-      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden border-2 border-dashed border-border bg-muted/50">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-medium text-white/75">
+          {label}
+        </p>
+        {required && (
+          <span className="text-[9px] uppercase tracking-[0.14em] text-[#d8b570]">
+            Required
+          </span>
+        )}
+      </div>
+      <div className="relative aspect-[3/4] rounded-[22px] overflow-hidden border border-white/10 bg-gradient-to-br from-[#18181d] via-[#111114] to-[#0b0b0d] shadow-[0_16px_40px_rgba(0,0,0,0.22)]">
         {uploading ? (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/20 backdrop-blur-sm">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 rounded-full border border-[#d8b570]/20" />
+              <div className="absolute inset-0 rounded-full border-t-2 border-[#d8b570] animate-spin" />
+              <Upload className="absolute inset-0 m-auto w-4 h-4 text-[#d8b570]" />
+            </div>
+            <p className="text-[10px] uppercase tracking-[0.16em] text-white/45">
+              Securing photo
+            </p>
           </div>
         ) : photo ? (
           <>
@@ -84,22 +98,40 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
             )}
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-3">
-            <div className="flex gap-2">
+          <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(216,181,112,0.10),transparent_34%)]" />
+
+            <div className="relative w-14 h-14 rounded-full border border-[#d8b570]/25 bg-[#d8b570]/[0.07] flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(216,181,112,0.08)]">
+              <Camera className="w-6 h-6 text-[#d8b570]" />
+            </div>
+
+            <p className="relative text-xs font-semibold text-white">
+              Add {label}
+            </p>
+
+            <p className="relative text-[10px] text-white/35 text-center mt-1">
+              Take a photo or choose one
+            </p>
+
+            <div className="relative grid grid-cols-2 gap-2 w-full mt-4">
               <button
+                type="button"
                 onClick={() => cameraRef.current?.click()}
-                className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/20"
+                className="h-9 rounded-xl border border-[#d8b570]/20 bg-[#d8b570]/10 text-[#e3c486] text-[10px] font-medium flex items-center justify-center gap-1.5"
               >
-                <Camera className="w-5 h-5 text-primary-foreground" />
+                <Camera className="w-3.5 h-3.5" />
+                Camera
               </button>
+
               <button
+                type="button"
                 onClick={() => galleryRef.current?.click()}
-                className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center"
+                className="h-9 rounded-xl border border-white/10 bg-white/[0.05] text-white/70 text-[10px] font-medium flex items-center justify-center gap-1.5"
               >
-                <Upload className="w-5 h-5" />
+                <Upload className="w-3.5 h-3.5" />
+                Library
               </button>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center">Camera or upload</p>
           </div>
         )}
       </div>

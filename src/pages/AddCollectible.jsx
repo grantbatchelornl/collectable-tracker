@@ -96,6 +96,7 @@ export default function AddCollectible() {
   const [verified, setVerified] = useState(false);
   const [fraudAcknowledged, setFraudAcknowledged] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [categoryTransition, setCategoryTransition] = useState(null);
 
   useEffect(() => {
     base44.entities.CollectibleCategory.list('sort_order', 50)
@@ -118,7 +119,16 @@ export default function AddCollectible() {
   const selectCategory = (cat) => {
     update('category_id', cat.id);
     update('category_name', cat.name);
-    setStep(2);
+
+    setCategoryTransition({
+      name: cat.name,
+      slug: cat.slug,
+    });
+
+    window.setTimeout(() => {
+      setStep(2);
+      setCategoryTransition(null);
+    }, 850);
   };
 
   const handleAutoIdentify = async () => {
@@ -316,6 +326,56 @@ export default function AddCollectible() {
     }
   };
 
+  if (categoryTransition) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#08080a] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,181,112,0.18),transparent_30%),radial-gradient(circle_at_80%_18%,rgba(139,92,246,0.12),transparent_25%)]" />
+
+        <div className="relative min-h-full flex flex-col items-center justify-center px-8 text-center">
+          <p className="text-[10px] tracking-[0.38em] uppercase text-[#d8b570] mb-3">
+            COLLECTABLE
+          </p>
+
+          <h1 className="font-display text-3xl font-bold">
+            Preparing Your Vault
+          </h1>
+
+          <p className="text-sm text-white/50 mt-2">
+            Setting up your {categoryTransition.name} workspace
+          </p>
+
+          <div className="relative mt-10 w-40 h-40 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border border-[#d8b570]/20" />
+            <div className="absolute inset-0 rounded-full border-t-2 border-r-2 border-[#d8b570] animate-spin" />
+
+            <div className="w-28 h-28 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl flex items-center justify-center shadow-2xl">
+              <Sparkles className="w-7 h-7 text-[#e3c486]" />
+            </div>
+          </div>
+
+          <div className="mt-10 w-full max-w-xs rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-4">
+            <div className="flex justify-between text-[10px] uppercase tracking-[0.14em]">
+              <span className="text-white/45">
+                Preparing collector tools
+              </span>
+              <span className="text-[#d8b570]">
+                Loading
+              </span>
+            </div>
+
+            <div className="mt-3 h-1 rounded-full bg-white/10 overflow-hidden">
+              <div className="h-full w-4/5 rounded-full bg-gradient-to-r from-[#8d6c35] via-[#d8b570] to-[#f3dda8] animate-pulse" />
+            </div>
+          </div>
+
+          <p className="absolute bottom-10 text-[10px] tracking-[0.2em] uppercase text-white/25">
+            Your collection. Elevated.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="px-4 py-4">
       <SaveAnimation show={showAnimation} />
@@ -345,21 +405,28 @@ export default function AddCollectible() {
       {step === 1 && (
         <div className="space-y-4">
           <div>
-            <h2 className="font-display text-xl font-bold mb-1">Select a Category</h2>
-            <p className="text-sm text-muted-foreground">What type of collectible is this?</p>
+            <p className="text-[10px] tracking-[0.28em] uppercase text-[#b99a61] mb-2">
+              Add to your vault
+            </p>
+            <h2 className="font-display text-2xl font-bold mb-1">
+              What are you collecting?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Choose a category to open your collector workspace.
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => selectCategory(cat)}
-                className={`p-4 rounded-2xl border text-left transition-all active:scale-[0.98] ${
+                className={`group p-2 rounded-[22px] border text-left transition-all active:scale-[0.98] overflow-hidden backdrop-blur-xl ${
                   data.category_id === cat.id
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border bg-card hover:border-primary/50'
+                    ? 'border-[#d8b570]/60 bg-[#d8b570]/10'
+                    : 'border-white/10 bg-card/70 hover:border-[#d8b570]/40 hover:bg-card'
                 }`}
               >
-                <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted mb-3">
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-muted mb-2">
                   <img
                     src={{
                       'pokemon': '/categories/pokemon.png',
@@ -371,11 +438,16 @@ export default function AddCollectible() {
                       'sports-memorabilia': '/categories/sports.png',
                     }[cat.slug] || '/collectable-icon.png'}
                     alt={cat.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="font-semibold text-sm text-white drop-shadow-lg">
+                      {cat.name}
+                    </p>
+                  </div>
                 </div>
-                <p className="font-semibold text-sm">{cat.name}</p>
               </button>
             ))}
           </div>
@@ -384,110 +456,303 @@ export default function AddCollectible() {
 
       {/* Step 2: Photos */}
       {step === 2 && (
-        <div className="space-y-4">
-          <div>
-            <h2 className="font-display text-xl font-bold mb-1">Add Photos</h2>
-            <p className="text-sm text-muted-foreground">
-              Capture or upload photos of your collectible. Required angles are marked with *.
-            </p>
+        <div className="space-y-5">
+          <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#17171c] via-[#111114] to-[#0c0c0f] p-5 overflow-hidden relative">
+            <div className="absolute -top-16 -right-12 w-40 h-40 rounded-full bg-[#d8b570]/10 blur-3xl" />
+            <div className="absolute -bottom-16 -left-12 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
+
+            <div className="relative">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#d8b570]">
+                {data.category_name}
+              </p>
+
+              <h2 className="font-display text-2xl font-bold mt-2">
+                Show us your collectible
+              </h2>
+
+              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                Clear front and back photos help Collector AI identify,
+                value, and evaluate your item.
+              </p>
+
+              <div className="flex items-center gap-2 mt-4">
+                <div className="h-px flex-1 bg-gradient-to-r from-[#d8b570]/50 to-transparent" />
+                <span className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                  Scan • Identify • Value
+                </span>
+              </div>
+            </div>
           </div>
-          <PhotoUploader
-            photoTypes={getPhotoTypes(data.category_name)}
-            photos={data.photos}
-            onChange={(p) => setData((d) => ({ ...d, photos: p }))}
-          />
+
+          <div className="rounded-[24px] border border-white/10 bg-card/70 backdrop-blur-xl p-4 shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-semibold text-sm">Item Photos</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Camera or photo library
+                </p>
+              </div>
+
+              <div className="rounded-full border border-[#d8b570]/25 bg-[#d8b570]/10 px-2.5 py-1">
+                <span className="text-[10px] font-medium text-[#d8b570]">
+                  AI READY
+                </span>
+              </div>
+            </div>
+
+            <PhotoUploader
+              photoTypes={getPhotoTypes(data.category_name)}
+              photos={data.photos}
+              onChange={(p) => setData((d) => ({ ...d, photos: p }))}
+            />
+          </div>
+
           {Object.values(data.photos || {}).some(Boolean) && (
             <button
               onClick={handleAutoIdentify}
               disabled={identifying}
-              className="w-full h-12 rounded-xl bg-primary/10 border border-primary/20 text-primary font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+              className="relative w-full min-h-[64px] rounded-2xl overflow-hidden border border-[#d8b570]/30 bg-gradient-to-r from-[#1a1610] via-[#221b10] to-[#17121f] text-white font-medium disabled:opacity-50 shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
             >
-              {identifying ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" /> Identifying & pricing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5" /> Auto-Identify & Price
-                </>
-              )}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(216,181,112,0.16),transparent_30%),radial-gradient(circle_at_85%_50%,rgba(139,92,246,0.12),transparent_28%)]" />
+
+              <div className="relative flex items-center justify-center gap-3 px-4 py-3">
+                {identifying ? (
+                  <>
+                    <div className="relative w-8 h-8">
+                      <div className="absolute inset-0 rounded-full border border-[#d8b570]/20" />
+                      <div className="absolute inset-0 rounded-full border-t-2 border-[#d8b570] animate-spin" />
+                      <Sparkles className="absolute inset-0 m-auto w-3.5 h-3.5 text-[#e3c486]" />
+                    </div>
+
+                    <div className="text-left">
+                      <p className="text-sm font-semibold">
+                        Collector AI is analyzing
+                      </p>
+                      <p className="text-[10px] text-white/45">
+                        Identifying item and estimating value…
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-9 h-9 rounded-full bg-[#d8b570]/10 border border-[#d8b570]/25 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-[#e3c486]" />
+                    </div>
+
+                    <div className="text-left">
+                      <p className="text-sm font-semibold">
+                        Identify with Collector AI
+                      </p>
+                      <p className="text-[10px] text-white/45">
+                        Recognition, details & estimated value
+                      </p>
+                    </div>
+
+                    <ArrowRight className="w-4 h-4 text-[#d8b570] ml-auto" />
+                  </>
+                )}
+              </div>
             </button>
           )}
+
           <button
             onClick={() => setStep(3)}
             disabled={!canProceed()}
-            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-40"
+            className="w-full h-12 rounded-2xl border border-white/10 bg-card/70 font-medium flex items-center justify-center gap-2 disabled:opacity-30"
           >
-            Continue <ArrowRight className="w-4 h-4" />
+            Enter Details Manually
+            <ArrowRight className="w-4 h-4" />
           </button>
+
+          <p className="text-[10px] text-center text-muted-foreground px-5">
+            Collector AI provides estimates only. You review and approve all
+            details before anything is added to your collection.
+          </p>
         </div>
       )}
 
       {/* Step 3: Details */}
       {step === 3 && (
-        <div className="space-y-5">
-          <div>
-            <h2 className="font-display text-xl font-bold mb-1">Item Details</h2>
-            <p className="text-sm text-muted-foreground">
-              Enter the details and estimated value for your collectible.
-            </p>
-          </div>
-          <div className="inline-flex items-center gap-2 bg-accent text-accent-foreground rounded-full px-3 py-1 text-xs font-medium">
-            <Tag className="w-3 h-3" /> {data.category_name}
-          </div>
-          {aiResult && <AIConfidenceBanner result={aiResult} />}
-          {aiResult && aiResult.fraud_warning && (
-            <FraudWarningBanner result={aiResult} acknowledged={fraudAcknowledged} onAcknowledge={setFraudAcknowledged} />
-          )}
-          {aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && (
-            <div className="rounded-2xl bg-gold/5 border border-gold/20 p-4 space-y-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-xs font-medium text-gold">Verification Required</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    AI identification confidence is {aiResult.identification_confidence}. Please review the details below carefully before saving.
-                    {aiResult.identification_notes && ` ${aiResult.identification_notes}`}
-                  </p>
-                </div>
+        <div className="space-y-5 pb-28">
+          <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#17171c] via-[#111114] to-[#0b0b0e] p-5 relative overflow-hidden">
+            <div className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-[#d8b570]/10 blur-3xl" />
+            <div className="absolute -bottom-20 -left-12 w-44 h-44 rounded-full bg-primary/10 blur-3xl" />
+
+            <div className="relative">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#d8b570]">
+                Final Review
+              </p>
+
+              <h2 className="font-display text-2xl font-bold mt-2">
+                Complete your collectible
+              </h2>
+
+              <p className="text-sm text-muted-foreground mt-1">
+                Review Collector AI's findings and add anything that makes
+                this item uniquely yours.
+              </p>
+
+              <div className="flex items-center gap-2 mt-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[#d8b570]/20 bg-[#d8b570]/10 px-3 py-1 text-[10px] font-medium text-[#d8b570]">
+                  <Tag className="w-3 h-3" />
+                  {data.category_name}
+                </span>
+
+                {aiIdentified && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-medium text-primary">
+                    <Sparkles className="w-3 h-3" />
+                    AI Identified
+                  </span>
+                )}
               </div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={verified}
-                  onChange={(e) => setVerified(e.target.checked)}
-                  className="w-4 h-4 rounded border-border"
-                />
-                <span className="text-xs font-medium">I've verified these details are correct</span>
-              </label>
+            </div>
+          </div>
+
+          {aiIdentified && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-white/10 bg-card/70 backdrop-blur-xl p-4">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                  Identified As
+                </p>
+                <p className="text-sm font-semibold mt-1 line-clamp-2">
+                  {data.item_name || 'Review item details'}
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#d8b570]/20 bg-[#d8b570]/[0.06] p-4">
+                <p className="text-[10px] uppercase tracking-[0.14em] text-[#b99a61]">
+                  Est. Value
+                </p>
+                <p className="text-lg font-semibold text-[#e3c486] mt-1">
+                  {data.estimated_value !== ''
+                    ? `$${Number(data.estimated_value || 0).toLocaleString()}`
+                    : 'Review'}
+                </p>
+              </div>
             </div>
           )}
+
+          {aiResult && <AIConfidenceBanner result={aiResult} />}
+
+          {aiResult && aiResult.fraud_warning && (
+            <FraudWarningBanner
+              result={aiResult}
+              acknowledged={fraudAcknowledged}
+              onAcknowledge={setFraudAcknowledged}
+            />
+          )}
+
+          {aiResult &&
+            (aiResult.identification_confidence === 'low' ||
+              aiResult.identification_confidence === 'medium') && (
+              <div className="rounded-2xl bg-gold/5 border border-gold/20 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-gold flex-shrink-0 mt-0.5" />
+
+                  <div>
+                    <p className="text-xs font-medium text-gold">
+                      Verification Required
+                    </p>
+
+                    <p className="text-[11px] text-muted-foreground">
+                      Collector AI confidence is{' '}
+                      {aiResult.identification_confidence}. Please verify the
+                      information before saving.
+                      {aiResult.identification_notes &&
+                        ` ${aiResult.identification_notes}`}
+                    </p>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={verified}
+                    onChange={(e) => setVerified(e.target.checked)}
+                    className="w-4 h-4 rounded border-border"
+                  />
+
+                  <span className="text-xs font-medium">
+                    I've verified these details are correct
+                  </span>
+                </label>
+              </div>
+            )}
+
           {saveError && (
             <div className="rounded-2xl bg-loss/5 border border-loss/30 p-3 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-loss flex-shrink-0 mt-0.5" />
               <p className="text-xs text-loss">{saveError}</p>
             </div>
           )}
-          <CollectibleFormFields data={data} update={update} />
-          <AcquisitionFields data={data} update={update} />
-          <MemoryFields data={data} update={update} />
-          <button
-            onClick={handleConfirm}
-            disabled={saving || !canProceed() || (aiResult && (aiResult.identification_confidence === 'low' || aiResult.identification_confidence === 'medium') && !verified) || (aiResult && aiResult.fraud_warning && !fraudAcknowledged)}
-            className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-medium flex items-center justify-center gap-2 disabled:opacity-40 sticky bottom-24 shadow-lg shadow-primary/20"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" /> Saving...
-              </>
-            ) : (
-              <>
-                <Check className="w-5 h-5" /> Save to Collection
-              </>
-            )}
-          </button>
+
+          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+            <div className="mb-4">
+              <p className="text-sm font-semibold">Collectible Details</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Identification, condition, grading and value
+              </p>
+            </div>
+
+            <CollectibleFormFields data={data} update={update} />
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+            <div className="mb-4">
+              <p className="text-sm font-semibold">Acquisition</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Where this collectible came from
+              </p>
+            </div>
+
+            <AcquisitionFields data={data} update={update} />
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+            <div className="mb-4">
+              <p className="text-sm font-semibold">Collector Story</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Optional memories and why this item matters
+              </p>
+            </div>
+
+            <MemoryFields data={data} update={update} />
+          </div>
+
+          <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pointer-events-none">
+            <div className="max-w-lg mx-auto rounded-[22px] border border-white/10 bg-[#0d0d10]/90 backdrop-blur-xl p-2 shadow-2xl pointer-events-auto">
+              <button
+                onClick={handleConfirm}
+                disabled={
+                  saving ||
+                  !canProceed() ||
+                  (aiResult &&
+                    (aiResult.identification_confidence === 'low' ||
+                      aiResult.identification_confidence === 'medium') &&
+                    !verified) ||
+                  (aiResult &&
+                    aiResult.fraud_warning &&
+                    !fraudAcknowledged)
+                }
+                className="relative w-full h-13 min-h-[52px] rounded-2xl overflow-hidden bg-gradient-to-r from-[#9a7539] via-[#d8b570] to-[#b88b43] text-[#17120a] font-semibold flex items-center justify-center gap-2 disabled:opacity-35"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Securing in your vault…
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-5 h-5" />
+                    Add to My Collection
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
+
     </div>
   );
 }
