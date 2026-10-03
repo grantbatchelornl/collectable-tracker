@@ -329,7 +329,7 @@ export default function AddCollectible() {
   if (categoryTransition) {
     return (
       <div className="fixed inset-0 z-50 bg-[#08080a] text-white overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,181,112,0.18),transparent_30%),radial-gradient(circle_at_80%_18%,rgba(139,92,246,0.12),transparent_25%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,181,112,0.18),transparent_30%),radial-gradient(circle_at_80%_18%,rgba(216,181,112,0.07),transparent_25%)]" />
 
         <div className="relative min-h-full flex flex-col items-center justify-center px-8 text-center">
           <p className="text-[10px] tracking-[0.38em] uppercase text-[#d8b570] mb-3">
@@ -353,7 +353,7 @@ export default function AddCollectible() {
             </div>
           </div>
 
-          <div className="mt-10 w-full max-w-xs rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-4">
+          <div className="mt-10 w-full max-w-xs rounded-2xl border border-[#d8b570]/20 bg-[#d8b570]/[0.035] backdrop-blur-xl p-4">
             <div className="flex justify-between text-[10px] uppercase tracking-[0.14em]">
               <span className="text-white/45">
                 Preparing collector tools
@@ -363,7 +363,7 @@ export default function AddCollectible() {
               </span>
             </div>
 
-            <div className="mt-3 h-1 rounded-full bg-white/10 overflow-hidden">
+            <div className="mt-3 h-1 rounded-full bg-[#d8b570]/10 overflow-hidden">
               <div className="h-full w-4/5 rounded-full bg-gradient-to-r from-[#8d6c35] via-[#d8b570] to-[#f3dda8] animate-pulse" />
             </div>
           </div>
@@ -378,9 +378,9 @@ export default function AddCollectible() {
 
   return (
     <div className="relative min-h-screen bg-[#070709] text-[#f5f1e8] overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_12%,rgba(216,181,112,0.13),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(139,92,246,0.10),transparent_26%),radial-gradient(circle_at_50%_100%,rgba(216,181,112,0.06),transparent_35%)]" />
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_12%,rgba(216,181,112,0.13),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(171,142,214,0.035),transparent_26%),radial-gradient(circle_at_50%_100%,rgba(216,181,112,0.06),transparent_35%)]" />
       <div className="fixed -top-24 -left-28 w-80 h-80 rounded-full bg-[#d8b570]/[0.05] blur-3xl pointer-events-none" />
-      <div className="fixed bottom-0 -right-28 w-96 h-96 rounded-full bg-[#8b5cf6]/[0.05] blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 -right-28 w-96 h-96 rounded-full bg-[#b99ad9]/[0.025] blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-5 pb-10">
         <SaveAnimation show={showAnimation} />
@@ -389,7 +389,7 @@ export default function AddCollectible() {
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))}
-          className="w-10 h-10 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-[#e3c486] hover:border-[#d8b570]/30 transition-all"
+          className="w-10 h-10 rounded-full border border-[#d8b570]/20 bg-[#d8b570]/[0.035] backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-[#e3c486] hover:border-[#d8b570]/30 transition-all"
           aria-label="Go back"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -433,7 +433,7 @@ export default function AddCollectible() {
             <h2 className="font-display text-2xl font-bold mb-1">
               What are you collecting?
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-[#b8ad98]">
               Choose a category to open your collector workspace.
             </p>
           </div>
@@ -444,11 +444,11 @@ export default function AddCollectible() {
                 onClick={() => selectCategory(cat)}
                 className={`group p-2 rounded-[22px] border text-left transition-all active:scale-[0.98] overflow-hidden backdrop-blur-xl ${
                   data.category_id === cat.id
-                    ? 'border-[#d8b570]/60 bg-[#d8b570]/10'
-                    : 'border-white/10 bg-card/70 hover:border-[#d8b570]/40 hover:bg-card'
+                    ? 'border-[#e4c27a]/80 bg-[#d8b570]/10 shadow-[0_0_28px_rgba(216,181,112,0.12)]'
+                    : 'border-[#d8b570]/35 bg-[#11100e]/90 hover:border-[#e4c27a]/65 hover:shadow-[0_0_24px_rgba(216,181,112,0.10)]'
                 }`}
               >
-                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-muted mb-2">
+                <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-[#0d0c0a] mb-2 ring-1 ring-inset ring-[#f0d594]/20">
                   <img
                     src={{
                       'pokemon': '/categories/pokemon.png',
@@ -460,12 +460,13 @@ export default function AddCollectible() {
                       'sports-memorabilia': '/categories/sports.png',
                     }[cat.slug] || '/collectable-icon.png'}
                     alt={cat.name}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="w-full h-full object-cover brightness-[0.72] saturate-[0.72] contrast-[1.08] transition-all duration-500 group-hover:scale-105 group-hover:brightness-[0.82]"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#080704]/90 via-[#171006]/10 to-[#d8b570]/10" />
+                  <div className="absolute inset-0 ring-1 ring-inset ring-[#e4c27a]/20 rounded-2xl" />
                   <div className="absolute bottom-2 left-2 right-2">
-                    <p className="font-semibold text-sm text-white drop-shadow-lg">
+                    <p className="font-semibold text-sm text-[#f5ead0] drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
                       {cat.name}
                     </p>
                   </div>
@@ -481,7 +482,7 @@ export default function AddCollectible() {
         <div className="space-y-5">
           <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#17171c] via-[#111114] to-[#0c0c0f] p-5 overflow-hidden relative">
             <div className="absolute -top-16 -right-12 w-40 h-40 rounded-full bg-[#d8b570]/10 blur-3xl" />
-            <div className="absolute -bottom-16 -left-12 w-40 h-40 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute -bottom-16 -left-12 w-40 h-40 rounded-full bg-[#d8b570]/[0.06] blur-3xl" />
 
             <div className="relative">
               <p className="text-[10px] tracking-[0.25em] uppercase text-[#d8b570]">
@@ -499,14 +500,14 @@ export default function AddCollectible() {
 
               <div className="flex items-center gap-2 mt-4">
                 <div className="h-px flex-1 bg-gradient-to-r from-[#d8b570]/50 to-transparent" />
-                <span className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+                <span className="text-[10px] uppercase tracking-[0.18em] text-[#a99f8d]">
                   Scan • Identify • Value
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-card/70 backdrop-blur-xl p-4 shadow-xl">
+          <div className="rounded-[24px] border border-[#d8b570]/20 bg-[#12110e]/80 backdrop-blur-xl p-4 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-semibold text-sm">Item Photos</p>
@@ -533,9 +534,9 @@ export default function AddCollectible() {
             <button
               onClick={handleAutoIdentify}
               disabled={identifying}
-              className="relative w-full min-h-[64px] rounded-2xl overflow-hidden border border-[#d8b570]/30 bg-gradient-to-r from-[#1a1610] via-[#221b10] to-[#17121f] text-white font-medium disabled:opacity-50 shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
+              className="relative w-full min-h-[64px] rounded-2xl overflow-hidden border border-[#d8b570]/30 bg-gradient-to-r from-[#1a1610] via-[#221b10] to-[#12100c] text-white font-medium disabled:opacity-50 shadow-[0_12px_40px_rgba(0,0,0,0.28)]"
             >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(216,181,112,0.16),transparent_30%),radial-gradient(circle_at_85%_50%,rgba(139,92,246,0.12),transparent_28%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(216,181,112,0.16),transparent_30%),radial-gradient(circle_at_85%_50%,rgba(216,181,112,0.07),transparent_28%)]" />
 
               <div className="relative flex items-center justify-center gap-3 px-4 py-3">
                 {identifying ? (
@@ -580,7 +581,7 @@ export default function AddCollectible() {
           <button
             onClick={() => setStep(3)}
             disabled={!canProceed()}
-            className="w-full h-12 rounded-2xl border border-white/10 bg-card/70 font-medium flex items-center justify-center gap-2 disabled:opacity-30"
+            className="w-full h-12 rounded-2xl border border-[#d8b570]/20 bg-[#12110e]/80 font-medium flex items-center justify-center gap-2 disabled:opacity-30"
           >
             Enter Details Manually
             <ArrowRight className="w-4 h-4" />
@@ -598,7 +599,7 @@ export default function AddCollectible() {
         <div className="space-y-5 pb-28">
           <div className="rounded-[28px] border border-white/10 bg-gradient-to-br from-[#17171c] via-[#111114] to-[#0b0b0e] p-5 relative overflow-hidden">
             <div className="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-[#d8b570]/10 blur-3xl" />
-            <div className="absolute -bottom-20 -left-12 w-44 h-44 rounded-full bg-primary/10 blur-3xl" />
+            <div className="absolute -bottom-20 -left-12 w-44 h-44 rounded-full bg-[#d8b570]/[0.06] blur-3xl" />
 
             <div className="relative">
               <p className="text-[10px] tracking-[0.25em] uppercase text-[#d8b570]">
@@ -621,7 +622,7 @@ export default function AddCollectible() {
                 </span>
 
                 {aiIdentified && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-medium text-primary">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#d8b570]/25 bg-[#d8b570]/10 px-3 py-1 text-[10px] font-medium text-[#e3c486]">
                     <Sparkles className="w-3 h-3" />
                     AI Identified
                   </span>
@@ -632,7 +633,7 @@ export default function AddCollectible() {
 
           {aiIdentified && (
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-card/70 backdrop-blur-xl p-4">
+              <div className="rounded-2xl border border-[#d8b570]/20 bg-[#12110e]/80 backdrop-blur-xl p-4">
                 <p className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   Identified As
                 </p>
@@ -708,7 +709,7 @@ export default function AddCollectible() {
             </div>
           )}
 
-          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+          <div className="rounded-[24px] border border-[#d8b570]/20 bg-[#12110e]/80 backdrop-blur-xl p-4">
             <div className="mb-4">
               <p className="text-sm font-semibold">Collectible Details</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -719,7 +720,7 @@ export default function AddCollectible() {
             <CollectibleFormFields data={data} update={update} />
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+          <div className="rounded-[24px] border border-[#d8b570]/20 bg-[#12110e]/80 backdrop-blur-xl p-4">
             <div className="mb-4">
               <p className="text-sm font-semibold">Acquisition</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -730,7 +731,7 @@ export default function AddCollectible() {
             <AcquisitionFields data={data} update={update} />
           </div>
 
-          <div className="rounded-[24px] border border-white/10 bg-card/65 backdrop-blur-xl p-4">
+          <div className="rounded-[24px] border border-[#d8b570]/20 bg-[#12110e]/80 backdrop-blur-xl p-4">
             <div className="mb-4">
               <p className="text-sm font-semibold">Collector Story</p>
               <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -742,7 +743,7 @@ export default function AddCollectible() {
           </div>
 
           <div className="fixed bottom-20 left-0 right-0 z-30 px-4 pointer-events-none">
-            <div className="max-w-lg mx-auto rounded-[22px] border border-white/10 bg-[#0d0d10]/90 backdrop-blur-xl p-2 shadow-2xl pointer-events-auto">
+            <div className="max-w-lg mx-auto rounded-[22px] border border-[#d8b570]/25 bg-[#0b0a08]/95 backdrop-blur-xl p-2 shadow-2xl pointer-events-auto">
               <button
                 onClick={handleConfirm}
                 disabled={

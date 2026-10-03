@@ -50,7 +50,7 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-xs font-medium text-white/75">
+        <p className="text-xs font-medium text-[#e9dfca]">
           {label}
         </p>
         {required && (
@@ -59,7 +59,7 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
           </span>
         )}
       </div>
-      <div className="relative aspect-[3/4] rounded-[22px] overflow-hidden border border-white/10 bg-gradient-to-br from-[#18181d] via-[#111114] to-[#0b0b0d] shadow-[0_16px_40px_rgba(0,0,0,0.22)]">
+      <div className="relative aspect-[3/4] rounded-[22px] overflow-hidden border border-[#d8b570]/25 bg-gradient-to-br from-[#18150f] via-[#100f0c] to-[#090806] shadow-[0_16px_40px_rgba(0,0,0,0.22)]">
         {uploading ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/20 backdrop-blur-sm">
             <div className="relative w-12 h-12">
@@ -126,7 +126,7 @@ function PhotoSlot({ label, photo, required, onPhotoChange }) {
               <button
                 type="button"
                 onClick={() => galleryRef.current?.click()}
-                className="h-9 rounded-xl border border-white/10 bg-white/[0.05] text-white/70 text-[10px] font-medium flex items-center justify-center gap-1.5"
+                className="h-9 rounded-xl border border-[#d8b570]/15 bg-[#d8b570]/[0.04] text-[#d7cdb9] text-[10px] font-medium flex items-center justify-center gap-1.5"
               >
                 <Upload className="w-3.5 h-3.5" />
                 Library
