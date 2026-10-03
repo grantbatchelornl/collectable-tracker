@@ -19,19 +19,49 @@ export default function AppLayout() {
 
   if (user?.is_suspended) return <SuspendedScreen />;
 
+  const immersiveAdd =
+    location.pathname === '/add' ||
+    location.pathname === '/add-collectible';
+
   return (
-    <div className="h-screen overflow-hidden bg-background">
-      <TopBar />
-      <main className="pb-24 h-screen max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto overflow-y-auto overscroll-y-contain" style={{ paddingTop: 'calc(4rem + env(safe-area-inset-top))' }}>
+    <div
+      className={`h-screen overflow-hidden ${
+        immersiveAdd ? 'bg-[#070709]' : 'bg-background'
+      }`}
+    >
+      {!immersiveAdd && <TopBar />}
+
+      <main
+        className={
+          immersiveAdd
+            ? 'h-screen w-full overflow-y-auto overscroll-y-contain bg-[#070709]'
+            : 'pb-24 h-screen max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto overflow-y-auto overscroll-y-contain'
+        }
+        style={
+          immersiveAdd
+            ? {
+                paddingTop: 'env(safe-area-inset-top)',
+                paddingBottom: 'env(safe-area-inset-bottom)',
+              }
+            : {
+                paddingTop: 'calc(4rem + env(safe-area-inset-top))',
+              }
+        }
+      >
         <div
           key={location.pathname}
-          className="animate-in fade-in slide-in-from-right-2 duration-200"
+          className={
+            immersiveAdd
+              ? 'min-h-full'
+              : 'animate-in fade-in slide-in-from-right-2 duration-200'
+          }
         >
           <Outlet />
         </div>
       </main>
-      <BottomNav />
-      <FloatingAIButton />
+
+      {!immersiveAdd && <BottomNav />}
+      {!immersiveAdd && <FloatingAIButton />}
     </div>
   );
 }

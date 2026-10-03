@@ -377,28 +377,50 @@ export default function AddCollectible() {
   }
 
   return (
-    <div className="px-4 py-4">
-      <SaveAnimation show={showAnimation} />
+    <div className="relative min-h-screen bg-[#070709] text-[#f5f1e8] overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(circle_at_18%_12%,rgba(216,181,112,0.13),transparent_28%),radial-gradient(circle_at_82%_28%,rgba(139,92,246,0.10),transparent_26%),radial-gradient(circle_at_50%_100%,rgba(216,181,112,0.06),transparent_35%)]" />
+      <div className="fixed -top-24 -left-28 w-80 h-80 rounded-full bg-[#d8b570]/[0.05] blur-3xl pointer-events-none" />
+      <div className="fixed bottom-0 -right-28 w-96 h-96 rounded-full bg-[#8b5cf6]/[0.05] blur-3xl pointer-events-none" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="relative z-10 w-full max-w-2xl mx-auto px-4 pt-5 pb-10">
+        <SaveAnimation show={showAnimation} />
+
+      {/* Premium Header */}
+      <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => (step > 1 ? setStep(step - 1) : navigate(-1))}
-          className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-accent"
+          className="w-10 h-10 rounded-full border border-white/10 bg-white/[0.04] backdrop-blur-xl flex items-center justify-center text-white/70 hover:text-[#e3c486] hover:border-[#d8b570]/30 transition-all"
+          aria-label="Go back"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-4 h-4" />
         </button>
-        <div className="flex gap-1.5">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`h-1.5 rounded-full transition-all ${
-                s === step ? 'w-8 bg-primary' : s < step ? 'w-4 bg-primary/50' : 'w-4 bg-muted'
-              }`}
-            />
-          ))}
+
+        <div className="flex flex-col items-center">
+          <p className="text-[9px] tracking-[0.32em] uppercase text-[#b99a61]">
+            COLLECTABLE
+          </p>
+
+          <div className="flex items-center gap-1.5 mt-2">
+            {[1, 2, 3].map((s) => (
+              <div
+                key={s}
+                className={`h-1 rounded-full transition-all duration-300 ${
+                  s === step
+                    ? 'w-9 bg-gradient-to-r from-[#a67d3d] to-[#e3c486] shadow-[0_0_10px_rgba(216,181,112,0.25)]'
+                    : s < step
+                      ? 'w-4 bg-[#d8b570]/45'
+                      : 'w-4 bg-white/10'
+                }`}
+              />
+            ))}
+          </div>
         </div>
-        <div className="w-10" />
+
+        <div className="w-10 h-10 flex items-center justify-center">
+          <span className="text-[9px] tracking-[0.12em] text-white/25">
+            {step}/3
+          </span>
+        </div>
       </div>
 
       {/* Step 1: Category */}
@@ -753,6 +775,7 @@ export default function AddCollectible() {
         </div>
       )}
 
+      </div>
     </div>
   );
 }
