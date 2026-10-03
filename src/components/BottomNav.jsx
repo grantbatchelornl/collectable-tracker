@@ -93,8 +93,8 @@ export default function BottomNav() {
           className="flex flex-col items-center -mt-6"
           aria-label="Scan collectible"
         >
-          <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg shadow-primary/30 ring-4 ring-background">
-            <Icon className="w-7 h-7 text-primary-foreground" />
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#e3c486] via-[#c89e52] to-[#8f692f] flex items-center justify-center shadow-[0_0_30px_rgba(216,181,112,0.28)] ring-4 ring-[#080704] border border-[#f0d594]/50">
+            <Icon className="w-7 h-7 text-[#171109]" />
           </div>
         </button>
       );
@@ -106,7 +106,9 @@ export default function BottomNav() {
         onClick={() => handleNav(item)}
         aria-label={item.label}
         className={`flex flex-col items-center gap-1 py-2 px-2 min-w-[44px] min-h-[44px] transition-colors ${
-          active ? 'text-primary' : 'text-muted-foreground'
+          active
+            ? 'text-[#e3c486]'
+            : 'text-[#8f8778] hover:text-[#c9bda7]'
         }`}
       >
         <Icon className="w-5 h-5" />
@@ -116,7 +118,7 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-lg border-t border-border safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#080704]/92 backdrop-blur-2xl border-t border-[#d8b570]/20 shadow-[0_-10px_36px_rgba(0,0,0,0.32)] safe-bottom">
       <div className="flex items-end justify-around h-16 max-w-lg md:max-w-2xl lg:max-w-4xl mx-auto px-1">
         {NAV_ITEMS.map(renderNavItem)}
       </div>

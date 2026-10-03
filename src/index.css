@@ -6,48 +6,56 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 215 28% 17%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 28% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 28% 17%;
-    --primary: 239 84% 67%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 226 100% 94%;
-    --secondary-foreground: 215 28% 17%;
-    --muted: 220 50% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 226 100% 94%;
-    --accent-foreground: 239 84% 45%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 226 80% 90%;
-    --input: 226 80% 90%;
-    --ring: 239 84% 67%;
-    --gain: 142 71% 45%;
-    --loss: 0 72% 51%;
-    --gold: 38 92% 50%;
-    --chart-1: 239 84% 67%;
-    --chart-2: 226 100% 80%;
-    --chart-3: 215 28% 17%;
-    --chart-4: 0 72% 51%;
-    --chart-5: 142 71% 45%;
-    --radius: 1rem;
-    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 28% 17%;
-    --sidebar-primary: 239 84% 67%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 226 100% 94%;
-    --sidebar-accent-foreground: 239 84% 45%;
-    --sidebar-border: 226 80% 90%;
-    --sidebar-ring: 239 84% 67%;
-  }
+    /* COLLECTABLE — Luxury Black & Champagne Gold */
+    --background: 40 18% 4%;
+    --foreground: 40 24% 93%;
 
+    --card: 40 14% 7%;
+    --card-foreground: 40 24% 93%;
+
+    --popover: 40 14% 7%;
+    --popover-foreground: 40 24% 93%;
+
+    --primary: 40 58% 64%;
+    --primary-foreground: 40 24% 8%;
+
+    --secondary: 40 13% 11%;
+    --secondary-foreground: 40 22% 88%;
+
+    --muted: 40 10% 10%;
+    --muted-foreground: 38 12% 62%;
+
+    --accent: 40 24% 14%;
+    --accent-foreground: 40 58% 72%;
+
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 40 22% 18%;
+    --input: 40 18% 16%;
+    --ring: 40 58% 64%;
+
+    --gain: 145 48% 48%;
+    --loss: 0 62% 55%;
+    --gold: 40 68% 64%;
+
+    --chart-1: 40 68% 64%;
+    --chart-2: 34 48% 50%;
+    --chart-3: 44 38% 76%;
+    --chart-4: 265 25% 66%;
+    --chart-5: 25 34% 45%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 40 16% 5%;
+    --sidebar-foreground: 40 22% 90%;
+    --sidebar-primary: 40 58% 64%;
+    --sidebar-primary-foreground: 40 24% 8%;
+    --sidebar-accent: 40 18% 12%;
+    --sidebar-accent-foreground: 40 58% 72%;
+    --sidebar-border: 40 20% 17%;
+    --sidebar-ring: 40 58% 64%;
+  }
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
